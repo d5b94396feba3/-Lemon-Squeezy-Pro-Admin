@@ -1,0 +1,119 @@
+jQuery(document).ready(function($) {
+    // 1. Handle View Transcript Modal
+    $('.view-chat-log').on('click', function() {
+        const history = $(this).data('history');
+        let html = '';
+        
+        if (history) {
+            const historyObj = (typeof history === 'string') ? JSON.parse(history) : history;
+            historyObj.forEach(msg => {
+                const isUser = msg.role === 'user';
+                const label = isUser ? 'Visitor' : 'AI Agent';
+                const style = isUser ? 'background:#f0f7ff; border-left:4px solid #2271b1;' : 'background:#f0fdf4; border-left:4px solid #16a34a;';
+                
+                html += `<div style="margin-bottom:15px; padding:12px; border-radius:8px; ${style}">
+                    <strong>${label}:</strong>
+                    <div style="margin-top:5px; white-space: pre-wrap;">${msg.content}</div>
+                </div>`;
+            });
+        }
+        
+        $('#chat-modal-content').html(html);
+        $('#chat-modal').fadeIn(200);
+    });
+
+    // 2. Handle Delete Chat History (Fixed)
+    $('.action-delete-chat').on('click', function(e) {
+        e.preventDefault();
+        if (!confirm('Delete this conversation forever?')) return;
+        
+        const btn = $(this);
+        const logId = btn.data('id');
+        
+        btn.prop('disabled', true).text('Deleting...');
+
+        $.post(adminProposalData.ajax_url, {
+            action: 'delete_chat_log',
+            id: logId,
+            nonce: adminProposalData.nonce
+        }, function(response) {
+            if (response.success) {
+                btn.closest('tr').fadeOut(400, function() { 
+                    $(this).remove(); 
+                    // Update the counter in the UI
+                    const countEl = $('.admin-stat-card h3').first();
+                    countEl.text(parseInt(countEl.text()) - 1);
+                });
+            } else {
+                alert('Error: ' + (response.data || 'Unknown error occurred'));
+                btn.prop('disabled', false).text('Delete');
+            }
+        }).fail(function() {
+            alert('Server error. Please check your connection.');
+            btn.prop('disabled', false).text('Delete');
+        });
+    });
+
+    // 3. Fix Grok Settings Form Submit
+    // This allows standard WordPress options saving while preventing double-submission
+    $('form[action="options.php"]').on('submit', function() {
+        const submitBtn = $(this).find('input[type="submit"]');
+        submitBtn.val('Saving...').prop('disabled', true);
+    });
+
+    // 4. Real-time Color Picker Update & Reset
+    const $colorInput = $('#ai_agent_primary_color_input');
+    const $colorHex   = $('#ai_agent_primary_color_hex');
+    const $colorReset = $('#reset_primary_color');
+
+    // Update hex text in real-time as user picks color
+    $colorInput.on('input', function() {
+        const selectedColor = $(this).val().toUpperCase();
+        $colorHex.text(selectedColor);
+        // Sync the preview border with the primary brand color
+        $('#ai_agent_logo_preview').css('border-color', selectedColor);
+    });
+
+    // Reset functionality
+    $colorReset.on('click', function(e) {
+        e.preventDefault();
+        const defaultColor = '#000000';
+        $colorInput.val(defaultColor);
+        $colorHex.text(defaultColor);
+        $('#ai_agent_logo_preview').css('border-color', '#f3f4f6');
+    });
+
+    // WordPress Media Uploader
+    var mediaUploader;
+    $('#ai_agent_upload_btn').on('click', function(e) {
+        e.preventDefault();
+        if (mediaUploader) { mediaUploader.open(); return; }
+
+        mediaUploader = wp.media({
+            title: 'Select Agent Logo',
+            button: { text: 'Use this Image' },
+            multiple: false
+        });
+
+        mediaUploader.on('select', function() {
+            var attachment = mediaUploader.state().get('selection').first().toJSON();
+            $('#ai_agent_logo_id').val(attachment.id);
+            $('#ai_agent_logo_preview').attr('src', attachment.url).show();
+            $('#ai_agent_remove_btn').show();
+        });
+        mediaUploader.open();
+    });
+
+    $('#ai_agent_remove_btn').on('click', function() {
+        $('#ai_agent_logo_id').val('');
+        $('#ai_agent_logo_preview').hide();
+        $(this).hide();
+    });
+
+    $('#reset-ai-settings').on('click', function(e) {
+        if (confirm('Are you sure? This will revert all Prompt, UI, and Notification settings to factory defaults. Your API Key will remain safe.')) {
+            window.location.href = window.location.href + '&action=reset_ai_agent_settings&_wpnonce=<?php echo wp_create_nonce("reset_ai_settings"); ?>';
+        }
+    });
+    
+});

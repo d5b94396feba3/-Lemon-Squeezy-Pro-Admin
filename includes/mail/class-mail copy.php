@@ -1,0 +1,73 @@
+<?php
+/**
+ * Handles all email functionality for the AI Proposal System
+ */
+
+class Plugin_Mail {
+    private $plugin_slug;
+
+    public function __construct($plugin_slug) {
+        $this->plugin_slug = $plugin_slug;
+    }
+
+    /**
+     * Send notification to admin when a new chat session starts
+     */
+    public function send_chat_notification_admin($user_message) {
+        $admin_email = get_option('ai_agent_admin_email', get_option('admin_email'));
+        $subject = 'New AI Chat Session Started - Fox Computer Solutions';
+        
+        $ip = $_SERVER['REMOTE_ADDR'];
+        $user_agent = $_SERVER['HTTP_USER_AGENT'];
+        
+        ob_start();
+        ?>
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; background: #f4f4f4; padding: 20px; border-radius: 8px; }
+                .content { background: white; padding: 20px; border-radius: 5px; border-left: 4px solid #007cba; }
+                .footer { font-size: 12px; color: #666; margin-top: 20px; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h2>New Chat Interaction Detected</h2>
+                <div class="content">
+                    <p><strong>Initial Message:</strong><br>
+                    <?php echo nl2br(esc_html($user_message)); ?></p>
+                    <hr>
+                    <p><strong>Visitor Info:</strong><br>
+                    IP: <?php echo esc_html($ip); ?><br>
+                    Browser: <?php echo esc_html($user_agent); ?></p>
+                </div>
+                <div class="footer">
+                    <p>Sent via Fox AI Assistant System on <?php echo date('Y-m-d H:i:s'); ?></p>
+                </div>
+            </div>
+        </body>
+        </html>
+        <?php
+        $message = ob_get_clean();
+
+        $headers = array(
+            'Content-Type: text/html; charset=UTF-8',
+            'From: ' . $this->get_from_header()
+        );
+
+        return wp_mail($admin_email, $subject, $message, $headers);
+    }
+
+    /**
+     * Get the from header for emails
+     */
+    private function get_from_header() {
+        $site_name = get_bloginfo('name');
+        $admin_email = get_option('admin_email');
+        
+        return "$site_name <$admin_email>";
+    }
+
+}

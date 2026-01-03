@@ -1,0 +1,192 @@
+<?php
+defined( 'ABSPATH' ) || exit;
+$active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'content';
+$page_url = admin_url('admin.php?page=' . $this->plugin_slug . '-settings');
+?>
+
+<div class="wrap ai-agent-admin-wrap">
+    <h1 class="wp-heading-inline" style="font-weight: 700; font-size: 24px; margin-bottom: 20px;">Chat Widget Configuration</h1>
+    
+    <nav class="nav-tab-wrapper">
+        <a href="<?php echo $page_url; ?>&tab=content" class="nav-tab <?php echo $active_tab === 'content' ? 'nav-tab-active' : ''; ?>">Content</a>
+        <a href="<?php echo $page_url; ?>&tab=style" class="nav-tab <?php echo $active_tab === 'style' ? 'nav-tab-active' : ''; ?>">Style</a>
+        <a href="<?php echo $page_url; ?>&tab=prompt" class="nav-tab <?php echo $active_tab === 'prompt' ? 'nav-tab-active' : ''; ?>">System Prompt</a>
+        <a href="<?php echo $page_url; ?>&tab=grok" class="nav-tab <?php echo $active_tab === 'grok' ? 'nav-tab-active' : ''; ?>">Grok Engine</a>
+        <a href="<?php echo $page_url; ?>&tab=notifications" class="nav-tab <?php echo $active_tab === 'notifications' ? 'nav-tab-active' : ''; ?>">Notifications</a>
+    </nav>
+
+    <div class="settings-container" style="margin-top: 20px;">
+        <?php if ($active_tab === 'content'): ?>
+            <form method="post" action="options.php">
+                <?php settings_fields($this->plugin_slug . '_content_settings'); ?>
+                <div class="postbox professional-box">
+                    <div class="postbox-header"><h2 class="hndle">General Content</h2></div>
+                    <div class="inside">
+                        <table class="form-table">
+                            <tr>
+                                <th scope="row"><label>Display Name</label></th>
+                                <td>
+                                    <input type="text" name="ai_agent_display_name" value="<?php echo esc_attr(get_option('ai_agent_display_name', 'AI Assistant')); ?>" class="large-text professional-input">
+                                    <p class="description">This name appears at the top of the chat window and above AI responses.</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label>Initial Welcome Message</label></th>
+                                <td>
+                                    <textarea name="ai_agent_welcome_msg" rows="3" class="large-text professional-input"><?php echo esc_textarea(get_option('ai_agent_welcome_msg', 'Hi! What can I help you with?')); ?></textarea>
+                                    <p class="description">The first message the user sees. Use new lines to create multiple chat bubbles.</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label>Message Placeholder</label></th>
+                                <td>
+                                    <input type="text" name="ai_agent_placeholder" value="<?php echo esc_attr(get_option('ai_agent_placeholder', 'Type a message...')); ?>" class="large-text professional-input">
+                                    <p class="description">The hint text shown in the input box before the user starts typing.</p>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <?php submit_button('Save Content Settings'); ?>
+            </form>
+
+        <?php elseif ($active_tab === 'style'): ?>
+            <form method="post" action="options.php">
+                <?php settings_fields($this->plugin_slug . '_style_settings'); ?>
+                <div class="postbox professional-box">
+                    <div class="postbox-header"><h2 class="hndle">Visual Appearance</h2></div>
+                    <div class="inside">
+                        <table class="form-table">
+                        <tr>
+                            <th scope="row"><label>Profile Image (Avatar)</label></th>
+                            <td>
+                                <?php $logo_id = get_option('ai_agent_logo_id'); $logo_url = $logo_id ? wp_get_attachment_url($logo_id) : ''; ?>
+                                <div id="logo-preview-wrap" style="margin-bottom: 12px;">
+                                <img id="ai_agent_logo_preview" 
+                                    src="<?php echo $logo_url ? esc_url($logo_url) : AICA_PLUGIN_URL . 'assets/images/default-avater.svg'; ?>" 
+                                    style="max-width: 80px; height: 80px; object-fit: cover; border-radius: 50%; border: 2px solid #f3f4f6; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                </div>
+                                <input type="hidden" name="ai_agent_logo_id" id="ai_agent_logo_id" value="<?php echo esc_attr($logo_id); ?>">
+                                
+                                <div style="margin-bottom: 10px;">
+                                    <button type="button" class="button button-secondary" id="ai_agent_upload_btn">Change Avatar</button>
+                                    <button type="button" class="button button-link-delete" id="ai_agent_remove_btn" style="<?php echo $logo_url ? '' : 'display:none;'; ?> margin-left: 10px;">Remove Image</button>
+                                </div>
+                                
+                                <p class="description">
+                                    JPG, PNG, and SVG up to 1MB and appropriate size for the profile image.<br>
+                                    Used as the AI icon in chat responses and optionally on the chat trigger.
+                                </p>
+                            </td>
+                        </tr>
+                            <tr>
+                                <th scope="row"><label>Chat Launcher Icon</label></th>
+                                <td>
+                                    <select name="ai_agent_bubble_icon" class="regular-text professional-input">
+                                        <option value="default" <?php selected(get_option('ai_agent_bubble_icon', 'default'), 'default'); ?>>Default Message Icon</option>
+                                        <option value="logo" <?php selected(get_option('ai_agent_bubble_icon'), 'logo'); ?>>Use Profile Image</option>
+                                    </select>
+                                    <p class="description">Select what displays on the floating button at the bottom of the screen.</p>
+                                </td>
+                            </tr>
+                            <tr>
+                            <th scope="row"><label>Primary Brand Color</label></th>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <input type="color" 
+                                        id="ai_agent_primary_color_input" 
+                                        name="ai_agent_primary_color" 
+                                        value="<?php echo esc_attr(get_option('ai_agent_primary_color', '#000000')); ?>" 
+                                        style="height:45px; width:80px; border: 1px solid #d1d5db; border-radius: 4px; cursor: pointer;">
+                                    
+                                    <code id="ai_agent_primary_color_hex" style="font-size: 14px; padding: 5px 10px;"><?php echo esc_attr(get_option('ai_agent_primary_color', '#000000')); ?></code>
+                                    
+                                    <button type="button" 
+                                            id="reset_primary_color" 
+                                            class="button button-secondary" 
+                                            title="Reset to Black" 
+                                            style="display: flex; align-items: center; justify-content: center; padding: 0 8px; height: 32px;">
+                                        <span class="dashicons dashicons-undo" style="font-size: 18px; width: 18px; height: 18px; margin-top: 0;"></span>
+                                    </button>
+                                </div>
+                                <p class="description">This color is used for the chat bubble launcher and user message backgrounds.</p>
+                            </td>
+                        </tr>
+                        </table>
+                    </div>
+                </div>
+                <?php submit_button('Save Visual Style'); ?>
+            </form>
+
+        <?php elseif ($active_tab === 'prompt'): ?>
+            <form method="post" action="options.php">
+                <?php settings_fields($this->plugin_slug . '_prompt_settings'); ?>
+                <div class="postbox professional-box">
+                    <div class="postbox-header"><h2 class="hndle">AI Persona & Behavior</h2></div>
+                    <div class="inside">
+                        <textarea name="ai_agent_system_prompt" rows="15" class="large-text professional-input" style="font-family: 'SFMono-Regular', Consolas, monospace; font-size: 13px; line-height: 1.6; background: #fafafa;"><?php echo esc_textarea(get_option('ai_agent_system_prompt', 'You are a professional IT expert...')); ?></textarea>
+                        <p class="description" style="margin-top: 15px;">Define the personality, knowledge base, and restrictions for your AI Assistant. This is the "brain" of the agent.</p>
+                    </div>
+                </div>
+                <?php submit_button('Save AI Persona'); ?>
+            </form>
+
+        <?php elseif ($active_tab === 'grok'): ?>
+            <form method="post" action="options.php">
+                <?php settings_fields($this->plugin_slug . '_grok_settings'); ?>
+                <div class="postbox professional-box">
+                    <div class="postbox-header"><h2 class="hndle">Engine Configuration (xAI)</h2></div>
+                    <div class="inside">
+                        <table class="form-table">
+                            <tr>
+                                <th scope="row"><label>xAI API Key</label></th>
+                                <td>
+                                    <input type="password" name="grok_api_key" value="<?php echo esc_attr(get_option('grok_api_key')); ?>" class="regular-text professional-input" placeholder="xai-...">
+                                    <p class="description">Obtain your API key from the x.ai console.</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label>Model Version</label></th>
+                                <td>
+                                    <select name="grok_model" class="regular-text professional-input">
+                                        <option value="grok-2-1212" <?php selected(get_option('grok_model'), 'grok-2-1212'); ?>>Grok-2 (High Intelligence)</option>
+                                        <option value="grok-4-fast-reasoning" <?php selected(get_option('grok_model'), 'grok-4-fast-reasoning'); ?>>Grok-4 Fast Reasoning (Speed Optimized)</option>
+                                    </select>
+                                    <p class="description">Choose between higher intelligence or faster response times.</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label>Creativity (Temperature)</label></th>
+                                <td>
+                                    <input type="number" name="grok_temperature" value="<?php echo esc_attr(get_option('grok_temperature', '0.7')); ?>" min="0" max="2" step="0.1" class="small-text professional-input">
+                                    <p class="description">Lower values (0.2) make the AI consistent and factual. Higher values (0.8) make it more creative.</p>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <?php submit_button('Save API Configuration'); ?>
+            </form>
+
+        <?php elseif ($active_tab === 'notifications'): ?>
+            <form method="post" action="options.php">
+                <?php settings_fields($this->plugin_slug . '_notif_settings'); ?>
+                <div class="postbox professional-box">
+                    <div class="postbox-header"><h2 class="hndle">Email Alerts</h2></div>
+                    <div class="inside">
+                        <table class="form-table">
+                            <tr>
+                                <th scope="row"><label>Admin Alert Email</label></th>
+                                <td>
+                                    <input type="email" name="ai_agent_admin_email" value="<?php echo esc_attr(get_option('ai_agent_admin_email', get_option('admin_email'))); ?>" class="regular-text professional-input">
+                                    <p class="description">The email address where the system will send conversation transcripts or lead notifications.</p>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <?php submit_button('Save Notification Settings'); ?>
+            </form>
+        <?php endif; ?>
+    </div>
+</div>

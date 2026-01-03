@@ -1,0 +1,60 @@
+<?php
+defined( 'ABSPATH' ) || exit;
+
+class AICA_Plugin_Main {
+    protected $loader;
+    protected $plugin_name;
+    protected $plugin_slug; 
+    protected $version;
+
+    public function __construct( $plugin_name, $plugin_slug, $version ) {
+        $this->plugin_name = $plugin_name;
+        $this->plugin_slug = $plugin_slug;
+        $this->version     = $version;
+
+        $this->loader = new AICA_Plugin_Loader();
+        $this->define_hooks();
+    }
+
+    private function define_hooks() {
+        // Admin hooks
+        if (is_admin()) {
+            $admin = new AICA_Plugin_Admin($this->plugin_slug, $this->version);
+            
+            // Menu and settings
+            $this->loader->add_action('admin_menu', $admin, 'add_admin_menu');
+            $this->loader->add_action('admin_init', $admin, 'register_settings');
+            
+            // Admin assets
+            $this->loader->add_action('admin_enqueue_scripts', $admin, 'enqueue_styles');
+            $this->loader->add_action('admin_enqueue_scripts', $admin, 'enqueue_scripts');
+            
+            // Admin AJAX handlers
+            $this->loader->add_action('wp_ajax_delete_chat_log', $admin, 'handle_delete_chat_ajax');
+        }
+
+        // Public hooks
+        $public = new AICA_Plugin_Public($this->plugin_slug, $this->version);
+        
+        // Public assets
+        $this->loader->add_action('wp_enqueue_scripts', $public, 'enqueue_styles');
+        $this->loader->add_action('wp_enqueue_scripts', $public, 'enqueue_scripts');
+        $this->loader->add_action( 'wp_footer', $public, 'render_chat_ui' );
+        // Shortcodes
+        $this->loader->add_shortcode('questionaire', $public, 'render_shortcode_questionaire');
+
+        // Existing hooks...
+        $this->loader->add_action( 'wp_ajax_nopriv_send_chat_message', $public, 'handle_chat_message_ajax' );
+        $this->loader->add_action( 'wp_ajax_send_chat_message', $public, 'handle_chat_message_ajax' );
+        
+    }
+
+    public function run() {
+        $this->loader->run();
+        
+        // Debug: Check if hooks are registered
+        if (WP_DEBUG) {
+            // error_log('Plugin Loader - Registered Hooks: ' . print_r($this->loader->get_hook_counts(), true));
+        }
+    }
+}
