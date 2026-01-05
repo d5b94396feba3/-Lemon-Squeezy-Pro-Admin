@@ -25,8 +25,9 @@ class AICA_Plugin_DB_Manager {
         global $wpdb;
         $clean_slug = str_replace('-', '_', sanitize_key($plugin_slug));
         $table_name = $wpdb->prefix . $clean_slug . '_chat_logs';
+        $feedback_table = $wpdb->prefix . $clean_slug . '_feedback'; // New Table
         $charset_collate = $wpdb->get_charset_collate();
-
+    
         $sql = "CREATE TABLE $table_name (
             id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
             session_id VARCHAR(255) NOT NULL,
@@ -35,9 +36,72 @@ class AICA_Plugin_DB_Manager {
             PRIMARY KEY (id),
             KEY session_id (session_id(191))
         ) $charset_collate;";
-
+    
+        // Table for storing Q&A Feedback
+        $sql_feedback = "CREATE TABLE $feedback_table (
+            id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            user_query TEXT NOT NULL,
+            ai_response TEXT NOT NULL,
+            rating VARCHAR(10) NOT NULL,
+            created_at DATETIME NOT NULL,
+            PRIMARY KEY (id)
+        ) $charset_collate;";
+    
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
         dbDelta( $sql );
+        dbDelta( $sql_feedback );
+    }
+
+    public function store_feedback($query, $response, $rating) {
+        return $this->wpdb->insert(
+            $this->wpdb->prefix . str_replace('-', '_', sanitize_key($this->plugin_slug)) . '_feedback',
+            [
+                'user_query'  => $query,
+                'ai_response' => $response,
+                'rating'      => $rating,
+                'created_at'  => current_time('mysql')
+            ]
+        );
+    }
+
+    /**
+     * Fetch positive feedback to use as examples for the AI
+     */
+    public function get_positive_feedback(int $limit = 5) {
+        $feedback_table = $this->wpdb->prefix . str_replace('-', '_', sanitize_key($this->plugin_slug)) . '_feedback';
+        
+        // Safety check to ensure table exists
+        if($this->wpdb->get_var("SHOW TABLES LIKE '$feedback_table'") != $feedback_table) {
+            return [];
+        }
+
+        return $this->wpdb->get_results(
+            $this->wpdb->prepare(
+                "SELECT user_query, ai_response FROM $feedback_table WHERE rating = 'like' ORDER BY created_at DESC LIMIT %d",
+                $limit
+            ),
+            ARRAY_A
+        );
+    }
+
+    /**
+     * Fetch feedback by rating type
+     */
+    public function get_feedback_by_type(string $rating, int $limit = 5) {
+        $feedback_table = $this->wpdb->prefix . str_replace('-', '_', sanitize_key($this->plugin_slug)) . '_feedback';
+        
+        if($this->wpdb->get_var("SHOW TABLES LIKE '$feedback_table'") != $feedback_table) {
+            return [];
+        }
+
+        return $this->wpdb->get_results(
+            $this->wpdb->prepare(
+                "SELECT user_query, ai_response FROM $feedback_table WHERE rating = %s ORDER BY created_at DESC LIMIT %d",
+                $rating,
+                $limit
+            ),
+            ARRAY_A
+        );
     }
 
     /**
@@ -78,6 +142,19 @@ class AICA_Plugin_DB_Manager {
 
     public function delete_chat_log($id) {
         return $this->wpdb->delete($this->table_chat_logs, array('id' => $id), array('%d'));
+    }
+
+    /**
+     * Fetch logs for export (single or all)
+     */
+    public function get_logs_for_export($id = 0) {
+        if ($id > 0) {
+            return $this->wpdb->get_results(
+                $this->wpdb->prepare("SELECT * FROM {$this->table_chat_logs} WHERE id = %d", $id), 
+                ARRAY_A
+            );
+        }
+        return $this->get_all_chat_logs();
     }
 
 }

@@ -1,7 +1,6 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
-// Get data from the class instance ($this refers to Plugin_Admin)
 $chat_logs = $this->get_all_chat_logs(); 
 $stats     = $this->get_chat_stats();
 $total_chats = isset($stats['total']) ? $stats['total'] : 0;
@@ -44,9 +43,14 @@ $display_logs = $view_all ? $chat_logs : array_slice($chat_logs, 0, 10);
     <div class="admin-proposals-table" style="margin-top: 30px; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h2 style="margin: 0;">Recent Conversations</h2>
-            <?php if (count($chat_logs) > 10 && !$view_all): ?>
-                <a href="?page=<?php echo $this->plugin_slug; ?>&view=all" class="button">View All History</a>
-            <?php endif; ?>
+            <div style="display: flex; gap: 10px;">
+                <button class="button button-secondary action-export-chat" data-id="0">
+                    <i class="dashicons dashicons-download" style="vertical-align: middle; margin-top: -3px;"></i> Export All to CSV
+                </button>
+                <?php if (count($chat_logs) > 10 && !$view_all): ?>
+                    <a href="?page=<?php echo $this->plugin_slug; ?>&view=all" class="button">View All History</a>
+                <?php endif; ?>
+            </div>
         </div>
         
         <table class="wp-list-table widefat fixed striped">
@@ -75,8 +79,19 @@ $display_logs = $view_all ? $chat_logs : array_slice($chat_logs, 0, 10);
                             </td>
                             <td><?php echo date('M j, Y - g:i A', strtotime($log['last_updated'])); ?></td>
                             <td style="text-align: right;">
-                                <button class="button view-chat-log" data-history='<?php echo esc_attr($log['full_history']); ?>'>View Transcript</button>
-                                <button class="button action-delete-chat" data-id="<?php echo $log['id']; ?>" style="color: #d63638; border-color: #d63638;">Delete</button>
+                                <div style="display: flex; gap: 8px; justify-content: flex-end; align-items: center;">
+                                    <button class="button view-chat-log" data-history='<?php echo esc_attr($log['full_history']); ?>' title="View">
+                                        <i class="dashicons dashicons-visibility" style="margin-top:4px;"></i>
+                                    </button>
+
+                                    <button class="button action-export-chat" data-id="<?php echo $log['id']; ?>" title="Export CSV">
+                                        <i class="dashicons dashicons-download" style="margin-top:4px;"></i>
+                                    </button>
+
+                                    <button class="button action-delete-chat" data-id="<?php echo $log['id']; ?>" style="color: #d63638; border-color: #d63638;" title="Delete">
+                                        <i class="dashicons dashicons-trash" style="margin-top:4px;"></i>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     <?php endforeach; ?>

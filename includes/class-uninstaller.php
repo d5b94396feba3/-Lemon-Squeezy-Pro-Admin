@@ -20,34 +20,42 @@ class AICA_Plugin_Uninstaller {
     }
 
     /**
-     * Drop the database table when plugin is uninstalled
+     * Drop the database tables when plugin is uninstalled, including _chat_logs and _feedback tables.
      */
     private static function drop_database_table( $plugin_slug ) {
         global $wpdb;
-        
-        // Generate the table name exactly how it was created
+
+        // Generate clean slug part used in table creation (see class-db-manager.php)
         $clean_slug_part = sanitize_key( $plugin_slug );
-        $final_slug_part = str_replace('-', '_', $clean_slug_part); 
-        $table_name = $wpdb->prefix . $final_slug_part . '_chat_logs';
-        
-        // Check if table exists before trying to drop it
-        $table_exists = $wpdb->get_var( $wpdb->prepare(
-            "SHOW TABLES LIKE %s", 
-            $table_name
-        ) );
-        
-        if ( $table_exists ) {
-            // Drop the table using WordPress database functions
-            $sql = "DROP TABLE IF EXISTS `$table_name`";
-            $result = $wpdb->query( $sql );
-            
-            if ( $result !== false ) {
-                error_log( "AI Chat Agent: Successfully dropped table {$table_name}" );
+        $final_slug_part = str_replace('-', '_', $clean_slug_part);
+
+        // Get both table names
+        $chat_logs_table = $wpdb->prefix . $final_slug_part . '_chat_logs';
+        $feedback_table  = $wpdb->prefix . $final_slug_part . '_feedback';
+
+        // Tables to drop
+        $tables = array( $chat_logs_table, $feedback_table );
+
+        foreach ( $tables as $table_name ) {
+            // Check if table exists before trying to drop it
+            $table_exists = $wpdb->get_var( $wpdb->prepare(
+                "SHOW TABLES LIKE %s",
+                $table_name
+            ) );
+
+            if ( $table_exists ) {
+                // Drop the table using WordPress database functions
+                $sql = "DROP TABLE IF EXISTS `$table_name`";
+                $result = $wpdb->query( $sql );
+
+                if ( $result !== false ) {
+                    error_log( "AI Chat Agent: Successfully dropped table {$table_name}" );
+                } else {
+                    error_log( "AI Chat Agent: Failed to drop table {$table_name} - " . $wpdb->last_error );
+                }
             } else {
-                error_log( "AI Chat Agent: Failed to drop table {$table_name} - " . $wpdb->last_error );
+                error_log( "AI Chat Agent: Table {$table_name} does not exist, skipping drop." );
             }
-        } else {
-            error_log( "AI Chat Agent: Table {$table_name} does not exist, skipping drop." );
         }
     }
 

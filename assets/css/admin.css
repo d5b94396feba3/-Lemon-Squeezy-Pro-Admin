@@ -1314,3 +1314,19 @@ button#generate-proposal-btn
     color: #d63638; 
     border-color: #d63638;
 }
+
+.admin-proposals-table .button-secondary i {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+}
+
+/* Modal formatting for the transcript view */
+#chat-modal-content strong {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}

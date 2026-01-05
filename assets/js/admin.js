@@ -115,5 +115,47 @@ jQuery(document).ready(function($) {
             window.location.href = window.location.href + '&action=reset_ai_agent_settings&_wpnonce=<?php echo wp_create_nonce("reset_ai_settings"); ?>';
         }
     });
+
+    $(document).on('click', '.action-export-chat', function(e) {
+        e.preventDefault();
+        const $btn = $(this);
+        const logId = $btn.attr('data-id');
+        const $icon = $btn.find('.dashicons');
+    
+        $btn.prop('disabled', true).css('opacity', '0.5');
+        $icon.addClass('spin');
+    
+        $.ajax({
+            type: 'POST',
+            url: adminProposalData.ajax_url,
+            data: {
+                action: 'export_chat_log',
+                id: logId,
+                nonce: adminProposalData.nonce
+            },
+            success: function(response) {
+                $btn.prop('disabled', false).css('opacity', '1');
+                $icon.removeClass('spin');
+    
+                if (response.success) {
+                    const blob = new Blob([response.data.csv_data], { type: 'text/csv;charset=utf-8;' });
+                    const link = document.createElement("a");
+                    link.href = URL.createObjectURL(blob);
+                    link.download = response.data.filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                } else {
+                    alert('Error: ' + response.data);
+                }
+            },
+            error: function(xhr) {
+                $btn.prop('disabled', false).css('opacity', '1');
+                $icon.removeClass('spin');
+                console.error('CRITICAL ERROR LOG:', xhr.responseText);
+                alert('A system error occurred. Check the browser console.');
+            }
+        });
+    });
     
 });

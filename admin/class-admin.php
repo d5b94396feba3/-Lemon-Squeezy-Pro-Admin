@@ -124,6 +124,58 @@ class AICA_Plugin_Admin {
         }
     }
 
+
+    public function handle_export_chat_ajax() {
+        // 1. Force clear output buffers
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+
+        check_ajax_referer('admin_proposal_nonce', 'nonce');
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+
+        $log_id = isset($_POST['id']) ? intval($_POST['id']) : 0;
+        
+        // Call the DB Manager
+        $db = $this->get_db_manager();
+        $logs = $db->get_logs_for_export($log_id);
+
+        if (empty($logs)) {
+            wp_send_json_error('No logs found.');
+        }
+
+        // 2. Generate CSV String
+        ob_start();
+        $df = fopen("php://output", 'w');
+        fprintf($df, chr(0xEF).chr(0xBB).chr(0xBF)); // UTF-8 BOM
+        
+        fputcsv($df, array('ID', 'Date', 'Transcript'));
+
+        foreach ($logs as $l) {
+            $history = json_decode($l['full_history'], true);
+            $transcript = "";
+            if (is_array($history)) {
+                foreach ($history as $msg) {
+                    $role = ($msg['role'] === 'user') ? 'Visitor' : 'AI Agent';
+                    $clean_content = str_replace(array("\r", "\n", '"'), array(" ", " ", "'"), $msg['content']);
+                    $transcript .= "[$role]: " . $clean_content . " | ";
+                }
+            }
+            fputcsv($df, array($l['id'], $l['last_updated'], trim($transcript)));
+        }
+        
+        fclose($df);
+        $csv_data = ob_get_clean();
+
+        wp_send_json_success(array(
+            'csv_data' => $csv_data,
+            'filename' => 'chat-export-' . ($log_id ? 'id-' . $log_id : 'all') . '-' . date('Y-m-d') . '.csv'
+        ));
+    }
+
+
     /**
      * Display admin dashboard
      */

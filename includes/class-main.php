@@ -24,13 +24,15 @@ class AICA_Plugin_Main {
             // Menu and settings
             $this->loader->add_action('admin_menu', $admin, 'add_admin_menu');
             $this->loader->add_action('admin_init', $admin, 'register_settings');
-            
+
             // Admin assets
             $this->loader->add_action('admin_enqueue_scripts', $admin, 'enqueue_styles');
             $this->loader->add_action('admin_enqueue_scripts', $admin, 'enqueue_scripts');
             
             // Admin AJAX handlers
             $this->loader->add_action('wp_ajax_delete_chat_log', $admin, 'handle_delete_chat_ajax');
+            // Inside define_hooks() in class-main.php
+            $this->loader->add_action('wp_ajax_export_chat_log', $admin, 'handle_export_chat_ajax');        
         }
 
         // Public hooks
@@ -40,13 +42,22 @@ class AICA_Plugin_Main {
         $this->loader->add_action('wp_enqueue_scripts', $public, 'enqueue_styles');
         $this->loader->add_action('wp_enqueue_scripts', $public, 'enqueue_scripts');
         $this->loader->add_action( 'wp_footer', $public, 'render_chat_ui' );
-        // Shortcodes
-        $this->loader->add_shortcode('questionaire', $public, 'render_shortcode_questionaire');
 
         // Existing hooks...
         $this->loader->add_action( 'wp_ajax_nopriv_send_chat_message', $public, 'handle_chat_message_ajax' );
         $this->loader->add_action( 'wp_ajax_send_chat_message', $public, 'handle_chat_message_ajax' );
-        
+
+        $this->loader->add_action( 'wp_ajax_nopriv_submit_chat_feedback', $public, 'handle_chat_feedback_ajax' );
+        $this->loader->add_action( 'wp_ajax_submit_chat_feedback', $public, 'handle_chat_feedback_ajax' );
+
+        $this->loader->add_action( 'wp_ajax_nopriv_clear_chat_history', $public, 'handle_clear_chat_ajax' );
+        $this->loader->add_action( 'wp_ajax_clear_chat_history', $public, 'handle_clear_chat_ajax' );
+
+        $this->loader->add_action( 'wp_ajax_nopriv_end_chat_session', $public, 'handle_end_chat_ajax' );
+        $this->loader->add_action( 'wp_ajax_end_chat_session', $public, 'handle_end_chat_ajax' );
+
+        $this->loader->add_action('wp_ajax_nopriv_get_recent_chats', $public, 'handle_fetch_recent_chats');
+        $this->loader->add_action('wp_ajax_get_recent_chats', $public, 'handle_fetch_recent_chats');
     }
 
     public function run() {

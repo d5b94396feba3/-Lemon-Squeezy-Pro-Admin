@@ -14,25 +14,47 @@ class AICA_Plugin_LLM_Processor {
         $this->system_instruction = get_option('ai_agent_system_prompt', 'You are FOX AI Assistant...');
     }
 
-    /**
-     * Modified to accept history array
-     */
     public function get_llm_response(string $user_query, array $history = []): string {
-
-        // $system_instruction = "You are FOX AI Assistant, a professional IT expert. Answer the user's questions clearly and concisely. If they ask about services, refer to our IT management packages.";
         $system_instruction = $this->system_instruction;
-
         $system_instruction_path = AICA_PLUGIN_PATH . 'includes/prompts/llm-system-instruction-core.php';
 
         if ( ! file_exists( $system_instruction_path ) ) {
             return "Error: Internal configuration file missing. Cannot process response.";
         }
         
-        $core_system_instruction = require( $system_instruction_path);
-
-        error_log("core_system_instruction: ". $core_system_instruction);
+        $core_system_instruction = require( $system_instruction_path );
         
-        $system_instruction = $this->system_instruction . "\n\n" . $core_system_instruction;
+        // --- START FEEDBACK INJECTION ---
+        $db_manager = new AICA_Plugin_DB_Manager($this->plugin_slug);
+        $liked_examples = $db_manager->get_feedback_by_type('like', 3);
+        $disliked_examples = $db_manager->get_feedback_by_type('dislike', 3);
+        
+        $feedback_context = "";
+
+        // 1. Positive Reinforcement
+        if (!empty($liked_examples)) {
+            $feedback_context .= "\n\n### POSITIVE EXAMPLES (FOLLOW THIS STYLE):";
+            // This line logs positive feedback examples for debugging. 
+            // Remove or comment out for production use. 
+            error_log("feedback_context:: ".print_r($liked_examples, true));
+            foreach ($liked_examples as $example) {
+                $feedback_context .= "\nUser: " . $example['user_query'];
+                $feedback_context .= "\nSuccessful Response: " . $example['ai_response'] . "\n---";
+            }
+        }
+
+        // 2. Negative Constraints (Crucial for learning)
+        if (!empty($disliked_examples)) {
+            $feedback_context .= "\n\n### NEGATIVE EXAMPLES (AVOID THESE MISTAKES):";
+            foreach ($disliked_examples as $example) {
+                $feedback_context .= "\nUser: " . $example['user_query'];
+                $feedback_context .= "\nRejected Response: " . $example['ai_response'];
+                $feedback_context .= "\nReason: The user found this unhelpful or incorrect. Do not repeat this approach.\n---";
+            }
+        }
+        // --- END FEEDBACK INJECTION ---
+
+        $system_instruction = $this->system_instruction . "\n\n" . $core_system_instruction . $feedback_context;
 
         return $this->llm_api_v2($system_instruction, $user_query, $history);
     }
@@ -51,7 +73,6 @@ class AICA_Plugin_LLM_Processor {
         $messages[] = ['role' => 'system', 'content' => $system_instruction];
 
         // If history exists, we use it. 
-        // If history is empty (first message), we just use the user_query.
         if (!empty($history)) {
             foreach ($history as $msg) {
                 $messages[] = [

@@ -61,6 +61,54 @@ class AICA_Plugin_Mail {
     }
 
     /**
+     * Send the final full transcript to admin when chat ends
+     */
+    public function send_final_transcript_admin($history) {
+        $admin_email = get_option('ai_agent_admin_email', get_option('admin_email'));
+        $subject = 'Chat Ended: Full Transcript - Fox Computer Solutions';
+        
+        $transcript_html = "";
+        foreach($history as $msg) {
+            $label = ($msg['role'] === 'user') ? 'Visitor' : 'AI Assistant';
+            $transcript_html .= "<p><strong>{$label}:</strong><br>" . nl2br(esc_html($msg['content'])) . "</p><hr style='border:0;border-top:1px solid #eee;'>";
+        }
+
+        ob_start();
+        ?>
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; background: #f4f4f4; padding: 20px; border-radius: 8px; }
+                .content { background: white; padding: 20px; border-radius: 5px; border-left: 4px solid #ea580c; }
+                .footer { font-size: 11px; color: #999; margin-top: 20px; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h2>Final Conversation Transcript</h2>
+                <div class="content">
+                    <?php echo $transcript_html; ?>
+                </div>
+                <div class="footer">
+                    <p>Session ended at <?php echo date('Y-m-d H:i:s'); ?> | IP: <?php echo esc_html($_SERVER['REMOTE_ADDR']); ?></p>
+                </div>
+            </div>
+        </body>
+        </html>
+        <?php
+        $message = ob_get_clean();
+
+        $headers = array(
+            'Content-Type: text/html; charset=UTF-8',
+            'From: ' . $this->get_from_header()
+        );
+
+        return wp_mail($admin_email, $subject, $message, $headers);
+    }
+
+    /**
      * Get the from header for emails
      */
     private function get_from_header() {
