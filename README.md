@@ -191,3 +191,4 @@ All class names, constants, and prefixes will automatically adjust to your new p
 ## 📝 License
 
 This project is licensed under the GPL-2.0+ License - see the GPL v2 license for details.
+# ai-chat-agent
