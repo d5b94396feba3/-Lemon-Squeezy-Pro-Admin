@@ -59,27 +59,136 @@ class AICA_Plugin_LLM_Processor {
         return $this->llm_api_v2($system_instruction, $user_query, $history);
     }
 
-    public function llm_api_v2($system_instruction, $user_query, $history = []) {
+    /**
+     * Extract text using the manually loaded Smalot library
+     */
+    private function extract_text_from_pdf($filename) {
+        if (!file_exists($filename)) {
+            return "";
+        }
+    
+        try {
+            // Instantiate using the full Smalot namespace
+            $parser = new \Smalot\PdfParser\Parser();
+            $pdf    = $parser->parseFile($filename);
+            
+            $text   = $pdf->getText();
+            
+            // Clean up whitespace for better LLM processing
+            $text = preg_replace('/[ \t]+/', ' ', $text);
+            $text = preg_replace('/\n\s*\n/', "\n", $text);
+            
+            return mb_convert_encoding($text, 'UTF-8', 'UTF-8');
+        } catch (\Exception $e) {
+            error_log("AICA PDF Parse Error: " . $e->getMessage());
+            return "Note: The attached PDF knowledge base could not be parsed.";
+        }
+    }
 
-        $api_key = GROK_API_KEY;
-        // Note: Ensure model name is correct (e.g., 'grok-beta' or 'grok-2')
-        $model = get_option('grok_model', 'grok-beta'); 
+/**
+     * Brute Force DOCX Extraction
+     * No namespaces, no DOMDocument, just raw XML tag ripping.
+     */
+    private function extract_text_from_docx($filename) {
+        if (!file_exists($filename) || !class_exists('ZipArchive')) return "";
+
+        $zip = new ZipArchive;
+        $full_text = "";
+
+        if ($zip->open($filename) === true) {
+            // Get the raw XML content
+            $xml_content = $zip->getFromName('word/document.xml');
+            $zip->close();
+
+            if (!$xml_content) return "";
+
+            // 1. Replace paragraph/column breaks with newlines so text doesn't bunch up
+            $xml_content = str_replace(['</w:p>', '</w:br>', '</w:tab>'], "\n", $xml_content);
+
+            // 2. Brutally strip every single XML tag
+            $full_text = strip_tags($xml_content);
+
+            // 3. Decode HTML entities (Word loves these)
+            $full_text = html_entity_decode($full_text);
+        }
+
+        // 4. Clean up the mess (remove multiple spaces/newlines)
+        $full_text = preg_replace('/[ \t]+/', ' ', $full_text);
+        $full_text = preg_replace('/\n\s*\n/', "\n", $full_text);
+
+        return mb_convert_encoding(trim($full_text), 'UTF-8', 'UTF-8');
+    }
+
+    public function llm_api_v2($system_instruction, $user_query, $history = []): string {
+        $api_key = get_option('grok_api_key');
+        // IMPORTANT: Use a vision-capable model if sending images
+        $model = get_option('grok_model', 'grok-2-1212'); 
         $temperature = floatval(get_option('grok_temperature', '0.7'));
+
+        if (empty($api_key)) {
+            return "Error: Grok API Key is missing in settings.";
+        }
+
+        $file_id = get_option('ai_agent_knowledge_file_id');
+        $file_context = "";
+        $image_data = null;
+
+        if ($file_id) {
+            $file_path = get_attached_file($file_id);
+            $mime_type = get_post_mime_type($file_id);
+
+            error_log("file_path: " . $file_path);
+            error_log("mime_type: " . $mime_type);
+
+            // 1. Handle Vision (Images)
+            if (strpos($mime_type, 'image') !== false && strpos($model, 'vision') !== false) {
+                if (file_exists($file_path)) {
+                    $image_base64 = base64_encode(file_get_contents($file_path));
+                    $image_data = "data:$mime_type;base64,$image_base64";
+                }
+            } 
+            // 2. Handle Documents (PDF, DOCX, TXT)
+            else if (file_exists($file_path)) {
+                $extracted_text = "";
+                
+                if ($mime_type === 'application/pdf') {
+                    $extracted_text = $this->extract_text_from_pdf($file_path);
+                } 
+                elseif ($mime_type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+                    $extracted_text = $this->extract_text_from_docx($file_path);
+                    
+                    // Debug Log
+                    error_log("AICA DOCX Extracted Length: " . strlen($extracted_text));
+                    if (empty($extracted_text)) {
+                        error_log("AICA Warning: DOCX extraction returned empty string.");
+                    }
+                }
+                else {
+                    $extracted_text = file_get_contents($file_path);
+                }
+
+                $file_context = "\n\n### KNOWLEDGE BASE CONTENT:\n" . mb_convert_encoding($extracted_text, 'UTF-8', 'UTF-8');
+            }
+        }
 
         $api_url = "https://api.x.ai/v1/chat/completions";
 
-        // Build the messages payload
         $messages = [];
-        $messages[] = ['role' => 'system', 'content' => $system_instruction];
+        $messages[] = ['role' => 'system', 'content' => $system_instruction . $file_context];
 
-        // If history exists, we use it. 
-        if (!empty($history)) {
-            foreach ($history as $msg) {
-                $messages[] = [
-                    'role'    => $msg['role'],
-                    'content' => $msg['content']
-                ];
-            }
+        foreach ($history as $msg) {
+            $role = ($msg['role'] === 'assistant' || $msg['role'] === 'ai') ? 'assistant' : 'user';
+            $messages[] = ['role' => $role, 'content' => $msg['content']];
+        }
+
+        if ($image_data) {
+            $messages[] = [
+                'role' => 'user',
+                'content' => [
+                    ['type' => 'text', 'text' => $user_query],
+                    ['type' => 'image_url', 'image_url' => ['url' => $image_data, 'detail' => 'auto']]
+                ]
+            ];
         } else {
             $messages[] = ['role' => 'user', 'content' => $user_query];
         }
@@ -87,22 +196,25 @@ class AICA_Plugin_LLM_Processor {
         $payload = [
             'messages'    => $messages,
             'model'       => $model,
-            'stream'      => false,
             'temperature' => $temperature,
+            'stream'      => false
         ];
 
-        if (defined('GROK_API_KEY') && empty(GROK_API_KEY)) {
-            return "Error: Grok API Key is missing.";
+        // SAFE JSON ENCODING
+        $json_body = json_encode($payload);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            error_log("Grok JSON Encode Error: " . json_last_error_msg());
+            return "Error: Could not encode request payload. Check file encoding.";
         }
-        
+
         $response = wp_remote_post($api_url, [
             'method'    => 'POST',
             'headers'   => [
                 'Content-Type'  => 'application/json',
                 'Authorization' => 'Bearer ' . $api_key, 
             ],
-            'body'      => json_encode($payload),
-            'timeout'   => 120, 
+            'body'      => $json_body,
+            'timeout'   => 100, 
         ]);
 
         if (is_wp_error($response)) {
@@ -116,8 +228,8 @@ class AICA_Plugin_LLM_Processor {
             return "Error: " . ($result['error']['message'] ?? 'Unknown API error.');
         }
 
-        $generated_content = $result['choices'][0]['message']['content'] ?? "Error: No response.";
-        return $this->extract_content($generated_content);
+        $content = $result['choices'][0]['message']['content'] ?? "Error: No response from Grok.";
+        return is_array($content) ? json_encode($content) : (string)$content;
     }
 
     /**

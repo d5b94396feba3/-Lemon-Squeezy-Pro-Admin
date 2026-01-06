@@ -118,20 +118,41 @@ $page_url = admin_url('admin.php?page=' . $this->plugin_slug . '-settings');
                 <?php submit_button('Save Visual Style'); ?>
             </form>
 
-        <?php elseif ($active_tab === 'prompt'): ?>
+            <?php elseif ($active_tab === 'prompt'): ?>
             <form method="post" action="options.php">
                 <?php settings_fields($this->plugin_slug . '_prompt_settings'); ?>
                 <div class="postbox professional-box">
-                    <div class="postbox-header"><h2 class="hndle">AI Persona & Behavior</h2></div>
+                    <div class="postbox-header"><h2 class="hndle">AI Persona & Knowledge Base</h2></div>
                     <div class="inside">
-                        <textarea name="ai_agent_system_prompt" rows="15" class="large-text professional-input" style="font-family: 'SFMono-Regular', Consolas, monospace; font-size: 13px; line-height: 1.6; background: #fafafa;"><?php echo esc_textarea(get_option('ai_agent_system_prompt', 'You are a professional IT expert...')); ?></textarea>
-                        <p class="description" style="margin-top: 15px;">Define the personality, knowledge base, and restrictions for your AI Assistant. This is the "brain" of the agent.</p>
+                        <div style="margin-bottom: 20px; padding: 0 10px;">
+                            <label style="font-weight: 600; display: block; margin-bottom: 8px;">Core System Instructions</label>
+                            <textarea name="ai_agent_system_prompt" rows="12" class="large-text professional-input" style="font-family: 'SFMono-Regular', Consolas, monospace; font-size: 13px; line-height: 1.6; background: #fafafa;"><?php echo esc_textarea(get_option('ai_agent_system_prompt', 'You are a professional IT expert...')); ?></textarea>
+                        </div>
+
+                        <div style="padding: 20px 10px; border-top: 1px solid #f3f4f6; background: #f9fafb;">
+                            <label style="font-weight: 600; display: block; margin-bottom: 8px;">Knowledge Base File (PDF, DOCX, TXT, or Image)</label>
+                            <?php 
+                            $file_id = get_option('ai_agent_knowledge_file_id');
+                            $file_url = $file_id ? wp_get_attachment_url($file_id) : '';
+                            $file_name = $file_id ? basename($file_url) : '';
+                            ?>
+                            <div class="file-upload-wrapper" style="display: flex; align-items: center; gap: 15px;">
+                                <input type="hidden" name="ai_agent_knowledge_file_id" id="ai_agent_knowledge_file_id" value="<?php echo esc_attr($file_id); ?>">
+                                <button type="button" class="button button-secondary" id="ai_agent_file_upload_btn">
+                                    <span class="dashicons dashicons-upload" style="margin-top: 4px; margin-right: 5px;"></span> 
+                                    <?php echo $file_id ? 'Replace File' : 'Upload Knowledge File'; ?>
+                                </button>
+                                <span id="file-name-display" style="font-size: 13px; color: #1e3a8a; font-weight: 500;"><?php echo esc_html($file_name); ?></span>
+                                <button type="button" class="button-link-delete" id="ai_agent_file_remove_btn" style="<?php echo $file_id ? '' : 'display:none;'; ?> color: #dc3232;">Remove</button>
+                            </div>
+                            <p class="description" style="margin-top: 10px;">Upload a document (PDF/DOCX/TXT) or image. The system will extract text from documents to provide context to Grok.</p>
+                        </div>
                     </div>
                 </div>
-                <?php submit_button('Save AI Persona'); ?>
+                <?php submit_button('Save AI Persona & Knowledge'); ?>
             </form>
 
-        <?php elseif ($active_tab === 'grok'): ?>
+            <?php elseif ($active_tab === 'grok'): ?>
             <form method="post" action="options.php">
                 <?php settings_fields($this->plugin_slug . '_grok_settings'); ?>
                 <div class="postbox professional-box">
@@ -149,10 +170,12 @@ $page_url = admin_url('admin.php?page=' . $this->plugin_slug . '-settings');
                                 <th scope="row"><label>Model Version</label></th>
                                 <td>
                                     <select name="grok_model" class="regular-text professional-input">
+                                        <option value="grok-2-vision-1212" <?php selected(get_option('grok_model'), 'grok-2-vision-1212'); ?>>Grok-2 Vision (Intelligence + Image Support)</option>
+                                        
                                         <option value="grok-2-1212" <?php selected(get_option('grok_model'), 'grok-2-1212'); ?>>Grok-2 (High Intelligence)</option>
                                         <option value="grok-4-fast-reasoning" <?php selected(get_option('grok_model'), 'grok-4-fast-reasoning'); ?>>Grok-4 Fast Reasoning (Speed Optimized)</option>
                                     </select>
-                                    <p class="description">Choose between higher intelligence or faster response times.</p>
+                                    <p class="description">Select <strong>Grok-2 Vision</strong> if you want the AI to analyze uploaded images in the System Prompt.</p>
                                 </td>
                             </tr>
                             <tr>

@@ -73,7 +73,8 @@ class AICA_Plugin_Admin {
         register_setting($this->plugin_slug . '_grok_settings', 'grok_api_key');
         register_setting($this->plugin_slug . '_grok_settings', 'grok_model');
         register_setting($this->plugin_slug . '_grok_settings', 'grok_temperature');
-    
+        register_setting($this->plugin_slug . '_prompt_settings', 'ai_agent_knowledge_file_id');
+
         // 5. Notifications Tab Settings
         register_setting($this->plugin_slug . '_notif_settings', 'ai_agent_admin_email');
     }

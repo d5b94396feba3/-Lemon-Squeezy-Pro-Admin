@@ -157,5 +157,34 @@ jQuery(document).ready(function($) {
             }
         });
     });
+
+    // Knowledge File Uploader
+    var fileUploader;
+    $('#ai_agent_file_upload_btn').on('click', function(e) {
+        e.preventDefault();
+        if (fileUploader) { fileUploader.open(); return; }
+
+        fileUploader = wp.media({
+            title: 'Upload Knowledge Base File',
+            button: { text: 'Use this File' },
+            multiple: false
+        });
+
+        fileUploader.on('select', function() {
+            var attachment = fileUploader.state().get('selection').first().toJSON();
+            $('#ai_agent_knowledge_file_id').val(attachment.id);
+            $('#file-name-display').text(attachment.filename);
+            $('#ai_agent_file_remove_btn').show();
+            $('#ai_agent_file_upload_btn').text('Replace File');
+        });
+        fileUploader.open();
+    });
+
+    $('#ai_agent_file_remove_btn').on('click', function() {
+        $('#ai_agent_knowledge_file_id').val('');
+        $('#file-name-display').text('');
+        $(this).hide();
+        $('#ai_agent_file_upload_btn').text('Upload Knowledge File');
+    });
     
 });

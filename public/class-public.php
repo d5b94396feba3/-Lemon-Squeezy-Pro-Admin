@@ -246,7 +246,7 @@ class AICA_Plugin_Public {
         wp_enqueue_style( $this->plugin_slug . '-public',  AICA_PLUGIN_URL . 'assets/css/public.css', array(), $this->version, 'all' );
     }
 
-    public function enqueue_scripts() {
+    public function enqueue_scripts_old() {
         wp_enqueue_script( $this->plugin_slug . '-public', AICA_PLUGIN_URL . 'assets/js/public.js', array('jquery'), $this->version, true );
         wp_localize_script(
             $this->plugin_slug . '-public',
@@ -256,5 +256,21 @@ class AICA_Plugin_Public {
                 'nonce'    => wp_create_nonce('chat_message_action'),
             )
         );
+    }
+
+    public function enqueue_scripts() {
+        $js_path = AICA_PLUGIN_URL . 'assets/js/';
+        $ver = $this->version;
+    
+        // Register & Enqueue Modular Scripts
+        wp_enqueue_script($this->plugin_slug . '-core', $js_path . 'chat-core.js', array('jquery'), $ver, true);
+        wp_enqueue_script($this->plugin_slug . '-messaging', $js_path . 'chat-messaging.js', array($this->plugin_slug . '-core'), $ver, true);
+        wp_enqueue_script($this->plugin_slug . '-menu', $js_path . 'chat-menu.js', array($this->plugin_slug . '-core'), $ver, true);
+        wp_enqueue_script($this->plugin_slug . '-history', $js_path . 'chat-history.js', array($this->plugin_slug . '-core'), $ver, true);
+    
+        wp_localize_script($this->plugin_slug . '-core', 'chatData', array(
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'nonce'    => wp_create_nonce('chat_message_action'),
+        ));
     }
 }
