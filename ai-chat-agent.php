@@ -126,29 +126,3 @@ register_deactivation_hook(__FILE__, 'aica_deactivate');
 // Initialize plugin
 add_action('plugins_loaded', array('AICA_Bootstrap', 'init'));
 
-/**
- * Force Allow Word Document Uploads
- */
-function aica_allow_doc_uploads($mimes) {
-    // Standard DOCX
-    $mimes['docx'] = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-    // Legacy DOC
-    $mimes['doc']  = 'application/msword';
-    // OpenOffice/Alternative DOCX types
-    $mimes['dotx'] = 'application/vnd.openxmlformats-officedocument.wordprocessingml.template';
-    
-    return $mimes;
-}
-add_filter('upload_mimes', 'aica_allow_doc_uploads');
-
-/**
- * Fix for WordPress 5.0+ where it sometimes fails to recognize DOCX properly
- */
-add_filter('wp_check_filetype_and_ext', function($data, $file, $filename, $mimes) {
-    $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-    if ($ext === 'docx') {
-        $data['ext'] = 'docx';
-        $data['type'] = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-    }
-    return $data;
-}, 10, 4);

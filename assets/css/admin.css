@@ -1330,3 +1330,33 @@ button#generate-proposal-btn
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
+
+/* Circular Loader Animation */
+.aica-loader-circle {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #ea580c; /* Summary orange color */
+    border-radius: 50%;
+    animation: aica-spin 1s linear infinite;
+}
+
+.spin {
+    animation: aica-spin 2s linear infinite;
+}
+
+@keyframes aica-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Modal Content Styling */
+.ai-summary-wrapper {
+    animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

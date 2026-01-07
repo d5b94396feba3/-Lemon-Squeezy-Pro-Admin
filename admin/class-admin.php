@@ -176,6 +176,37 @@ class AICA_Plugin_Admin {
         ));
     }
 
+    /**
+     * AJAX handler to generate/fetch AI summary for a specific log
+     */
+    public function handle_get_chat_summary_ajax() {
+        check_ajax_referer('admin_proposal_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+
+        $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
+        
+        $db = $this->get_db_manager();
+        $log = $db->get_chat_log_by_id($id);
+
+        if (!$log || empty($log['full_history'])) {
+            wp_send_json_error('Conversation history not found.');
+        }
+
+        $history = json_decode($log['full_history'], true);
+        
+        // Call the LLM Processor (this uses the summarizer prompt we set up)
+        $summary = $this->llm_processor->get_chat_summary($history);
+
+        if (empty($summary)) {
+            wp_send_json_error('The AI was unable to generate a summary for this chat.');
+        }
+
+        wp_send_json_success($summary);
+    }
+
 
     /**
      * Display admin dashboard

@@ -145,6 +145,26 @@ class AICA_Plugin_DB_Manager {
     }
 
     /**
+     * Fetch a single chat log by its primary ID
+     * * @param int $log_id The database ID of the log
+     * @return array|null Associative array of the log data or null if not found
+     */
+    public function get_chat_log_by_id($log_id) {
+        global $wpdb;
+
+        // Standardize the table name using the plugin slug
+        $clean_slug = str_replace('-', '_', sanitize_key($this->plugin_slug));
+        $table_name = $wpdb->prefix . $clean_slug . '_chat_logs';
+
+        $query = $wpdb->prepare(
+            "SELECT * FROM $table_name WHERE id = %d LIMIT 1",
+            $log_id
+        );
+
+        return $wpdb->get_row($query, ARRAY_A);
+    }
+
+    /**
      * Fetch logs for export (single or all)
      */
     public function get_logs_for_export($id = 0) {

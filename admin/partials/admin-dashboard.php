@@ -80,6 +80,9 @@ $display_logs = $view_all ? $chat_logs : array_slice($chat_logs, 0, 10);
                             <td><?php echo date('M j, Y - g:i A', strtotime($log['last_updated'])); ?></td>
                             <td style="text-align: right;">
                                 <div style="display: flex; gap: 8px; justify-content: flex-end; align-items: center;">
+                                    <button class="button action-summarize-chat" data-id="<?php echo $log['id']; ?>" title="AI Summary" style="background: #fff7ed; color: #ea580c; border-color: #fdba74;">
+                                        <i class="dashicons dashicons-lightbulb" style="margin-top:4px;"></i>
+                                    </button>
                                     <button class="button view-chat-log" data-history='<?php echo esc_attr($log['full_history']); ?>' title="View">
                                         <i class="dashicons dashicons-visibility" style="margin-top:4px;"></i>
                                     </button>
@@ -103,8 +106,15 @@ $display_logs = $view_all ? $chat_logs : array_slice($chat_logs, 0, 10);
 
 <div id="chat-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999;">
     <div style="background:#fff; width:90%; max-width:700px; max-height:85vh; margin:40px auto; padding:25px; border-radius:12px; overflow-y:auto; position:relative; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);">
-        <h3 style="margin-top:0; border-bottom: 1px solid #eee; padding-bottom: 10px;">Conversation Transcript</h3>
+        <h3 id="chat-modal-title" style="margin-top:0; border-bottom: 1px solid #eee; padding-bottom: 10px;">Conversation Transcript</h3>
+        
+        <div id="chat-modal-loader" style="display:none; padding: 50px 0; text-align: center;">
+            <div class="aica-loader-circle"></div>
+            <p style="margin-top: 15px; color: #666; font-weight: 500; font-size: 15px;">AI is summarizing conversation...</p>
+        </div>
+
         <div id="chat-modal-content" style="margin-top: 15px;"></div>
+        
         <div style="margin-top: 25px; text-align: right; border-top: 1px solid #eee; padding-top: 15px;">
             <button onclick="jQuery('#chat-modal').hide()" class="button button-primary">Close Window</button>
         </div>

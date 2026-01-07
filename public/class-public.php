@@ -161,7 +161,7 @@ class AICA_Plugin_Public {
     }
 
     /**
-     * End Chat: Sends transcript, then clears active cookie.
+     * End Chat: Generates summary, sends transcript, then clears active cookie.
      */
     public function handle_end_chat_ajax() {
         check_ajax_referer('chat_message_action', 'nonce');
@@ -171,7 +171,12 @@ class AICA_Plugin_Public {
         $history = get_transient($transient_key);
 
         if (is_array($history) && !empty($history)) {
-            $this->mail_manager->send_final_transcript_admin($history);
+            // Generate Summary
+            $llm_processor = new AICA_Plugin_LLM_Processor($this->plugin_slug);
+            $summary_html = $llm_processor->get_chat_summary($history);
+
+            // Send Email with Summary
+            $this->mail_manager->send_final_transcript_admin($history, $summary_html);
         }
 
         setcookie('aica_chat_uuid', '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN);

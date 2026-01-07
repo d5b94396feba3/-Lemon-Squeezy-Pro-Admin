@@ -186,5 +186,59 @@ jQuery(document).ready(function($) {
         $(this).hide();
         $('#ai_agent_file_upload_btn').text('Upload Knowledge File');
     });
+
+    // Handle AI Summarization Popup
+    $('.action-summarize-chat').on('click', function(e) {
+        e.preventDefault();
+        const $btn = $(this);
+        const logId = $btn.data('id');
+        const $icon = $btn.find('.dashicons');
+
+        // 1. Prepare UI
+        $btn.prop('disabled', true);
+        $icon.addClass('spin');
+        
+        // 2. Open Modal & Show Loader
+        $('#chat-modal-title').text('AI Intelligence Summary');
+        $('#chat-modal-content').hide().html(''); // Clear old content
+        $('#chat-modal-loader').show(); // Show professional loader
+        $('#chat-modal').fadeIn(200);
+
+        // 3. Request Summary from Server
+        $.post(adminProposalData.ajax_url, {
+            action: 'get_chat_summary',
+            id: logId,
+            nonce: adminProposalData.nonce
+        }, function(response) {
+            // Restore button state
+            $btn.prop('disabled', false);
+            $icon.removeClass('spin');
+            
+            // Hide Loader
+            $('#chat-modal-loader').hide();
+
+            if (response.success) {
+                const summaryHtml = `
+                    <div class="ai-summary-wrapper" style="background: #fffbeb; border: 1px solid #fef3c7; padding: 25px; border-radius: 8px;">
+                        <div style="color: #4b5563; line-height: 1.7; font-size: 15px;">
+                            ${response.data}
+                        </div>
+                    </div>
+                `;
+                $('#chat-modal-content').html(summaryHtml).fadeIn(300);
+            } else {
+                $('#chat-modal-content').html(`
+                    <div style="padding: 20px; color: #dc3232; background: #fef2f2; border-radius: 8px; border: 1px solid #fee2e2;">
+                        <strong>Error:</strong> ${response.data}
+                    </div>
+                `).show();
+            }
+        }).fail(function() {
+            $btn.prop('disabled', false);
+            $icon.removeClass('spin');
+            $('#chat-modal-loader').hide();
+            alert('Server error while generating summary.');
+        });
+    });
     
 });

@@ -10,7 +10,7 @@ $page_url = admin_url('admin.php?page=' . $this->plugin_slug . '-settings');
     <nav class="nav-tab-wrapper">
         <a href="<?php echo $page_url; ?>&tab=content" class="nav-tab <?php echo $active_tab === 'content' ? 'nav-tab-active' : ''; ?>">Content</a>
         <a href="<?php echo $page_url; ?>&tab=style" class="nav-tab <?php echo $active_tab === 'style' ? 'nav-tab-active' : ''; ?>">Style</a>
-        <a href="<?php echo $page_url; ?>&tab=prompt" class="nav-tab <?php echo $active_tab === 'prompt' ? 'nav-tab-active' : ''; ?>">System Prompt</a>
+        <a href="<?php echo $page_url; ?>&tab=prompt" class="nav-tab <?php echo $active_tab === 'prompt' ? 'nav-tab-active' : ''; ?>">Knowledge Base</a>
         <a href="<?php echo $page_url; ?>&tab=grok" class="nav-tab <?php echo $active_tab === 'grok' ? 'nav-tab-active' : ''; ?>">Grok Engine</a>
         <a href="<?php echo $page_url; ?>&tab=notifications" class="nav-tab <?php echo $active_tab === 'notifications' ? 'nav-tab-active' : ''; ?>">Notifications</a>
     </nav>
@@ -130,7 +130,7 @@ $page_url = admin_url('admin.php?page=' . $this->plugin_slug . '-settings');
                         </div>
 
                         <div style="padding: 20px 10px; border-top: 1px solid #f3f4f6; background: #f9fafb;">
-                            <label style="font-weight: 600; display: block; margin-bottom: 8px;">Knowledge Base File (PDF, DOCX, TXT, or Image)</label>
+                            <label style="font-weight: 600; display: block; margin-bottom: 8px;">Knowledge Base File (PDF, TXT, or Image)</label>
                             <?php 
                             $file_id = get_option('ai_agent_knowledge_file_id');
                             $file_url = $file_id ? wp_get_attachment_url($file_id) : '';
@@ -145,7 +145,7 @@ $page_url = admin_url('admin.php?page=' . $this->plugin_slug . '-settings');
                                 <span id="file-name-display" style="font-size: 13px; color: #1e3a8a; font-weight: 500;"><?php echo esc_html($file_name); ?></span>
                                 <button type="button" class="button-link-delete" id="ai_agent_file_remove_btn" style="<?php echo $file_id ? '' : 'display:none;'; ?> color: #dc3232;">Remove</button>
                             </div>
-                            <p class="description" style="margin-top: 10px;">Upload a document (PDF/DOCX/TXT) or image. The system will extract text from documents to provide context to Grok.</p>
+                            <p class="description" style="margin-top: 10px;">Upload a document (PDF/TXT) or image that the AI should use as a reference for all conversations. Grok will analyze this file alongside your prompt.</p>
                         </div>
                     </div>
                 </div>
