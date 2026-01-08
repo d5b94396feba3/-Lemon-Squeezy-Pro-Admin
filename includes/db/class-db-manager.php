@@ -26,6 +26,8 @@ class AICA_Plugin_DB_Manager {
         $clean_slug = str_replace('-', '_', sanitize_key($plugin_slug));
         $table_name = $wpdb->prefix . $clean_slug . '_chat_logs';
         $feedback_table = $wpdb->prefix . $clean_slug . '_feedback'; // New Table
+        $kb_table = $wpdb->prefix . $clean_slug . '_knowledge_base';
+
         $charset_collate = $wpdb->get_charset_collate();
     
         $sql = "CREATE TABLE $table_name (
@@ -46,10 +48,20 @@ class AICA_Plugin_DB_Manager {
             created_at DATETIME NOT NULL,
             PRIMARY KEY (id)
         ) $charset_collate;";
+
+        $sql_kb = "CREATE TABLE $kb_table (
+            id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            source_url VARCHAR(255) NOT NULL,
+            content LONGTEXT NOT NULL,
+            last_synced DATETIME NOT NULL,
+            PRIMARY KEY (id),
+            UNIQUE KEY source_url (source_url(191))
+        ) $charset_collate;";
     
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
         dbDelta( $sql );
         dbDelta( $sql_feedback );
+        dbDelta( $sql_kb );
     }
 
     public function store_feedback($query, $response, $rating) {
@@ -62,6 +74,34 @@ class AICA_Plugin_DB_Manager {
                 'created_at'  => current_time('mysql')
             ]
         );
+    }
+
+    public function update_knowledge_base($url, $content) {
+        global $wpdb;
+        $table = $this->get_kb_table_name();
+    
+        // Final safety trim before SQL
+        $content = trim($content);
+    
+        return $wpdb->replace(
+            $table,
+            [
+                'source_url'  => esc_url_raw($url),
+                'content'     => $content, // Already cleaned by the scraper
+                'last_synced' => current_time('mysql')
+            ],
+            ['%s', '%s', '%s']
+        );
+    }
+    
+    public function get_kb_content_as_string() {
+        $table = $this->wpdb->prefix . str_replace('-', '_', sanitize_key($this->plugin_slug)) . '_knowledge_base';
+        $results = $this->wpdb->get_results("SELECT content FROM $table", ARRAY_A);
+        $text = "";
+        foreach($results as $row) {
+            $text .= $row['content'] . "\n\n";
+        }
+        return $text;
     }
 
     /**
@@ -175,6 +215,18 @@ class AICA_Plugin_DB_Manager {
             );
         }
         return $this->get_all_chat_logs();
+    }
+
+    public function get_kb_table_name() {
+        return $this->wpdb->prefix . str_replace('-', '_', sanitize_key($this->plugin_slug)) . '_knowledge_base';
+    }
+
+    public function get_sync_status($url) {
+        $table = $this->get_kb_table_name();
+        return $this->wpdb->get_row(
+            $this->wpdb->prepare("SELECT last_synced FROM $table WHERE source_url = %s", $url),
+            ARRAY_A
+        );
     }
 
 }

@@ -207,7 +207,66 @@ class AICA_Plugin_Admin {
         wp_send_json_success($summary);
     }
 
+    public function handle_sync_website_ajax() {
+        check_ajax_referer('admin_proposal_nonce', 'nonce');
+        if (!current_user_can('manage_options')) wp_send_json_error('Unauthorized');
+    
+        $step = isset($_POST['sync_step']) ? sanitize_text_field($_POST['sync_step']) : 'discovery';
+        $db = $this->get_db_manager();
+        
+        // Initialize your scraper class
+        $scraper = new AICA_Plugin_SimpleHTMLDOM();
+    
+        if ($step === 'discovery') {
+            $posts = get_posts([
+                'post_type' => ['page', 'post'], 
+                'posts_per_page' => -1, 
+                'post_status' => 'publish'
+            ]);
+            
+            $pages = [];
 
+            $excluded_slugs = [
+                'cart', 'checkout', 'my-account', 'logout', 'login', 'register', 
+                'forgot', 'password-reset', 'change-password', 'payment-success',
+                'payment-cancelled', 'thank-you', 'sample-page'
+            ];
+            
+            foreach ($posts as $post) {
+                if (in_array($post->post_name, $excluded_slugs)) continue;
+                $url = get_permalink($post->ID);
+                $sync_data = $db->get_sync_status($url);
+                
+                $pages[] = [
+                    'url'    => $url,
+                    'title'  => $post->post_title,
+                    'status' => $sync_data ? 'Synced' : 'Pending',
+                    'last'   => $sync_data ? date_i18n(get_option('date_format'), strtotime($sync_data['last_synced'])) : '-'
+                ];
+            }
+            wp_send_json_success(['pages' => $pages]);
+        }
+    
+        if ($step === 'sync_page') {
+            $url = esc_url_raw($_POST['url']);
+            
+            // Use the SCRAPER logic, NOT wp_strip_all_tags
+            $content = $scraper->scrape_page($url);
+            
+            if (empty($content)) {
+                $content = "Page source available at " . $url . " (No text content found by scraper)";
+            }
+    
+            $db->update_knowledge_base($url, $content);
+            
+            wp_send_json_success([
+                'status' => 'Synced', 
+                'last'   => current_time('mysql')
+            ]);
+        }
+    }
+    
+    
     /**
      * Display admin dashboard
      */
@@ -278,7 +337,15 @@ class AICA_Plugin_Admin {
 
         wp_enqueue_script(
             $this->plugin_slug . '-admin',
-            AICA_PLUGIN_URL . 'assets/js/admin.js',
+            AICA_PLUGIN_URL . 'assets/js/admin/admin.js',
+            array('jquery'),
+            $this->version,
+            true
+        );
+
+        wp_enqueue_script(
+            $this->plugin_slug . '-knowledge-base',
+            AICA_PLUGIN_URL . 'assets/js/admin/knowledge-base.js',
             array('jquery'),
             $this->version,
             true
@@ -286,6 +353,15 @@ class AICA_Plugin_Admin {
 
         wp_localize_script(
             $this->plugin_slug . '-admin',
+            'adminProposalData',
+            array(
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('admin_proposal_nonce')
+            )
+        );
+
+        wp_localize_script(
+            $this->plugin_slug . '-knowledge-base',
             'adminProposalData',
             array(
                 'ajax_url' => admin_url('admin-ajax.php'),

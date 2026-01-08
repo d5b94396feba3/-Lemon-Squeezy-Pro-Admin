@@ -34,6 +34,9 @@ class AICA_Plugin_Main {
             // Inside define_hooks() in class-main.php
             $this->loader->add_action('wp_ajax_export_chat_log', $admin, 'handle_export_chat_ajax');
             $this->loader->add_action('wp_ajax_get_chat_summary', $admin, 'handle_get_chat_summary_ajax');      
+
+            $this->loader->add_action('wp_ajax_sync_website_knowledge', $admin, 'handle_sync_website_ajax');
+            
         }
 
         // Public hooks

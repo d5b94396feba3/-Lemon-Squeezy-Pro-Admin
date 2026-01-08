@@ -101,6 +101,7 @@ class AICA_Bootstrap {
         require_once AICA_PLUGIN_PATH . 'includes/llm/class-llm-processor.php';
         require_once AICA_PLUGIN_PATH . 'includes/db/class-db-manager.php';
         require_once AICA_PLUGIN_PATH . 'includes/mail/class-mail.php';
+        require_once AICA_PLUGIN_PATH . 'includes/scraper/class-shtmldom.php';
         require_once AICA_PLUGIN_PATH . 'public/class-public.php';
     }
 

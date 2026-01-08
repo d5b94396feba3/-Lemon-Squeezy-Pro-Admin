@@ -95,6 +95,15 @@ class AICA_Plugin_LLM_Processor {
             return "Error: Grok API Key is missing in settings.";
         }
 
+        $db_manager = new AICA_Plugin_DB_Manager($this->plugin_slug);
+        $website_kb = $db_manager->get_kb_content_as_string();
+
+        if (!empty($website_kb)) {
+            $system_instruction .= "\n\n### WEBSITE KNOWLEDGE:\n" . $website_kb;
+        }
+
+        error_log("WEBSITE KNOWLEDGE: \n\n$website_kb");
+
         $file_id = get_option('ai_agent_knowledge_file_id');
         $file_context = "";
         $image_data = null;

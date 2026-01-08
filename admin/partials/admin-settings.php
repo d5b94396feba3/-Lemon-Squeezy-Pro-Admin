@@ -121,6 +121,60 @@ $page_url = admin_url('admin.php?page=' . $this->plugin_slug . '-settings');
             <?php elseif ($active_tab === 'prompt'): ?>
             <form method="post" action="options.php">
                 <?php settings_fields($this->plugin_slug . '_prompt_settings'); ?>
+                <div class="postbox professional-box knowledge-sync-wrapper">
+                <div class="postbox professional-box knowledge-sync-wrapper">
+                    <div class="postbox-header" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;" id="toggle-sync-table">
+                        <h2 class="hndle">Website Knowledge Sync</h2>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span id="sync-summary-badge" class="status-badge" style="display:none; background:#eff6ff; color:#1e40af;">Discovering...</span>
+                            <span class="dashicons dashicons-arrow-down-alt2 toggle-icon"></span>
+                        </div>
+                    </div>
+                    <div class="inside" id="sync-collapsible-content" style="padding: 20px !important;">
+                        
+                        <div id="discovery-loader" style="text-align:center; padding: 40px;">
+                            <div class="aica-loader-circle"></div>
+                            <p style="margin-top: 15px; color: #64748b; font-weight: 500;">Building Page Map...</p>
+                        </div>
+
+                        <div id="sync-progress-bar" style="display:none; margin-bottom: 25px; background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);">
+                            <div style="display:flex; justify-content: space-between; margin-bottom:12px;">
+                                <span id="sync-msg" style="font-weight:600; color: #1e293b; font-size: 14px;">Preparing...</span>
+                                <span id="sync-percent" style="color: #3b82f6; font-weight: 700;">0%</span>
+                            </div>
+                            <div class="admin-progress-bar">
+                                <div id="sync-fill" class="admin-progress-fill" style="width: 0%;"></div>
+                            </div>
+                        </div>
+
+                        <div id="sync-success-msg" style="display:none; text-align:center; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                                <span class="dashicons dashicons-yes-alt" style="color: #16a34a;"></span>
+                                <span style="color: #166534; font-weight: 600;">Scrape Successful! Knowledge base is now synchronized.</span>
+                            </div>
+                        </div>
+
+                        <div id="sync-data-container" style="display:none;">
+                            <div class="sync-table-scroll" style="max-height: 300px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
+                                <table class="wp-list-table widefat fixed striped">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:60%; padding-left: 15px;">Page Source</th>
+                                            <th>Status</th>
+                                            <th>Last Sync</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="sync-table-body"></tbody>
+                                </table>
+                            </div>
+                            
+                            <div style="margin-top:20px; display:flex; gap: 12px;">
+                                <button type="button" id="run-bulk-sync" class="button button-hero button-primary"></button>
+                                <button type="button" id="start-discovery-refresh" class="button button-secondary">Refresh Map</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="postbox professional-box">
                     <div class="postbox-header"><h2 class="hndle">AI Persona & Knowledge Base</h2></div>
                     <div class="inside">
