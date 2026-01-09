@@ -36,7 +36,8 @@ class AICA_Plugin_Main {
             $this->loader->add_action('wp_ajax_get_chat_summary', $admin, 'handle_get_chat_summary_ajax');      
 
             $this->loader->add_action('wp_ajax_sync_website_knowledge', $admin, 'handle_sync_website_ajax');
-            
+            $this->loader->add_action('wp_ajax_manual_cron_sync', $admin, 'handle_manual_cron_sync_ajax');
+            $this->loader->add_action('wp_ajax_generate_ai_system_prompt', $admin, 'handle_generate_system_prompt_ajax');
         }
 
         // Public hooks

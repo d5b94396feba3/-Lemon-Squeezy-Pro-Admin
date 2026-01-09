@@ -1394,3 +1394,24 @@ button#generate-proposal-btn
     background: #cbd5e1;
     border-radius: 10px;
 }
+
+.sync-status-card:hover .dashicons-update {
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: rotate(180deg);
+}
+
+@keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+@media screen and (max-width: 782px) { #aica-unsaved-bar { left: 0; right: 0; top: 46px; border-radius: 0; } }
+
+/* Highlight unsaved fields */
+.field-changed {
+    border-color: #fbbf24 !important;
+    background-color: #fffbeb !important;
+    box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.1) !important;
+}
+
+@keyframes pulse-save {
+    0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+}

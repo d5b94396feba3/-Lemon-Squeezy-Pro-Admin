@@ -307,4 +307,29 @@ class AICA_Plugin_LLM_Processor {
         // Call v3 to ignore Knowledge Base files during summarization
         return $this->llm_api_v3($system_instruction, $user_query, []);
     }
+
+    /**
+     * Generates a full system prompt based on the existing Knowledge Base
+     */
+    public function generate_automated_system_prompt() {
+        $db_manager = new AICA_Plugin_DB_Manager($this->plugin_slug);
+        $website_content = $db_manager->get_kb_content_as_string();
+
+        if (empty($website_content)) {
+            return "Error: No website content found. Please sync your pages in the Knowledge Base tab first.";
+        }
+
+        $generator_prompt_path = AICA_PLUGIN_PATH . 'includes/prompts/llm-system-prompt-generator.php';
+        if (!file_exists($generator_prompt_path)) {
+            return "Error: Generator template missing.";
+        }
+
+        $base_instruction = require($generator_prompt_path);
+        $final_system_instruction = str_replace('{{WEBSITE_CONTENT}}', $website_content, $base_instruction);
+
+        $user_query = "Based on the website knowledge provided, generate my professional system prompt now.";
+
+        // Use v3 (standard text logic) for the actual generation
+        return $this->llm_api_v3($final_system_instruction, $user_query, []);
+    }
 }

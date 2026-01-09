@@ -2,9 +2,23 @@
 defined( 'ABSPATH' ) || exit;
 $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'content';
 $page_url = admin_url('admin.php?page=' . $this->plugin_slug . '-settings');
+// Get the last sync time
+$last_sync = get_option(AICA_PLUGIN_SLUG . '_last_cron_sync');
+$next_sync = wp_next_scheduled(AICA_PLUGIN_SLUG . '_daily_sync_event');
+
 ?>
 
 <div class="wrap ai-agent-admin-wrap">
+    <div id="aica-unsaved-bar" style="display:none; position: fixed; top: 32px; left: 160px; right: 20px; z-index: 9999; background: #1e293b; color: #fff; padding: 12px 24px; border-radius: 0 0 12px 12px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 1px solid #334155; border-top: none; align-items: center; justify-content: space-between; animation: slideDown 0.3s ease-out;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span class="dashicons dashicons-warning" style="color: #fbbf24; font-size: 20px; width: 20px; height: 20px;"></span>
+            <span style="font-weight: 600; font-size: 14px;">You have unsaved changes</span>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button type="button" onclick="location.reload();" class="button" style="background: transparent; border: 1px solid #475569; color: #cbd5e1; height: 32px;">Discard</button>
+            <button type="button" id="aica-sticky-save-trigger" class="button button-primary" style="background: #3b82f6; border: none; height: 32px; padding: 0 20px; font-weight: 600;">Save Changes</button>
+        </div>
+    </div>
     <h1 class="wp-heading-inline" style="font-weight: 700; font-size: 24px; margin-bottom: 20px;">Chat Widget Configuration</h1>
     
     <nav class="nav-tab-wrapper">
@@ -121,7 +135,7 @@ $page_url = admin_url('admin.php?page=' . $this->plugin_slug . '-settings');
             <?php elseif ($active_tab === 'prompt'): ?>
             <form method="post" action="options.php">
                 <?php settings_fields($this->plugin_slug . '_prompt_settings'); ?>
-                <div class="postbox professional-box knowledge-sync-wrapper">
+
                 <div class="postbox professional-box knowledge-sync-wrapper">
                     <div class="postbox-header" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;" id="toggle-sync-table">
                         <h2 class="hndle">Website Knowledge Sync</h2>
@@ -174,15 +188,48 @@ $page_url = admin_url('admin.php?page=' . $this->plugin_slug . '-settings');
                             </div>
                         </div>
                     </div>
+                    <div class="sync-status-card" style="background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 25px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <div class="status-indicator" style="position: relative; width: 45px; height: 45px; background: #f0fdf4; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <span class="dashicons dashicons-update" style="color: #16a34a; font-size: 24px; width: 24px; height: 24px;"></span>
+                            <span style="position: absolute; top: 2px; right: 2px; width: 10px; height: 10px; background: #22c55e; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);"></span>
+                        </div>
+                        <div>
+                            <h4 style="margin: 0; font-size: 15px; font-weight: 700; color: #1e293b;">Automated Sync Engine</h4>
+                            <p style="margin: 4px 0 0; font-size: 12px; color: #64748b; font-weight: 500;">
+                                <?php echo $last_sync ? 'Last backup completed ' . human_time_diff($last_sync, current_time('timestamp')) . ' ago' : 'No background sync recorded yet'; ?>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div style="text-align: right; border-left: 1px solid #f1f5f9; padding-left: 25px;">
+                        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; font-weight: 700; margin-bottom: 4px;">Next Scheduled Run</div>
+                        <div style="font-family: 'SFMono-Regular', Consolas, monospace; font-size: 13px; color: #334155; font-weight: 600;">
+                            <?php echo $next_sync ? date_i18n('M j, Y @ H:i', $next_sync) : 'Paused'; ?>
+                        </div>
+                    </div>
+                </div>
                 </div>
                 <div class="postbox professional-box">
                     <div class="postbox-header"><h2 class="hndle">AI Persona & Knowledge Base</h2></div>
                     <div class="inside">
                         <div style="margin-bottom: 20px; padding: 0 10px;">
-                            <label style="font-weight: 600; display: block; margin-bottom: 8px;">Core System Instructions</label>
-                            <textarea name="ai_agent_system_prompt" rows="12" class="large-text professional-input" style="font-family: 'SFMono-Regular', Consolas, monospace; font-size: 13px; line-height: 1.6; background: #fafafa;"><?php echo esc_textarea(get_option('ai_agent_system_prompt', 'You are a professional IT expert...')); ?></textarea>
-                        </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <label style="font-weight: 700; font-size: 14px; color: #1e293b;">Core System Instructions</label>
+                                <button type="button" id="btn-generate-ai-prompt" class="button button-secondary" style="border-radius: 6px; font-weight: 600; display: flex; align-items: center; gap: 6px; background: #f8fafc; border-color: #cbd5e1;">
+                                    <span class="dashicons dashicons-superhero" style="font-size: 17px; margin-top: 3px; color: #6366f1;"></span>
+                                    Auto-Generate from Website Content
+                                </button>
+                            </div>
+                            
+                            <div id="prompt-gen-loader" style="display:none; background: #f1f5f9; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 30px; text-align: center; margin-bottom: 15px;">
+                                <div class="aica-loader-circle" style="border-top-color: #6366f1;"></div>
+                                <p style="margin-top: 15px; font-weight: 600; color: #475569;">AI is analyzing your website content and drafting your persona...</p>
+                            </div>
 
+                            <textarea id="ai_agent_system_prompt_area" name="ai_agent_system_prompt" rows="14" class="large-text professional-input" style="font-family: 'SFMono-Regular', Consolas, monospace; font-size: 13px; line-height: 1.6; background: #fafafa; transition: all 0.3s ease;"><?php echo esc_textarea(get_option('ai_agent_system_prompt', 'You are a professional IT expert...')); ?></textarea>
+                            <p class="description">This defines the AI's personality and rules. Click the generator above to build this automatically based on your synced pages.</p>
+                        </div>
                         <div style="padding: 20px 10px; border-top: 1px solid #f3f4f6; background: #f9fafb;">
                             <label style="font-weight: 600; display: block; margin-bottom: 8px;">Knowledge Base File (PDF, TXT, or Image)</label>
                             <?php 

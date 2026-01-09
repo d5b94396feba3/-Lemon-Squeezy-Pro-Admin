@@ -32,7 +32,7 @@ jQuery(document).ready(function($) {
                 renderRows(pages);
                 updateSyncButtonState();
                 $('#sync-data-container').fadeIn();
-                $('#sync-summary-badge').text(pages.length + ' Pages Found').show();
+                $('#sync-summary-badge').text(pages.length + ' Pages').show();
             }
         });
     }
@@ -107,4 +107,42 @@ jQuery(document).ready(function($) {
             }, 4000);
         });
     });
+
+    $('#btn-generate-ai-prompt').on('click', function(e) {
+        e.preventDefault();
+        
+        if (!confirm("This will replace your current instructions with a new AI-generated version based on your website content. Proceed?")) return;
+
+        const $btn = $(this);
+        const $textarea = $('#ai_agent_system_prompt_area');
+        const $loader = $('#prompt-gen-loader');
+
+        // UI State
+        $btn.prop('disabled', true).css('opacity', '0.5');
+        $textarea.css('opacity', '0.3');
+        $loader.fadeIn(300);
+
+        $.post(adminProposalData.ajax_url, {
+            action: 'generate_ai_system_prompt',
+            nonce: adminProposalData.nonce
+        }, function(response) {
+            $loader.hide();
+            $btn.prop('disabled', false).css('opacity', '1');
+            $textarea.css('opacity', '1');
+
+            if (response.success) {
+                // Flash the textarea to show it's new
+                $textarea.val(response.data).addClass('field-changed');
+    
+                // Show the professional unsaved bar
+                $('#aica-unsaved-bar').css('display', 'flex');
+                
+                // Add a pulsing effect to the main save button to draw the eye
+                $('.submit .button-primary').css('animation', 'pulse-save 2s infinite');
+            } else {
+                alert(response.data);
+            }
+        });
+    });
+
 });

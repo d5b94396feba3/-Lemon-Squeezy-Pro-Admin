@@ -229,7 +229,7 @@ class AICA_Plugin_Admin {
             $excluded_slugs = [
                 'cart', 'checkout', 'my-account', 'logout', 'login', 'register', 
                 'forgot', 'password-reset', 'change-password', 'payment-success',
-                'payment-cancelled', 'thank-you', 'sample-page'
+                'payment-cancelled', 'thank-you', 'sample-page', 'blog', 'blogs'
             ];
             
             foreach ($posts as $post) {
@@ -265,7 +265,35 @@ class AICA_Plugin_Admin {
             ]);
         }
     }
+
+    public function handle_manual_cron_sync_ajax() {
+        check_ajax_referer('admin_proposal_nonce', 'nonce');
+        if (!current_user_can('manage_options')) wp_send_json_error('Unauthorized');
     
+        // Call the Cron class directly
+        if (class_exists('AICA_Plugin_WP_Cron')) {
+            $cron = new AICA_Plugin_WP_Cron($this->plugin_slug);
+            $cron->run_automated_sync(); // This is the method we built
+            
+            wp_send_json_success('Sync completed successfully!');
+        } else {
+            wp_send_json_error('Cron class not found.');
+        }
+    }
+
+    public function handle_generate_system_prompt_ajax() {
+        check_ajax_referer('admin_proposal_nonce', 'nonce');
+        if (!current_user_can('manage_options')) wp_send_json_error('Unauthorized');
+    
+        // Call the LLM Processor
+        $new_prompt = $this->llm_processor->generate_automated_system_prompt();
+    
+        if (strpos($new_prompt, 'Error:') !== false) {
+            wp_send_json_error($new_prompt);
+        }
+    
+        wp_send_json_success($new_prompt);
+    }
     
     /**
      * Display admin dashboard
@@ -338,6 +366,14 @@ class AICA_Plugin_Admin {
         wp_enqueue_script(
             $this->plugin_slug . '-admin',
             AICA_PLUGIN_URL . 'assets/js/admin/admin.js',
+            array('jquery'),
+            $this->version,
+            true
+        );
+
+        wp_enqueue_script(
+            $this->plugin_slug . '-unsaved-changes',
+            AICA_PLUGIN_URL . 'assets/js/admin/unsaved-changes.js',
             array('jquery'),
             $this->version,
             true

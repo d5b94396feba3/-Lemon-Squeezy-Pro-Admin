@@ -17,5 +17,9 @@ class AICA_Plugin_Deactivator {
         
         // Clear scheduled hooks if any using the dynamic slug
         wp_clear_scheduled_hook( $plugin_slug . '_daily_event' );
+
+        // Nuclear option to ensure cron is killed on deactivation
+        require_once AICA_PLUGIN_PATH . 'includes/wp-cron/class-wp-cron.php';
+        AICA_Plugin_WP_Cron::clear_schedule( AICA_PLUGIN_SLUG );
     }
 }

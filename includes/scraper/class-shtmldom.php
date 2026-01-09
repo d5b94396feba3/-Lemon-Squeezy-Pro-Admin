@@ -22,9 +22,9 @@ class AICA_Plugin_SimpleHTMLDOM {
         $excluded_slugs = [
             'cart', 'checkout', 'my-account', 'logout', 'login', 'register', 
             'forgot', 'password-reset', 'change-password', 'payment-success',
-            'payment-cancelled', 'thank-you', 'sample-page'
+            'payment-cancelled', 'thank-you', 'sample-page', 'blog', 'blogs'
         ];
-        
+
         foreach ( $pages as $page ) {
             if ( in_array( $page->post_name, $excluded_slugs ) ) continue;
 

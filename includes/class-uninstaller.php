@@ -88,6 +88,7 @@ class AICA_Plugin_Uninstaller {
         // Remove any other plugin-specific options
         delete_option( $plugin_slug . '_plugin_version' );
         delete_option( $plugin_slug . '_installed_time' );
+        delete_option( $plugin_slug . '_last_cron_sync' );
         
         error_log( "AI Chat Agent: Cleaned up all options for {$plugin_slug}" );
     }
