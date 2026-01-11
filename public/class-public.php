@@ -120,14 +120,16 @@ class AICA_Plugin_Public {
             wp_send_json_error( array( 'message' => $ai_response_html ) );
         }
     
-        $ai_response_plain = wp_strip_all_tags( $ai_response_html );
+        // $ai_response_plain = wp_strip_all_tags( $ai_response_html );
+
+        $content_to_save = $ai_response_html;
     
         if ( $is_regen && ! empty($history) ) {
             for ( $i = count($history) - 1; $i >= 0; $i-- ) {
                 if ( $history[$i]['role'] === 'assistant' ) {
                     $history[$i] = [
                         'role' => 'assistant', 
-                        'content' => $ai_response_plain, 
+                        'content' => $content_to_save, 
                         'time' => time()
                     ];
                     break;
@@ -136,7 +138,7 @@ class AICA_Plugin_Public {
         } else {
             $history[] = [
                 'role' => 'assistant', 
-                'content' => $ai_response_plain, 
+                'content' => $content_to_save, 
                 'time' => time()
             ];
         }

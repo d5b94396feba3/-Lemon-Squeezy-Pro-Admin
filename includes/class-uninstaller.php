@@ -29,12 +29,13 @@ class AICA_Plugin_Uninstaller {
         $clean_slug_part = sanitize_key( $plugin_slug );
         $final_slug_part = str_replace('-', '_', $clean_slug_part);
 
-        // Get both table names
+        // Get all relevant table names (chat_logs, feedback, knowledge_base)
         $chat_logs_table = $wpdb->prefix . $final_slug_part . '_chat_logs';
         $feedback_table  = $wpdb->prefix . $final_slug_part . '_feedback';
+        $kb_table        = $wpdb->prefix . $final_slug_part . '_knowledge_base';
 
         // Tables to drop
-        $tables = array( $chat_logs_table, $feedback_table );
+        $tables = array( $chat_logs_table, $feedback_table, $kb_table );
 
         foreach ( $tables as $table_name ) {
             // Check if table exists before trying to drop it

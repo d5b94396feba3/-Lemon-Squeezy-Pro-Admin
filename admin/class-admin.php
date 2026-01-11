@@ -160,7 +160,8 @@ class AICA_Plugin_Admin {
             if (is_array($history)) {
                 foreach ($history as $msg) {
                     $role = ($msg['role'] === 'user') ? 'Visitor' : 'AI Agent';
-                    $clean_content = str_replace(array("\r", "\n", '"'), array(" ", " ", "'"), $msg['content']);
+                    $clean_text = wp_strip_all_tags($msg['content']);
+                    $clean_content = str_replace(array("\r", "\n", '"'), array(" ", " ", "'"), $clean_text);
                     $transcript .= "[$role]: " . $clean_content . " | ";
                 }
             }
@@ -218,28 +219,30 @@ class AICA_Plugin_Admin {
         $scraper = new AICA_Plugin_SimpleHTMLDOM();
     
         if ($step === 'discovery') {
-            $posts = get_posts([
-                'post_type' => ['page', 'post'], 
+            // CHANGED: Removed 'post' from the array, now only fetching 'page'
+            $all_pages = get_posts([
+                'post_type'      => ['page'], 
                 'posts_per_page' => -1, 
-                'post_status' => 'publish'
+                'post_status'    => 'publish'
             ]);
             
             $pages = [];
-
+    
             $excluded_slugs = [
                 'cart', 'checkout', 'my-account', 'logout', 'login', 'register', 
                 'forgot', 'password-reset', 'change-password', 'payment-success',
                 'payment-cancelled', 'thank-you', 'sample-page', 'blog', 'blogs'
             ];
             
-            foreach ($posts as $post) {
-                if (in_array($post->post_name, $excluded_slugs)) continue;
-                $url = get_permalink($post->ID);
+            foreach ($all_pages as $page) {
+                if (in_array($page->post_name, $excluded_slugs)) continue;
+                
+                $url = get_permalink($page->ID);
                 $sync_data = $db->get_sync_status($url);
                 
                 $pages[] = [
                     'url'    => $url,
-                    'title'  => $post->post_title,
+                    'title'  => $page->post_title,
                     'status' => $sync_data ? 'Synced' : 'Pending',
                     'last'   => $sync_data ? date_i18n(get_option('date_format'), strtotime($sync_data['last_synced'])) : '-'
                 ];
@@ -250,7 +253,7 @@ class AICA_Plugin_Admin {
         if ($step === 'sync_page') {
             $url = esc_url_raw($_POST['url']);
             
-            // Use the SCRAPER logic, NOT wp_strip_all_tags
+            // Use the SCRAPER logic
             $content = $scraper->scrape_page($url);
             
             if (empty($content)) {

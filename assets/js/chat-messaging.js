@@ -1,10 +1,34 @@
 (function($) {
     $(document).ready(function() {
         const chat = AICA_Chat;
+        const $input = $('#chat-input');
+
+        function autoResizeTextarea() {
+            const el = $input[0];
+            
+            // 1. Mandatory Reset: Setting to 'inherit' or 'auto' allows 
+            // the element to collapse to its natural height based on content.
+            el.style.height = 'auto';
+            
+            // 2. Measure & Apply: Set height based on scrollHeight
+            const newHeight = el.scrollHeight;
+            el.style.height = newHeight + 'px';
+
+            // 3. Handle Max-Height/Scrolling
+            if (newHeight >= 150) {
+                $input.addClass('is-scrolling');
+            } else {
+                $input.removeClass('is-scrolling');
+            }
+        }
+
+        // Bind all possible input events for instant resizing
+        $input.on('input propertychange cut paste drop keyup', autoResizeTextarea);
 
         // --- SEND MESSAGE ---
         $('#chat-send').on('click', sendMessage);
-        chat.$input.on('keydown', function(e) {
+        
+        $input.on('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) { 
                 e.preventDefault(); 
                 sendMessage(); 
@@ -12,15 +36,18 @@
         });
 
         function sendMessage() {
-            const text = chat.$input.val().trim();
+            const text = $input.val().trim();
             if (!text) return;
 
-            // Append User Message
             chat.$messages.append(`<div class="msg user"><div class="bubble">${$('<div>').text(text).html()}</div></div>`);
-            chat.$input.val('').css('height', 'auto');
+            
+            // Reset to initial state
+            $input.val('');
+            $input[0].style.height = '44px'; // Set back to your base height
+            $input.removeClass('is-scrolling');
+            
             chat.scrollBottom();
 
-            // Typing Indicator
             const tId = 'typing-' + Date.now();
             chat.$messages.append(`
                 <div class="msg ai" id="${tId}">
@@ -32,23 +59,16 @@
                 </div>`);
             chat.scrollBottom();
 
-            // AJAX Request
             $.ajax({
                 type: 'POST',
                 url: chatData.ajax_url,
-                data: { 
-                    action: 'send_chat_message', 
-                    message: text, 
-                    chat_nonce: chatData.nonce 
-                },
+                data: { action: 'send_chat_message', message: text, chat_nonce: chatData.nonce },
                 success: function(res) {
                     $('#' + tId).remove();
                     if (res.success) {
                         const unix = Math.floor(Date.now() / 1000);
                         chat.$messages.append(renderAiBubble(res.data.reply, unix));
                         chat.scrollBottom();
-                        
-                        // Force update "just now" logic immediately
                         chat.updateTimestamps();
                     }
                 }
@@ -75,7 +95,7 @@
                 </div>`;
         }
 
-        // --- ACTIONS: COPY & RATE ---
+        // Actions (Copy, Rate, Regen) go here...
         $(document).on('click', '.copy-msg', function() {
             const text = $(this).closest('.msg-content-wrapper').find('.bubble').text();
             navigator.clipboard.writeText(text);
@@ -98,31 +118,14 @@
             $btn.addClass('active-rating');
         });
 
-        // --- ACTION: REGENERATE ---
         $(document).on('click', '.regen-msg', function() {
             const $aiMsg = $(this).closest('.msg.ai');
             const query = $aiMsg.prev('.msg.user').find('.bubble').text();
             if (!query) return;
-
             $aiMsg.find('.bubble').html('<div class="typing-dots"><span></span><span></span><span></span></div>');
-            $aiMsg.find('.msg-footer').css('opacity', '0');
-
-            $.post(chatData.ajax_url, { 
-                action: 'send_chat_message', 
-                message: query, 
-                is_regen: true, 
-                chat_nonce: chatData.nonce 
-            }, function(res) {
+            $.post(chatData.ajax_url, { action: 'send_chat_message', message: query, is_regen: true, chat_nonce: chatData.nonce }, function(res) {
                 if (res.success) {
-                    const newUnix = Math.floor(Date.now() / 1000);
                     $aiMsg.find('.bubble').html(res.data.reply);
-                    $aiMsg.find('.msg-footer').css('opacity', '1');
-                    
-                    // Update the time attribute and text
-                    $aiMsg.find('.msg-time')
-                        .attr('data-time', newUnix)
-                        .text('just now');
-                    
                     chat.updateTimestamps();
                 }
             });

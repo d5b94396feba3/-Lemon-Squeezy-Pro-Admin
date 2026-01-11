@@ -47,18 +47,16 @@ var AICA_Chat = {
     },
 
     toggleChat: function() {
-        const isOpening = this.$window.hasClass('hidden');
+        // 1. Toggle the window
         this.$window.toggleClass('hidden');
+        
+        // 2. Hide welcome popup if it exists
         $('#ai-chat-welcome-popup').fadeOut(200);
         
-        if (isOpening) {
-            $('.launcher-img-container').css('opacity', '0');
-            $('.launcher-close-icon').removeClass('hidden');
+        // 3. Logic for opening
+        if (!this.$window.hasClass('hidden')) {
             this.scrollBottom();
             setTimeout(() => this.$input.focus(), 100);
-        } else {
-            $('.launcher-img-container').css('opacity', '1');
-            $('.launcher-close-icon').addClass('hidden');
         }
     },
 
