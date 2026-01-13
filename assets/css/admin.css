@@ -1579,7 +1579,7 @@ button#generate-proposal-btn
 #aica-admin-preview-container #ai-chat-window {
     position: relative !important;
     width: 380px !important; /* Standard desktop widget width */
-    height: 550px !important; /* Fits nicely in the 800px sidebar */
+    height: 640px !important; /* Fits nicely in the 800px sidebar */
     margin-bottom: 16px !important;
     display: flex !important; /* Force show in preview */
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;

@@ -85,6 +85,7 @@ class AICA_Plugin_Uninstaller {
         
         // Remove Notifications Tab Option
         delete_option( 'ai_agent_admin_email' );
+        delete_option( 'ai_agent_theme_mode' );
 
         // Remove any other plugin-specific options
         delete_option( $plugin_slug . '_plugin_version' );

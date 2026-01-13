@@ -1,9 +1,5 @@
 <?php
 defined( 'ABSPATH' ) || exit;
-/**
- * Handles communication with the Grok API (x.ai) to generate complex proposals
- * based on user questionnaire data.
- */
 class AICA_Plugin_LLM_Processor {
 
     private $plugin_slug;
@@ -24,18 +20,14 @@ class AICA_Plugin_LLM_Processor {
         
         $core_system_instruction = require( $system_instruction_path );
         
-        // --- START FEEDBACK INJECTION ---
         $db_manager = new AICA_Plugin_DB_Manager($this->plugin_slug);
         $liked_examples = $db_manager->get_feedback_by_type('like', 3);
         $disliked_examples = $db_manager->get_feedback_by_type('dislike', 3);
         
         $feedback_context = "";
 
-        // 1. Positive Reinforcement
         if (!empty($liked_examples)) {
             $feedback_context .= "\n\n### POSITIVE EXAMPLES (FOLLOW THIS STYLE):";
-            // This line logs positive feedback examples for debugging. 
-            // Remove or comment out for production use. 
             error_log("feedback_context:: ".print_r($liked_examples, true));
             foreach ($liked_examples as $example) {
                 $feedback_context .= "\nUser: " . $example['user_query'];
@@ -43,7 +35,6 @@ class AICA_Plugin_LLM_Processor {
             }
         }
 
-        // 2. Negative Constraints (Crucial for learning)
         if (!empty($disliked_examples)) {
             $feedback_context .= "\n\n### NEGATIVE EXAMPLES (AVOID THESE MISTAKES):";
             foreach ($disliked_examples as $example) {
@@ -52,29 +43,23 @@ class AICA_Plugin_LLM_Processor {
                 $feedback_context .= "\nReason: The user found this unhelpful or incorrect. Do not repeat this approach.\n---";
             }
         }
-        // --- END FEEDBACK INJECTION ---
 
         $system_instruction = $this->system_instruction . "\n\n" . $core_system_instruction . $feedback_context;
 
         return $this->llm_api_v2($system_instruction, $user_query, $history);
     }
 
-    /**
-     * Extract text using the manually loaded Smalot library
-     */
     private function extract_text_from_pdf($filename) {
         if (!file_exists($filename)) {
             return "";
         }
     
         try {
-            // Instantiate using the full Smalot namespace
             $parser = new \Smalot\PdfParser\Parser();
             $pdf    = $parser->parseFile($filename);
             
             $text   = $pdf->getText();
             
-            // Clean up whitespace for better LLM processing
             $text = preg_replace('/[ \t]+/', ' ', $text);
             $text = preg_replace('/\n\s*\n/', "\n", $text);
             
@@ -87,7 +72,6 @@ class AICA_Plugin_LLM_Processor {
 
     public function llm_api_v2($system_instruction, $user_query, $history = []): string {
         $api_key = get_option('grok_api_key');
-        // IMPORTANT: Use a vision-capable model if sending images
         $model = get_option('grok_model', 'grok-2-1212'); 
         $temperature = floatval(get_option('grok_temperature', '0.7'));
 
@@ -114,7 +98,6 @@ class AICA_Plugin_LLM_Processor {
 
             error_log("AICA Debug: File ID found: $file_id | Mime: $mime_type | Model: $model");
 
-            // Handle Images ONLY if model is vision-capable
             if (strpos($mime_type, 'image') !== false && strpos($model, 'vision') !== false) {
                 if (file_exists($file_path)) {
                     $image_base64 = base64_encode(file_get_contents($file_path));
@@ -123,7 +106,6 @@ class AICA_Plugin_LLM_Processor {
             } else if (file_exists($file_path)) {
                 if ($mime_type === 'application/pdf') {
                     $extracted_text = $this->extract_text_from_pdf($file_path);
-                    // Ensure text is valid UTF-8 for JSON
                     $file_context = "\n\n### KNOWLEDGE BASE CONTENT:\n" . mb_convert_encoding($extracted_text, 'UTF-8', 'UTF-8');
                 } else {
                     $raw_content = file_get_contents($file_path);
@@ -161,7 +143,6 @@ class AICA_Plugin_LLM_Processor {
             'stream'      => false
         ];
 
-        // SAFE JSON ENCODING
         $json_body = json_encode($payload);
         if (json_last_error() !== JSON_ERROR_NONE) {
             error_log("Grok JSON Encode Error: " . json_last_error_msg());
@@ -216,15 +197,10 @@ class AICA_Plugin_LLM_Processor {
         return trim($content);
     }
 
-    /**
-     * LLM API v3: Optimized for pure text tasks (like Summarization)
-     * Strips out Knowledge Base, PDF, and Image logic for maximum speed.
-     */
     public function llm_api_v3($system_instruction, $user_query, $history = []): string {
         $api_key = get_option('grok_api_key');
-        // Use a standard text model for summarization
         $model = get_option('grok_model', 'grok-2-1212'); 
-        $temperature = 0.3; // Lower temperature is better for concise summaries
+        $temperature = 0.3;
 
         if (empty($api_key)) {
             return "Error: Grok API Key is missing in settings.";
@@ -232,17 +208,14 @@ class AICA_Plugin_LLM_Processor {
 
         $api_url = "https://api.x.ai/v1/chat/completions";
 
-        // Build simple message payload without file context
         $messages = [];
         $messages[] = ['role' => 'system', 'content' => $system_instruction];
 
-        // Process History if any
         foreach ($history as $msg) {
             $role = ($msg['role'] === 'assistant' || $msg['role'] === 'ai') ? 'assistant' : 'user';
             $messages[] = ['role' => $role, 'content' => $msg['content']];
         }
 
-        // Add the summarization request
         $messages[] = ['role' => 'user', 'content' => $user_query];
 
         $payload = [
@@ -264,7 +237,7 @@ class AICA_Plugin_LLM_Processor {
                 'Authorization' => 'Bearer ' . $api_key, 
             ],
             'body'      => $json_body,
-            'timeout'   => 60, // Summarization is usually fast
+            'timeout'   => 60,
         ]);
 
         if (is_wp_error($response)) {
@@ -282,9 +255,6 @@ class AICA_Plugin_LLM_Processor {
         return (string)$content;
     }
 
-    /**
-     * Generates a concise HTML summary of the chat history using v3 (No Files)
-     */
     public function get_chat_summary(array $history): string {
         if (empty($history)) return "No conversation history to summarize.";
 
@@ -295,7 +265,6 @@ class AICA_Plugin_LLM_Processor {
 
         $system_instruction = require($summarizer_prompt_path);
         
-        // Format history into a readable transcript for the AI
         $chat_text = "CONVERSATION TRANSCRIPT:\n";
         foreach ($history as $msg) {
             $role = ($msg['role'] === 'user') ? 'Visitor' : 'AI Assistant';
@@ -304,13 +273,9 @@ class AICA_Plugin_LLM_Processor {
 
         $user_query = "Summarize this chat now. Follow the HTML formatting rules strictly:\n\n" . $chat_text;
 
-        // Call v3 to ignore Knowledge Base files during summarization
         return $this->llm_api_v3($system_instruction, $user_query, []);
     }
 
-    /**
-     * Generates a full system prompt based on the existing Knowledge Base
-     */
     public function generate_automated_system_prompt() {
         $db_manager = new AICA_Plugin_DB_Manager($this->plugin_slug);
         $website_content = $db_manager->get_kb_content_as_string();
@@ -329,7 +294,6 @@ class AICA_Plugin_LLM_Processor {
 
         $user_query = "Based on the website knowledge provided, generate my professional system prompt now.";
 
-        // Use v3 (standard text logic) for the actual generation
         return $this->llm_api_v3($final_system_instruction, $user_query, []);
     }
 }

@@ -92,7 +92,7 @@ class AICA_Plugin_Mail {
                 <?php if (!empty($summary_html)) : ?>
                     <div class="summary-section">
                         <h3 style="margin-top:0; color: #92400e;">AI Conversation Summary</h3>
-                        <?php echo $summary_html; // already contains safe HTML from LLM ?>
+                        <?php echo $summary_html; ?>
                     </div>
                 <?php endif; ?>
 

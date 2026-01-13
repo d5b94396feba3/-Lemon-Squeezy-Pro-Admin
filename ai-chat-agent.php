@@ -47,7 +47,7 @@ class AICA_Bootstrap {
         self::define_grok_constants();
         self::register_vendor_autoload();
         self::load_dependencies();
-        self::init_cron(); // Initialize Cron
+        self::init_cron();
         self::run_plugin();
     }
 
@@ -83,7 +83,7 @@ class AICA_Bootstrap {
         require_once AICA_PLUGIN_PATH . 'includes/db/class-db-manager.php';
         require_once AICA_PLUGIN_PATH . 'includes/mail/class-mail.php';
         require_once AICA_PLUGIN_PATH . 'includes/scraper/class-shtmldom.php';
-        require_once AICA_PLUGIN_PATH . 'includes/wp-cron/class-wp-cron.php'; // Load Cron Class
+        require_once AICA_PLUGIN_PATH . 'includes/wp-cron/class-wp-cron.php';
         require_once AICA_PLUGIN_PATH . 'public/class-public.php';
     }
 

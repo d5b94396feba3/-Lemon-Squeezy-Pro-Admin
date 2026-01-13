@@ -16,11 +16,7 @@ class AICA_Plugin_Admin {
         $this->llm_processor = new AICA_Plugin_LLM_Processor($this->plugin_slug);
     }
 
-    /**
-     * Add admin menu items
-     */
     public function add_admin_menu() {
-        // Main menu
         add_menu_page(
             'AI Chat Agent',
             'AI Chat Agent',
@@ -31,7 +27,6 @@ class AICA_Plugin_Admin {
             30
         );
 
-        // Submenu: Dashboard
         add_submenu_page(
             $this->plugin_slug,
             'Dashboard',
@@ -41,7 +36,6 @@ class AICA_Plugin_Admin {
             array($this, 'display_admin_dashboard')
         );
 
-        // Submenu: Settings
         add_submenu_page(
             $this->plugin_slug,
             'Settings',
@@ -52,39 +46,26 @@ class AICA_Plugin_Admin {
         );
     }
 
-    /**
-     * Register settings
-     */
     public function register_settings() {
-        // 1. Content Tab Settings
         register_setting($this->plugin_slug . '_content_settings', 'ai_agent_display_name');
         register_setting($this->plugin_slug . '_content_settings', 'ai_agent_welcome_msg');
         register_setting($this->plugin_slug . '_content_settings', 'ai_agent_placeholder');
     
-        // 2. Style Tab Settings
         register_setting($this->plugin_slug . '_style_settings', 'ai_agent_logo_id');
         register_setting($this->plugin_slug . '_style_settings', 'ai_agent_bubble_icon');
         register_setting($this->plugin_slug . '_style_settings', 'ai_agent_primary_color');
-    
-        // 3. Prompt Tab Settings
+        register_setting($this->plugin_slug . '_style_settings', 'ai_agent_theme_mode');
+
         register_setting($this->plugin_slug . '_prompt_settings', 'ai_agent_system_prompt');
     
-        // 4. Grok Tab Settings
         register_setting($this->plugin_slug . '_grok_settings', 'grok_api_key');
         register_setting($this->plugin_slug . '_grok_settings', 'grok_model');
         register_setting($this->plugin_slug . '_grok_settings', 'grok_temperature');
         register_setting($this->plugin_slug . '_prompt_settings', 'ai_agent_knowledge_file_id');
 
-        // 5. Notifications Tab Settings
         register_setting($this->plugin_slug . '_notif_settings', 'ai_agent_admin_email');
-
-        // Inside register_settings() under Style Tab Settings
-        register_setting($this->plugin_slug . '_style_settings', 'ai_agent_theme_mode');
     }
 
-    /**
-     * Get all chat logs from the database
-     */
     public function get_all_chat_logs() {
         $db = $this->get_db_manager();
         return $db->get_all_chat_logs();
@@ -94,7 +75,6 @@ class AICA_Plugin_Admin {
         global $wpdb;
         $table_name = $wpdb->prefix . str_replace('-', '_', sanitize_key($this->plugin_slug)) . '_chat_logs';
         
-        // Safety check
         if($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
             return ['total' => 0, 'recent' => 0];
         }
@@ -106,14 +86,12 @@ class AICA_Plugin_Admin {
     }
 
     public function handle_delete_chat_ajax() {
-        // This matches the nonce name sent in your JS
         check_ajax_referer('admin_proposal_nonce', 'nonce');
         
         if (!current_user_can('manage_options')) {
             wp_send_json_error('Unauthorized');
         }
     
-        // JS sends 'id', not 'log_id'
         $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
         
         if (!$id) {
@@ -130,7 +108,6 @@ class AICA_Plugin_Admin {
 
 
     public function handle_export_chat_ajax() {
-        // 1. Force clear output buffers
         while (ob_get_level()) {
             ob_end_clean();
         }
@@ -142,7 +119,6 @@ class AICA_Plugin_Admin {
 
         $log_id = isset($_POST['id']) ? intval($_POST['id']) : 0;
         
-        // Call the DB Manager
         $db = $this->get_db_manager();
         $logs = $db->get_logs_for_export($log_id);
 
@@ -150,10 +126,9 @@ class AICA_Plugin_Admin {
             wp_send_json_error('No logs found.');
         }
 
-        // 2. Generate CSV String
         ob_start();
         $df = fopen("php://output", 'w');
-        fprintf($df, chr(0xEF).chr(0xBB).chr(0xBF)); // UTF-8 BOM
+        fprintf($df, chr(0xEF).chr(0xBB).chr(0xBF));
         
         fputcsv($df, array('ID', 'Date', 'Transcript'));
 
@@ -180,9 +155,6 @@ class AICA_Plugin_Admin {
         ));
     }
 
-    /**
-     * AJAX handler to generate/fetch AI summary for a specific log
-     */
     public function handle_get_chat_summary_ajax() {
         check_ajax_referer('admin_proposal_nonce', 'nonce');
         
@@ -201,7 +173,6 @@ class AICA_Plugin_Admin {
 
         $history = json_decode($log['full_history'], true);
         
-        // Call the LLM Processor (this uses the summarizer prompt we set up)
         $summary = $this->llm_processor->get_chat_summary($history);
 
         if (empty($summary)) {
@@ -218,11 +189,9 @@ class AICA_Plugin_Admin {
         $step = isset($_POST['sync_step']) ? sanitize_text_field($_POST['sync_step']) : 'discovery';
         $db = $this->get_db_manager();
         
-        // Initialize your scraper class
         $scraper = new AICA_Plugin_SimpleHTMLDOM();
     
         if ($step === 'discovery') {
-            // CHANGED: Removed 'post' from the array, now only fetching 'page'
             $all_pages = get_posts([
                 'post_type'      => ['page'], 
                 'posts_per_page' => -1, 
@@ -256,7 +225,6 @@ class AICA_Plugin_Admin {
         if ($step === 'sync_page') {
             $url = esc_url_raw($_POST['url']);
             
-            // Use the SCRAPER logic
             $content = $scraper->scrape_page($url);
             
             if (empty($content)) {
@@ -276,10 +244,9 @@ class AICA_Plugin_Admin {
         check_ajax_referer('admin_proposal_nonce', 'nonce');
         if (!current_user_can('manage_options')) wp_send_json_error('Unauthorized');
     
-        // Call the Cron class directly
         if (class_exists('AICA_Plugin_WP_Cron')) {
             $cron = new AICA_Plugin_WP_Cron($this->plugin_slug);
-            $cron->run_automated_sync(); // This is the method we built
+            $cron->run_automated_sync();
             
             wp_send_json_success('Sync completed successfully!');
         } else {
@@ -291,7 +258,6 @@ class AICA_Plugin_Admin {
         check_ajax_referer('admin_proposal_nonce', 'nonce');
         if (!current_user_can('manage_options')) wp_send_json_error('Unauthorized');
     
-        // Call the LLM Processor
         $new_prompt = $this->llm_processor->generate_automated_system_prompt();
     
         if (strpos($new_prompt, 'Error:') !== false) {
@@ -301,11 +267,7 @@ class AICA_Plugin_Admin {
         wp_send_json_success($new_prompt);
     }
     
-    /**
-     * Display admin dashboard
-     */
     public function display_admin_dashboard() {
-        // Check if the partial file exists
         $dashboard_file = plugin_dir_path(__FILE__) . 'partials/admin-dashboard.php';
         if (file_exists($dashboard_file)) {
             include $dashboard_file;
@@ -316,9 +278,6 @@ class AICA_Plugin_Admin {
         }
     }
 
-    /**
-     * Display settings page
-     */
     public function display_settings_page() {
         $settings_file = plugin_dir_path(__FILE__) . 'partials/admin-settings.php';
         if (file_exists($settings_file)) {
@@ -330,9 +289,6 @@ class AICA_Plugin_Admin {
         }
     }
 
-    /**
-     * Get DB manager instance
-     */
     private function get_db_manager() {
 
         if (!isset($this->db_manager)) {
@@ -342,9 +298,6 @@ class AICA_Plugin_Admin {
         return $this->db_manager;
     }
 
-    /**
-     * Enqueue admin styles
-     */
     public function enqueue_styles($hook) {
         if (strpos($hook, $this->plugin_slug) === false) {
             return;
@@ -362,9 +315,6 @@ class AICA_Plugin_Admin {
 
     }
 
-    /**
-     * Enqueue admin scripts
-     */
     public function enqueue_scripts($hook) {
         if (strpos($hook, $this->plugin_slug) === false) {
             return;

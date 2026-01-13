@@ -31,7 +31,6 @@ class AICA_Plugin_Main {
             
             // Admin AJAX handlers
             $this->loader->add_action('wp_ajax_delete_chat_log', $admin, 'handle_delete_chat_ajax');
-            // Inside define_hooks() in class-main.php
             $this->loader->add_action('wp_ajax_export_chat_log', $admin, 'handle_export_chat_ajax');
             $this->loader->add_action('wp_ajax_get_chat_summary', $admin, 'handle_get_chat_summary_ajax');      
 
@@ -48,7 +47,6 @@ class AICA_Plugin_Main {
         $this->loader->add_action('wp_enqueue_scripts', $public, 'enqueue_scripts');
         $this->loader->add_action( 'wp_footer', $public, 'render_chat_ui' );
 
-        // Existing hooks...
         $this->loader->add_action( 'wp_ajax_nopriv_send_chat_message', $public, 'handle_chat_message_ajax' );
         $this->loader->add_action( 'wp_ajax_send_chat_message', $public, 'handle_chat_message_ajax' );
 

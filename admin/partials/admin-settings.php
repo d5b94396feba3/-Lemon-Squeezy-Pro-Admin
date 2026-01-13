@@ -355,10 +355,8 @@ $next_sync = wp_next_scheduled(AICA_PLUGIN_SLUG . '_daily_sync_event');
         </div>
 
         <div class="aica-settings-preview-sidebar" style="width: 450px; position: sticky; top: 50px;">
-            <span style="display: block; text-align: center; font-weight: 700; color: #64748b; margin-bottom: 10px; text-transform: uppercase; font-size: 12px;">Preview</span>
             <div id="aica-admin-preview-container" style="transform: scale(0.9); transform-origin: top center; border: 1px solid #e2e8f0; border-radius: 24px; padding: 20px; background: #ffffff; height: 800px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
                 <?php 
-                   // Set flag to tell the template we are in admin preview mode
                    $is_admin_preview = true;
                    include AICA_PLUGIN_PATH . 'public/partials/chat-template.php'; 
                 ?>

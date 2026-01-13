@@ -28,7 +28,6 @@ class AICA_Plugin_WP_Cron {
                 $db->update_knowledge_base( $page['url'], $page['content'] );
             }
             
-            // SAVE THE TIMESTAMP ON SUCCESS
             update_option( $this->plugin_slug . '_last_cron_sync', current_time( 'timestamp' ) );
         }
     }

@@ -1,5 +1,4 @@
 jQuery(document).ready(function($) {
-    // 1. Handle View Transcript Modal
     $('.view-chat-log').on('click', function() {
         const history = $(this).data('history');
         let html = '';
@@ -22,7 +21,6 @@ jQuery(document).ready(function($) {
         $('#chat-modal').fadeIn(200);
     });
 
-    // 2. Handle Delete Chat History (Fixed)
     $('.action-delete-chat').on('click', function(e) {
         e.preventDefault();
         if (!confirm('Delete this conversation forever?')) return;
@@ -40,7 +38,6 @@ jQuery(document).ready(function($) {
             if (response.success) {
                 btn.closest('tr').fadeOut(400, function() { 
                     $(this).remove(); 
-                    // Update the counter in the UI
                     const countEl = $('.admin-stat-card h3').first();
                     countEl.text(parseInt(countEl.text()) - 1);
                 });
@@ -54,27 +51,21 @@ jQuery(document).ready(function($) {
         });
     });
 
-    // 3. Fix Grok Settings Form Submit
-    // This allows standard WordPress options saving while preventing double-submission
     $('form[action="options.php"]').on('submit', function() {
         const submitBtn = $(this).find('input[type="submit"]');
         submitBtn.val('Saving...').prop('disabled', true);
     });
 
-    // 4. Real-time Color Picker Update & Reset
     const $colorInput = $('#ai_agent_primary_color_input');
     const $colorHex   = $('#ai_agent_primary_color_hex');
     const $colorReset = $('#reset_primary_color');
 
-    // Update hex text in real-time as user picks color
     $colorInput.on('input', function() {
         const selectedColor = $(this).val().toUpperCase();
         $colorHex.text(selectedColor);
-        // Sync the preview border with the primary brand color
         $('#ai_agent_logo_preview').css('border-color', selectedColor);
     });
 
-    // Reset functionality
     $colorReset.on('click', function(e) {
         e.preventDefault();
         const defaultColor = '#000000';
@@ -83,7 +74,6 @@ jQuery(document).ready(function($) {
         $('#ai_agent_logo_preview').css('border-color', '#f3f4f6');
     });
 
-    // WordPress Media Uploader
     var mediaUploader;
     $('#ai_agent_upload_btn').on('click', function(e) {
         e.preventDefault();
@@ -158,7 +148,6 @@ jQuery(document).ready(function($) {
         });
     });
 
-    // Knowledge File Uploader
     var fileUploader;
     $('#ai_agent_file_upload_btn').on('click', function(e) {
         e.preventDefault();
@@ -187,34 +176,28 @@ jQuery(document).ready(function($) {
         $('#ai_agent_file_upload_btn').text('Upload Knowledge File');
     });
 
-    // Handle AI Summarization Popup
     $('.action-summarize-chat').on('click', function(e) {
         e.preventDefault();
         const $btn = $(this);
         const logId = $btn.data('id');
         const $icon = $btn.find('.dashicons');
 
-        // 1. Prepare UI
         $btn.prop('disabled', true);
         $icon.addClass('spin');
         
-        // 2. Open Modal & Show Loader
         $('#chat-modal-title').text('AI Intelligence Summary');
-        $('#chat-modal-content').hide().html(''); // Clear old content
-        $('#chat-modal-loader').show(); // Show professional loader
+        $('#chat-modal-content').hide().html('');
+        $('#chat-modal-loader').show();
         $('#chat-modal').fadeIn(200);
 
-        // 3. Request Summary from Server
         $.post(adminProposalData.ajax_url, {
             action: 'get_chat_summary',
             id: logId,
             nonce: adminProposalData.nonce
         }, function(response) {
-            // Restore button state
             $btn.prop('disabled', false);
             $icon.removeClass('spin');
             
-            // Hide Loader
             $('#chat-modal-loader').hide();
 
             if (response.success) {

@@ -11,24 +11,19 @@ var AICA_Chat = {
         this.$messages = $('#chat-messages');
         this.$input = $('#chat-input');
         
-        // Use standard jQuery to find these
         this.botImg = $('.chat-header .header-logo').attr('src');
         this.botName = $('.chat-header .header-name').text();
         
-        // Clone welcome messages for later use
         this.$welcomeHtml = $('.welcome-msg').clone();
 
         this.bindCoreEvents($);
         
-        // Run immediately
         this.updateTimestamps();
         
-        // POPUP TRIGGER: Ensure it's not hidden by class and by display
         setTimeout(() => {
             this.triggerPopup();
         }, 3000);
 
-        // Global Heartbeat
         setInterval(() => {
             this.updateTimestamps();
         }, 20000);
@@ -38,7 +33,6 @@ var AICA_Chat = {
         $('#ai-chat-bubble').on('click', () => this.toggleChat());
         $('#chat-close-btn').on('click', (e) => { e.stopPropagation(); this.toggleChat(); });
         
-        // Handle popup close
         $(document).on('click', '#close-welcome-popup', function(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -47,13 +41,10 @@ var AICA_Chat = {
     },
 
     toggleChat: function() {
-        // 1. Toggle the window
         this.$window.toggleClass('hidden');
         
-        // 2. Hide welcome popup if it exists
         $('#ai-chat-welcome-popup').fadeOut(200);
         
-        // 3. Logic for opening
         if (!this.$window.hasClass('hidden')) {
             this.scrollBottom();
             setTimeout(() => this.$input.focus(), 100);
@@ -68,7 +59,6 @@ var AICA_Chat = {
 
     triggerPopup: function() {
         const $popup = $('#ai-chat-welcome-popup');
-        // If chat is closed, show the welcome popup
         if (this.$window.hasClass('hidden')) {
             $popup.hide().removeClass('hidden').fadeIn(500);
         }

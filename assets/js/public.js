@@ -1,6 +1,5 @@
 jQuery(document).ready(function($) {
     function syncAdminPreview() {
-        // 1. Get values from inputs IF they exist, otherwise use the global window object
         const name = $('input[name="ai_agent_display_name"]').length ? 
                      ($('input[name="ai_agent_display_name"]').val() || 'AI Assistant') : 
                      window.aica_settings.name;
@@ -15,7 +14,6 @@ jQuery(document).ready(function($) {
 
         const brandColor = $('#ai_agent_primary_color_input').val();
         
-        // Handle Avatar
         let avatarUrl = $('#ai_agent_logo_preview').attr('src');
         const iconSelect = $('select[name="ai_agent_bubble_icon"]').val();
         const themeMode = $('input[name="ai_agent_theme_mode"]:checked').val() || 'light';
@@ -23,14 +21,11 @@ jQuery(document).ready(function($) {
         const $preview = $('#aica-admin-preview-container');
         const $wrapper = $('#ai-chat-wrapper');
 
-        // Update Theme
         $wrapper.removeClass('theme-light theme-dark').addClass('theme-' + themeMode);
 
-        // Update Text
         $preview.find('.header-name, .msg-bot-name').text(name);
         $preview.find('#chat-input').attr('placeholder', placeholder);
         
-        // Re-build Welcome Bubbles
         const lines = welcomeText.split('\n').filter(l => l.trim() !== "");
         let welcomeHtml = '';
         lines.forEach((line, index) => {
@@ -49,7 +44,6 @@ jQuery(document).ready(function($) {
         $preview.find('.welcome-msg').remove(); 
         $preview.find('#chat-messages').prepend(welcomeHtml);
 
-        // Update Colors & Icons
         $preview.find('#ai-chat-bubble, .user .bubble').css('background-color', brandColor);
         $preview.find('.header-logo, .msg-avatar').attr('src', avatarUrl);
 
@@ -61,7 +55,6 @@ jQuery(document).ready(function($) {
         }
     }
 
-    // Bindings
     $(document).on('change', 'input[name="ai_agent_theme_mode"]', function() {
         syncAdminPreview();
     });
@@ -69,7 +62,4 @@ jQuery(document).ready(function($) {
     $(document).on('input change', '.admin-preview-trigger, #ai_agent_primary_color_input, select[name="ai_agent_bubble_icon"]', function() {
         syncAdminPreview();
     });
-    
-    // Run once on load
-    // syncAdminPreview();
 });

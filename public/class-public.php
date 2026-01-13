@@ -19,34 +19,23 @@ class AICA_Plugin_Public {
         }
     }
 
-    /**
-     * Helper: Get the session IDs associated with this specific browser
-     */
     private function get_user_session_tracker() {
         $cookie_name = 'aica_user_sessions';
         if (isset($_COOKIE[$cookie_name])) {
-            // Returns an array of session UUIDs
             return explode(',', sanitize_text_field($_COOKIE[$cookie_name]));
         }
         return [];
     }
 
-    /**
-     * Helper: Add a session ID to the browser's tracker cookie
-     */
     private function add_session_to_tracker($uuid) {
         $sessions = $this->get_user_session_tracker();
         if (!in_array($uuid, $sessions)) {
             $sessions[] = $uuid;
-            // Limit to last 15 sessions to prevent cookie bloat
             $sessions = array_slice($sessions, -15);
             setcookie('aica_user_sessions', implode(',', $sessions), time() + (30 * DAY_IN_SECONDS), COOKIEPATH, COOKIE_DOMAIN);
         }
     }
 
-    /**
-     * Get existing Chat UUID or create a new one, then track it
-     */
     private function get_chat_session_id() {
         $cookie_name = 'aica_chat_uuid';
         
@@ -54,15 +43,9 @@ class AICA_Plugin_Public {
             return sanitize_key($_COOKIE[$cookie_name]);
         }
 
-        // Generate unique UUID
         $uuid = wp_generate_password(12, false) . '_' . time();
-        
-        // Set active session cookie (1 hour)
         setcookie($cookie_name, $uuid, time() + 3600, COOKIEPATH, COOKIE_DOMAIN);
-        
-        // Add to the long-term tracker for "Recent Chats"
         $this->add_session_to_tracker($uuid);
-        
         return $uuid;
     }
 
@@ -120,8 +103,6 @@ class AICA_Plugin_Public {
             wp_send_json_error( array( 'message' => $ai_response_html ) );
         }
     
-        // $ai_response_plain = wp_strip_all_tags( $ai_response_html );
-
         $content_to_save = $ai_response_html;
     
         if ( $is_regen && ! empty($history) ) {
@@ -152,19 +133,12 @@ class AICA_Plugin_Public {
         wp_send_json_success( array( 'reply' => wp_kses_post( $ai_response_html ) ) );
     }
 
-    /**
-     * Clear Chat: Simply removes active cookie so next message starts a NEW session.
-     * History is NOT deleted, so it stays in "Recent Chats".
-     */
     public function handle_clear_chat_ajax() {
         check_ajax_referer('chat_message_action', 'nonce');
         setcookie('aica_chat_uuid', '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN);
         wp_send_json_success();
     }
 
-    /**
-     * End Chat: Generates summary, sends transcript, then clears active cookie.
-     */
     public function handle_end_chat_ajax() {
         check_ajax_referer('chat_message_action', 'nonce');
         
@@ -173,11 +147,8 @@ class AICA_Plugin_Public {
         $history = get_transient($transient_key);
 
         if (is_array($history) && !empty($history)) {
-            // Generate Summary
             $llm_processor = new AICA_Plugin_LLM_Processor($this->plugin_slug);
             $summary_html = $llm_processor->get_chat_summary($history);
-
-            // Send Email with Summary
             $this->mail_manager->send_final_transcript_admin($history, $summary_html);
         }
 
@@ -185,9 +156,6 @@ class AICA_Plugin_Public {
         wp_send_json_success();
     }
 
-    /**
-     * Fetch Recent Chats: Only shows logs that match the IDs in the user's tracker cookie.
-     */
     public function handle_fetch_recent_chats() {
         check_ajax_referer('chat_message_action', 'nonce');
         
@@ -200,7 +168,6 @@ class AICA_Plugin_Public {
         $clean_slug = str_replace('-', '_', sanitize_key($this->plugin_slug));
         $table_name = $wpdb->prefix . $clean_slug . '_chat_logs';
 
-        // Fetch only the logs belonging to this specific browser's history
         $placeholders = implode(',', array_fill(0, count($user_sessions), '%s'));
         $query = $wpdb->prepare(
             "SELECT * FROM $table_name WHERE session_id IN ($placeholders) ORDER BY last_updated DESC",
@@ -214,7 +181,6 @@ class AICA_Plugin_Public {
             $history = json_decode($log['full_history'], true);
             if (empty($history)) continue;
 
-            // Use the first visitor message as the preview title
             $preview = 'New Conversation';
             foreach($history as $msg) {
                 if($msg['role'] === 'user') {
@@ -269,7 +235,6 @@ class AICA_Plugin_Public {
         $js_path = AICA_PLUGIN_URL . 'assets/js/';
         $ver = $this->version;
     
-        // Register & Enqueue Modular Scripts
         wp_enqueue_script($this->plugin_slug . '-core', $js_path . 'chat-core.js', array('jquery'), $ver, true);
         wp_enqueue_script($this->plugin_slug . '-messaging', $js_path . 'chat-messaging.js', array($this->plugin_slug . '-core'), $ver, true);
         wp_enqueue_script($this->plugin_slug . '-menu', $js_path . 'chat-menu.js', array($this->plugin_slug . '-core'), $ver, true);

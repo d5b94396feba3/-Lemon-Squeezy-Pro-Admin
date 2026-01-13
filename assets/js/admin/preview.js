@@ -1,7 +1,6 @@
 jQuery(document).ready(function($) {
 
     function syncAdminPreview() {
-        // --- 1. GET VALUES WITH LOCAL STORAGE FALLBACK ---
         const nameInput = $('input[name="ai_agent_display_name"]');
         if (nameInput.length) localStorage.setItem('aica_preview_name', nameInput.val());
         const name = localStorage.getItem('aica_preview_name') || 'AI Assistant';
@@ -16,7 +15,6 @@ jQuery(document).ready(function($) {
 
         const brandColor = $('#ai_agent_primary_color_input').val() || '#000000';
         
-        // Handle Avatar
         let avatarUrl = $('#ai_agent_logo_preview').attr('src');
         if (!avatarUrl || avatarUrl.includes('default-avater.svg')) {
             avatarUrl = '/wp-content/plugins/ai-chat-agent/assets/images/default-avater.svg'; 
@@ -24,23 +22,18 @@ jQuery(document).ready(function($) {
         
         const iconSelect = $('select[name="ai_agent_bubble_icon"]').val();
 
-        // FIX: Store and retrieve Theme Mode so it doesn't reset to light when switching tabs/typing
         const themeInput = $('input[name="ai_agent_theme_mode"]:checked');
         if (themeInput.length) localStorage.setItem('aica_preview_theme', themeInput.val());
         const themeMode = localStorage.getItem('aica_preview_theme') || 'light';
 
-        // --- 2. TARGET THE PREVIEW ELEMENTS ---
         const $preview = $('#aica-admin-preview-container');
         const $wrapper = $preview.find('#ai-chat-wrapper'); 
 
-        // Apply Theme Class
         $wrapper.removeClass('theme-light theme-dark').addClass('theme-' + themeMode);
 
-        // Update Name & Placeholder
         $preview.find('.header-name, .msg-bot-name').text(name);
         $preview.find('#chat-input').attr('placeholder', placeholder);
         
-        // Re-build Welcome Bubbles
         const lines = welcomeText.split('\n').filter(l => l.trim() !== "");
         let welcomeHtml = '';
         lines.forEach((line, index) => {
@@ -56,15 +49,12 @@ jQuery(document).ready(function($) {
                 </div>`;
         });
         
-        // Update Messages
         $preview.find('.welcome-msg').remove(); 
         $preview.find('#chat-messages').prepend(welcomeHtml);
 
-        // Update Colors (Avatar and Launcher)
         $preview.find('#ai-chat-bubble, .user .bubble').css('background-color', brandColor);
         $preview.find('.header-logo, .msg-avatar').attr('src', avatarUrl);
 
-        // Launcher Icon Update
         const $iconContainer = $preview.find('.launcher-img-container');
         if (iconSelect === 'logo') {
             $iconContainer.removeClass('is-default-icon').html(`<img src="${avatarUrl}" class="launcher-img">`);
@@ -73,9 +63,6 @@ jQuery(document).ready(function($) {
         }
     }
 
-    // --- 3. EVENT BINDINGS ---
-
-    // Listen for Theme Changes
     $(document).on('change', 'input[name="ai_agent_theme_mode"]', function() {
         const $card = $(this).closest('.aica-theme-card');
         $('.aica-theme-card').removeClass('is-active').find('.theme-card-inner').css('border-color', '#e2e8f0');
@@ -83,12 +70,10 @@ jQuery(document).ready(function($) {
         syncAdminPreview();
     });
 
-    // Listen for all text/color/select changes
     $(document).on('input change', '.admin-preview-trigger, #ai_agent_primary_color_input, select[name="ai_agent_bubble_icon"]', function() {
         syncAdminPreview();
     });
 
-    // Profile Image Realtime Sync
     $('#ai_agent_upload_btn').on('click', function() {
         var custom_uploader = wp.media({
             title: 'Select Avatar',

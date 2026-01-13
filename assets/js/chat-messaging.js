@@ -5,16 +5,9 @@
 
         function autoResizeTextarea() {
             const el = $input[0];
-            
-            // 1. Mandatory Reset: Setting to 'inherit' or 'auto' allows 
-            // the element to collapse to its natural height based on content.
             el.style.height = 'auto';
-            
-            // 2. Measure & Apply: Set height based on scrollHeight
             const newHeight = el.scrollHeight;
             el.style.height = newHeight + 'px';
-
-            // 3. Handle Max-Height/Scrolling
             if (newHeight >= 150) {
                 $input.addClass('is-scrolling');
             } else {
@@ -22,10 +15,8 @@
             }
         }
 
-        // Bind all possible input events for instant resizing
         $input.on('input propertychange cut paste drop keyup', autoResizeTextarea);
 
-        // --- SEND MESSAGE ---
         $('#chat-send').on('click', sendMessage);
         
         $input.on('keydown', function(e) {
@@ -38,16 +29,11 @@
         function sendMessage() {
             const text = $input.val().trim();
             if (!text) return;
-
             chat.$messages.append(`<div class="msg user"><div class="bubble">${$('<div>').text(text).html()}</div></div>`);
-            
-            // Reset to initial state
             $input.val('');
-            $input[0].style.height = '44px'; // Set back to your base height
+            $input[0].style.height = '44px';
             $input.removeClass('is-scrolling');
-            
             chat.scrollBottom();
-
             const tId = 'typing-' + Date.now();
             chat.$messages.append(`
                 <div class="msg ai" id="${tId}">
@@ -95,7 +81,6 @@
                 </div>`;
         }
 
-        // Actions (Copy, Rate, Regen) go here...
         $(document).on('click', '.copy-msg', function() {
             const text = $(this).closest('.msg-content-wrapper').find('.bubble').text();
             navigator.clipboard.writeText(text);

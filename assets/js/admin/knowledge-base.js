@@ -1,13 +1,11 @@
 jQuery(document).ready(function($) {
     let pages = [];
 
-    // Auto-load Discovery on Page Load (if tab is Knowledge Base)
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('tab') === 'prompt') {
         runDiscovery();
     }
 
-    // Toggle Visibility
     $('#toggle-sync-table').on('click', function() {
         $('#sync-collapsible-content').slideToggle(300);
         $(this).find('.toggle-icon').toggleClass('dashicons-arrow-down-alt2 dashicons-arrow-up-alt2');
@@ -63,7 +61,6 @@ jQuery(document).ready(function($) {
         }
     }
 
-    // Bulk Sync Logic
     $('#run-bulk-sync').on('click', async function() {
         const $btn = $(this).prop('disabled', true).text('Syncing...');
         $('#sync-progress-bar').slideDown();
@@ -91,17 +88,14 @@ jQuery(document).ready(function($) {
                 const $row = $(`tr[data-url="${p.url}"]`);
                 $row.find('.status-badge').attr('class', 'status-badge status-approved').text('Synced');
                 $row.find('.last-sync-col').text('Just now');
-                pages[i].status = 'Synced'; // Update local state
+                pages[i].status = 'Synced';
             }
         }
 
-        // Completion UI sequence
         $('#sync-progress-bar').delay(500).slideUp(400, function() {
-            // 1. Show Success Message
             $('#sync-success-msg').fadeIn();
             updateSyncButtonState();
 
-            // 2. Automatically hide the success message after 4 seconds
             setTimeout(function() {
                 $('#sync-success-msg').fadeOut(500);
             }, 4000);
@@ -117,7 +111,6 @@ jQuery(document).ready(function($) {
         const $textarea = $('#ai_agent_system_prompt_area');
         const $loader = $('#prompt-gen-loader');
 
-        // UI State
         $btn.prop('disabled', true).css('opacity', '0.5');
         $textarea.css('opacity', '0.3');
         $loader.fadeIn(300);
@@ -131,13 +124,8 @@ jQuery(document).ready(function($) {
             $textarea.css('opacity', '1');
 
             if (response.success) {
-                // Flash the textarea to show it's new
                 $textarea.val(response.data).addClass('field-changed');
-    
-                // Show the professional unsaved bar
                 $('#aica-unsaved-bar').css('display', 'flex');
-                
-                // Add a pulsing effect to the main save button to draw the eye
                 $('.submit .button-primary').css('animation', 'pulse-save 2s infinite');
             } else {
                 alert(response.data);

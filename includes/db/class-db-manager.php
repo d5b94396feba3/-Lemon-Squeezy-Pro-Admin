@@ -13,19 +13,14 @@ class AICA_Plugin_DB_Manager {
         $this->wpdb = $wpdb;
 
         $clean_slug = str_replace('-', '_', sanitize_key($plugin_slug));
-        
-        // Define both table names clearly
         $this->table_chat_logs = $wpdb->prefix . $clean_slug . '_chat_logs';
     }
 
-    /**
-     * Create Chat Table
-     */
     public static function create_table( $plugin_slug ) {
         global $wpdb;
         $clean_slug = str_replace('-', '_', sanitize_key($plugin_slug));
         $table_name = $wpdb->prefix . $clean_slug . '_chat_logs';
-        $feedback_table = $wpdb->prefix . $clean_slug . '_feedback'; // New Table
+        $feedback_table = $wpdb->prefix . $clean_slug . '_feedback';
         $kb_table = $wpdb->prefix . $clean_slug . '_knowledge_base';
 
         $charset_collate = $wpdb->get_charset_collate();
@@ -39,7 +34,6 @@ class AICA_Plugin_DB_Manager {
             KEY session_id (session_id(191))
         ) $charset_collate;";
     
-        // Table for storing Q&A Feedback
         $sql_feedback = "CREATE TABLE $feedback_table (
             id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
             user_query TEXT NOT NULL,
@@ -79,15 +73,13 @@ class AICA_Plugin_DB_Manager {
     public function update_knowledge_base($url, $content) {
         global $wpdb;
         $table = $this->get_kb_table_name();
-    
-        // Final safety trim before SQL
         $content = trim($content);
-    
+
         return $wpdb->replace(
             $table,
             [
                 'source_url'  => esc_url_raw($url),
-                'content'     => $content, // Already cleaned by the scraper
+                'content'     => $content,
                 'last_synced' => current_time('mysql')
             ],
             ['%s', '%s', '%s']
@@ -104,13 +96,8 @@ class AICA_Plugin_DB_Manager {
         return $text;
     }
 
-    /**
-     * Fetch positive feedback to use as examples for the AI
-     */
     public function get_positive_feedback(int $limit = 5) {
         $feedback_table = $this->wpdb->prefix . str_replace('-', '_', sanitize_key($this->plugin_slug)) . '_feedback';
-        
-        // Safety check to ensure table exists
         if($this->wpdb->get_var("SHOW TABLES LIKE '$feedback_table'") != $feedback_table) {
             return [];
         }
@@ -124,9 +111,6 @@ class AICA_Plugin_DB_Manager {
         );
     }
 
-    /**
-     * Fetch feedback by rating type
-     */
     public function get_feedback_by_type(string $rating, int $limit = 5) {
         $feedback_table = $this->wpdb->prefix . str_replace('-', '_', sanitize_key($this->plugin_slug)) . '_feedback';
         
@@ -144,9 +128,6 @@ class AICA_Plugin_DB_Manager {
         );
     }
 
-    /**
-     * Save Chat History (Called by handle_chat_message_ajax)
-     */
     public function save_chat_history($session_id, $history_array) {
         $history_data = json_encode($history_array);
 
@@ -191,8 +172,6 @@ class AICA_Plugin_DB_Manager {
      */
     public function get_chat_log_by_id($log_id) {
         global $wpdb;
-
-        // Standardize the table name using the plugin slug
         $clean_slug = str_replace('-', '_', sanitize_key($this->plugin_slug));
         $table_name = $wpdb->prefix . $clean_slug . '_chat_logs';
 
@@ -204,9 +183,6 @@ class AICA_Plugin_DB_Manager {
         return $wpdb->get_row($query, ARRAY_A);
     }
 
-    /**
-     * Fetch logs for export (single or all)
-     */
     public function get_logs_for_export($id = 0) {
         if ($id > 0) {
             return $this->wpdb->get_results(
