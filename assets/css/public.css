@@ -1,3 +1,28 @@
+/* LIGHT THEME (Default) */
+#ai-chat-wrapper.theme-light #ai-chat-window { background: #ffffff; color: #111; }
+#ai-chat-wrapper.theme-light .chat-header { background: #fff; border-bottom: 1px solid #f3f4f6; }
+#ai-chat-wrapper.theme-light #chat-messages { background: #fff; }
+#ai-chat-wrapper.theme-light .ai .bubble { background: #f3f4f6; color: #1f2937; }
+#ai-chat-wrapper.theme-light .chat-input-area { background: #fff; border-top: 1px solid #f3f4f6; }
+#ai-chat-wrapper.theme-light .input-wrapper { background: #f9fafb; border: 1px solid #e5e7eb; }
+#ai-chat-wrapper.theme-light #chat-input { color: #111; }
+
+/* DARK THEME */
+#ai-chat-wrapper.theme-dark #ai-chat-window { background: #111827; color: #f9fafb; border: 1px solid #374151; }
+#ai-chat-wrapper.theme-dark .chat-header { background: #1f2937; border-bottom: 1px solid #374151; }
+#ai-chat-wrapper.theme-dark .header-name { color: #f9fafb; }
+#ai-chat-wrapper.theme-dark #chat-messages { background: #111827; }
+#ai-chat-wrapper.theme-dark .ai .bubble { background: #1f2937; color: #f3f4f6; }
+#ai-chat-wrapper.theme-dark .msg-bot-name { color: #9ca3af; }
+#ai-chat-wrapper.theme-dark .chat-input-area { background: #111827; border-top: 1px solid #374151; }
+#ai-chat-wrapper.theme-dark .input-wrapper { background: #1f2937; border: 1px solid #4b5563; }
+#ai-chat-wrapper.theme-dark #chat-input { color: #111; }
+#ai-chat-wrapper.theme-dark #chat-confirm-overlay { background: rgba(0, 0, 0, 0.8); }
+#ai-chat-wrapper.theme-dark .confirm-box { background: #1f2937; border-color: #374151; }
+#ai-chat-wrapper.theme-dark .confirm-box h4 { color: #fff; }
+#ai-chat-wrapper.theme-dark .menu-item:hover { background: #374151; }
+#ai-chat-wrapper.theme-dark .menu-item { color: #f3f4f6; }
+
 #ai-chat-wrapper {
     position: fixed;
     bottom: 24px;
@@ -260,7 +285,7 @@
 
 #ai-chat-wrapper .ai .bubble ul { margin: 8px 0; padding-left: 20px; list-style-type: disc; }
 #ai-chat-wrapper .ai .bubble li { margin-bottom: 4px; }
-#ai-chat-wrapper .ai .bubble strong { font-weight: 600; color: #111; }
+#ai-chat-wrapper .ai .bubble strong { font-weight: 600; color: #fff; }
 
 #ai-chat-wrapper .launcher-img-container.is-default-icon {
     display: flex;
@@ -630,3 +655,51 @@
     opacity: 1 !important;
     transform: scale(1) rotate(0deg) !important;
 }
+/* DARK THEME FIXES */
+
+/* Fix 1: Input text visibility */
+#ai-chat-wrapper.theme-dark #chat-input {
+    color: #111 !important; 
+}
+
+/* Fix 2: Popup menu background and border */
+#ai-chat-wrapper.theme-dark #chat-options-popup {
+    background: #1f2937 !important;
+    border: 1px solid #374151 !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+}
+
+/* Fix 3: Menu item text and icon colors */
+#ai-chat-wrapper.theme-dark .menu-item {
+    color: #f3f4f6 !important;
+}
+
+#ai-chat-wrapper.theme-dark .menu-item i {
+    color: #9ca3af !important;
+}
+
+/* Fix 4: Hover state for menu items */
+#ai-chat-wrapper.theme-dark .menu-item:hover {
+    background: #374151 !important;
+}
+
+/* Fix 5: Header action button hover */
+#ai-chat-wrapper.theme-dark .header-action-btn:hover {
+    background: #374151 !important;
+}
+
+/* Fix 6: Recent chats view background */
+#ai-chat-wrapper.theme-dark #recent-chats-view,
+#ai-chat-wrapper.theme-dark .recent-chat-item {
+    background: #111827 !important;
+    color: #f3f4f6 !important;
+}
+
+#ai-chat-wrapper.theme-dark .recent-chat-item:hover {
+    background: #1f2937 !important;
+}
+
+#ai-chat-wrapper.theme-dark .recent-chat-item .chat-preview {
+    color: #9ca3af !important;
+}
+

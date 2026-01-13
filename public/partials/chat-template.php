@@ -10,10 +10,12 @@ $placeholder   = get_option('ai_agent_placeholder', 'Message...');
 $primary_color = get_option('ai_agent_primary_color', '#000000');
 
 $welcome_lines = array_filter(explode("\n", str_replace("\r", "", $welcome_msg)));
+$theme_mode = get_option('ai_agent_theme_mode', 'light');
+
 ?>
 
-<div id="ai-chat-wrapper">
-    <div id="ai-chat-window" class="hidden">
+<div id="ai-chat-wrapper" class="theme-<?php echo esc_attr($theme_mode); ?>">    
+<div id="ai-chat-window" class="hidden">
         <div class="chat-header">
             <div class="header-info">
                 <img src="<?php echo esc_url($logo_url); ?>" class="header-logo">

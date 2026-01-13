@@ -77,6 +77,9 @@ class AICA_Plugin_Admin {
 
         // 5. Notifications Tab Settings
         register_setting($this->plugin_slug . '_notif_settings', 'ai_agent_admin_email');
+
+        // Inside register_settings() under Style Tab Settings
+        register_setting($this->plugin_slug . '_style_settings', 'ai_agent_theme_mode');
     }
 
     /**
@@ -354,6 +357,9 @@ class AICA_Plugin_Admin {
             $this->version,
             'all'
         );
+
+        wp_enqueue_style( $this->plugin_slug . '-public',  AICA_PLUGIN_URL . 'assets/css/public.css', array(), $this->version, 'all' );
+
     }
 
     /**
@@ -385,6 +391,14 @@ class AICA_Plugin_Admin {
         wp_enqueue_script(
             $this->plugin_slug . '-knowledge-base',
             AICA_PLUGIN_URL . 'assets/js/admin/knowledge-base.js',
+            array('jquery'),
+            $this->version,
+            true
+        );
+
+        wp_enqueue_script(
+            $this->plugin_slug . '-preview',
+            AICA_PLUGIN_URL . 'assets/js/admin/preview.js',
             array('jquery'),
             $this->version,
             true
