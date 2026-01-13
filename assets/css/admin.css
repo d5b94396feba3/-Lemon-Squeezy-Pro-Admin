@@ -1206,7 +1206,6 @@ button#generate-proposal-btn
     outline: none !important;
 }
 
-/* Professional Admin Styles */
 .ai-agent-admin-wrap .professional-box {
     background: #fff;
     border: 1px solid #d1d5db !important;
@@ -1286,7 +1285,6 @@ button#generate-proposal-btn
     color: #3b82f6;
 }
 
-/* Fix for narrow inputs like temperature */
 .ai-agent-admin-wrap input.small-text.professional-input {
     width: 80px !important;
 }
@@ -1322,7 +1320,6 @@ button#generate-proposal-btn
     margin-right: 4px;
 }
 
-/* Modal formatting for the transcript view */
 #chat-modal-content strong {
     display: block;
     margin-bottom: 5px;
@@ -1331,13 +1328,12 @@ button#generate-proposal-btn
     letter-spacing: 0.5px;
 }
 
-/* Circular Loader Animation */
 .aica-loader-circle {
     display: inline-block;
     width: 40px;
     height: 40px;
     border: 4px solid #f3f3f3;
-    border-top: 4px solid #ea580c; /* Summary orange color */
+    border-top: 4px solid #ea580c;
     border-radius: 50%;
     animation: aica-spin 1s linear infinite;
 }
@@ -1351,7 +1347,6 @@ button#generate-proposal-btn
     100% { transform: rotate(360deg); }
 }
 
-/* Modal Content Styling */
 .ai-summary-wrapper {
     animation: fadeIn 0.4s ease;
 }
@@ -1403,7 +1398,6 @@ button#generate-proposal-btn
 @keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
 @media screen and (max-width: 782px) { #aica-unsaved-bar { left: 0; right: 0; top: 46px; border-radius: 0; } }
 
-/* Highlight unsaved fields */
 .field-changed {
     border-color: #fbbf24 !important;
     background-color: #fffbeb !important;
@@ -1416,10 +1410,8 @@ button#generate-proposal-btn
     100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
 }
 
-/* Keep the global hidden simple */
 #ai-chat-wrapper .hidden { display: none !important; }
 
-/* LAUNCHER BUBBLE FIX */
 #ai-chat-wrapper .launcher-btn {
     position: relative;
     width: 60px;
@@ -1443,21 +1435,18 @@ button#generate-proposal-btn
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* State: Icon is hidden */
 #ai-chat-wrapper .icon-state-hidden {
     opacity: 0;
     transform: scale(0) rotate(-90deg);
     pointer-events: none;
 }
 
-/* State: Icon is visible */
 #ai-chat-wrapper .icon-state-visible {
     opacity: 1;
     transform: scale(1) rotate(0deg);
     pointer-events: auto;
 }
 
-/* Split Layout for Settings */
 .aica-settings-split {
     display: flex;
     gap: 30px;
@@ -1491,14 +1480,12 @@ button#generate-proposal-btn
     text-align: center;
 }
 
-/* Chat Preview Scale Down */
 .chat-preview-container {
     transform: scale(0.85);
     transform-origin: top center;
-    pointer-events: none; /* Preview only */
+    pointer-events: none;
 }
 
-/* Ensure the widget doesn't stay fixed in the preview box */
 #ai-chat-wrapper.is-preview {
     position: relative !important;
     bottom: 0 !important;
@@ -1512,16 +1499,15 @@ button#generate-proposal-btn
     width: 100% !important;
     height: 500px !important;
     margin-bottom: 10px;
-    display: flex !important; /* Force open in preview */
+    display: flex !important;
 }
 
 #ai-chat-wrapper.is-preview .launcher-btn {
     margin-top: 10px;
 }
 
-/* --- THE DESKTOP PREVIEW CANVAS --- */
 .aica-settings-preview-sidebar {
-    background: #f1f5f9 !important; /* Professional slate background */
+    background: #f1f5f9 !important;
     padding: 0 !important;
     border-radius: 16px !important;
     border: 1px solid #e2e8f0 !important;
@@ -1543,7 +1529,6 @@ button#generate-proposal-btn
     text-align: center !important;
 }
 
-/* --- THE ACTUAL DESKTOP PREVIEW CONTAINER --- */
 #aica-admin-preview-container {
     flex: 1 !important;
     position: relative !important;
@@ -1554,14 +1539,13 @@ button#generate-proposal-btn
         linear-gradient(-45deg, transparent 75%, #f8fafc 75%) !important;
     background-size: 20px 20px !important;
     background-position: 0 0, 0 10px, 10px -10px, -10px 0px !important;
-    background-color: #ffffff !important; /* Canvas/Browser look */
+    background-color: #ffffff !important;
     overflow: hidden !important;
     padding: 0 !important;
     margin: 0 !important;
-    transform: none !important; /* Stop the scaling, we want it crisp */
+    transform: none !important;
 }
 
-/* --- THE CHAT WRAPPER (CONTAINED TO THE SIDEBAR) --- */
 #aica-admin-preview-container #ai-chat-wrapper {
     position: absolute !important;
     bottom: 24px !important;
@@ -1572,21 +1556,19 @@ button#generate-proposal-btn
     flex-direction: column !important;
     align-items: flex-end !important;
     justify-content: flex-end !important;
-    pointer-events: none; /* Just a preview */
+    pointer-events: none;
 }
 
-/* --- THE CHAT WINDOW (DESKTOP SCALE) --- */
 #aica-admin-preview-container #ai-chat-window {
     position: relative !important;
-    width: 380px !important; /* Standard desktop widget width */
-    height: 640px !important; /* Fits nicely in the 800px sidebar */
+    width: 380px !important;
+    height: 640px !important;
     margin-bottom: 16px !important;
-    display: flex !important; /* Force show in preview */
+    display: flex !important;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
     pointer-events: auto;
 }
 
-/* Reset original positioning for internal elements */
 #aica-admin-preview-container #recent-chats-view, 
 #aica-admin-preview-container #chat-confirm-overlay {
     position: absolute !important;
@@ -1594,21 +1576,18 @@ button#generate-proposal-btn
     height: 100% !important;
 }
 
-/* --- LAUNCHER LOGIC --- */
 #aica-admin-preview-container .launcher-btn {
     position: relative !important;
     margin: 0 !important;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
 }
 
-/* Fix for the Welcome Popup in Preview */
 #aica-admin-preview-container #ai-chat-welcome-popup {
     position: relative !important;
     width: 280px !important;
     margin-bottom: 16px !important;
 }
 
-/* Scrollbar styling for the preview window */
 #aica-admin-preview-container #chat-messages::-webkit-scrollbar {
     width: 6px;
 }
@@ -1617,7 +1596,6 @@ button#generate-proposal-btn
     border-radius: 10px;
 }
 
-/* Base Theme Colors */
 #ai-chat-wrapper.theme-dark #ai-chat-window {
     background-color: #1a1a1a;
     color: #ffffff;
@@ -1632,7 +1610,6 @@ button#generate-proposal-btn
     color: #ffffff !important;
 }
 
-/* Fix for Chat Text removing/disappearing on menu click */
 #ai-chat-wrapper.theme-dark #chat-messages .msg.ai .bubble {
     color: #ffffff !important;
 }
@@ -1643,14 +1620,12 @@ button#generate-proposal-btn
     border-color: #444;
 }
 
-/* Container for the cards */
 .aica-theme-toggle-group {
     display: flex;
     gap: 16px;
     margin-top: 5px;
 }
 
-/* Individual Card Styling */
 .aica-theme-card {
     flex: 1;
     max-width: 160px;
@@ -1665,30 +1640,27 @@ button#generate-proposal-btn
     text-align: center;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
     background: #ffffff !important;
-    border: 2px solid #e5e7eb !important; /* Default border */
+    border: 2px solid #e5e7eb !important;
     display: flex;
     flex-direction: column;
     align-items: center;
     box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
-/* Hover State */
 .aica-theme-card:hover .theme-card-inner {
     border-color: #d1d5db !important;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 
-/* ACTIVE/SELECTED STATE (The "Modern" Look) */
 .aica-theme-card.is-active .theme-card-inner {
-    border-color: #3b82f6 !important; /* Brand Blue Border */
-    background: #f8faff !important; /* Subtle blue tint */
+    border-color: #3b82f6 !important;
+    background: #f8faff !important;
     box-shadow: 0 0 0 1px #3b82f6, 0 10px 15px -3px rgba(59, 130, 246, 0.1) !important;
 }
 
-/* Visual checkmark for active state */
 .aica-theme-card.is-active .theme-card-inner::after {
-    content: "\f147"; /* WordPress dashicons checkmark */
+    content: "\f147";
     font-family: dashicons;
     position: absolute;
     top: 8px;
@@ -1697,7 +1669,6 @@ button#generate-proposal-btn
     font-size: 18px;
 }
 
-/* Icon Polish */
 .aica-theme-card .dashicons {
     font-size: 28px !important;
     width: 28px !important;
@@ -1710,7 +1681,6 @@ button#generate-proposal-btn
     transform: scale(1.1);
 }
 
-/* Text Polish */
 .aica-theme-card .theme-label-text {
     margin-top: 8px;
     font-weight: 700 !important;
@@ -1720,12 +1690,11 @@ button#generate-proposal-btn
 }
 
 .aica-theme-card.is-active .theme-label-text {
-    color: #1e40af !important; /* Darker blue text for active */
+    color: #1e40af !important;
 }
 
-/* Specific logic for Dark Card specifically in the selector */
 .aica-theme-card[data-theme="dark"].is-active .theme-card-inner {
-    background: #111827 !important; /* Dark background if selected */
+    background: #111827 !important;
     border-color: #3b82f6 !important;
 }
 
@@ -1733,12 +1702,11 @@ button#generate-proposal-btn
     color: #ffffff !important;
 }
 
-/* Card Container */
 .theme-card-inner {
     padding: 12px !important;
     border-radius: 12px !important;
     border: 2px solid #e5e7eb !important;
-    background: #f1f5f9 !important; /* Contrast background for the mini canvas */
+    background: #f1f5f9 !important;
     transition: all 0.25s ease;
     text-align: center;
 }
@@ -1749,7 +1717,6 @@ button#generate-proposal-btn
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
 }
 
-/* The Mini Preview Box */
 .mini-preview-canvas {
     width: 100%;
     height: 100px;
@@ -1763,11 +1730,9 @@ button#generate-proposal-btn
     border: 1px solid rgba(0,0,0,0.05);
 }
 
-/* Light/Dark background for the canvas */
 .mini-preview-canvas.theme-light { background: #ffffff; }
 .mini-preview-canvas.theme-dark { background: #0f172a; }
 
-/* The Mini Widget Shape */
 .mini-widget {
     width: 60px;
     height: 80px;
@@ -1781,7 +1746,6 @@ button#generate-proposal-btn
 .theme-light .mini-widget { background: #fff; border: 0.5px solid #e2e8f0; }
 .theme-dark .mini-widget { background: #1e293b; border: 0.5px solid #334155; }
 
-/* Internal Mini Elements */
 .mini-header { height: 12px; width: 100%; background: #3b82f6; }
 .mini-content { flex: 1; padding: 4px; display: flex; flex-direction: column; gap: 4px; }
 .mini-footer { height: 10px; width: 100%; background: #f8fafc; border-top: 1px solid #e2e8f0; }
@@ -1792,15 +1756,12 @@ button#generate-proposal-btn
     border-radius: 2px;
 }
 
-/* Bubbles for Light Mode */
 .theme-light .mini-bubble-ai { width: 70%; background: #f1f5f9; }
 .theme-light .mini-bubble-user { width: 50%; background: #3b82f6; align-self: flex-end; }
 
-/* Bubbles for Dark Mode */
 .theme-dark .mini-bubble-ai { width: 70%; background: #334155; }
 .theme-dark .mini-bubble-user { width: 50%; background: #3b82f6; align-self: flex-end; }
 
-/* Label Styling */
 .theme-label-container {
     display: flex;
     align-items: center;

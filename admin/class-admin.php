@@ -304,14 +304,23 @@ class AICA_Plugin_Admin {
         }
 
         wp_enqueue_style(
-            $this->plugin_slug . '-admin',
-            AICA_PLUGIN_URL . 'assets/css/admin.css',
+            $this->plugin_slug . '-dashboard',
+            AICA_PLUGIN_URL . 'assets/css/admin/dashboard.css',
             array(),
             $this->version,
             'all'
         );
 
-        wp_enqueue_style( $this->plugin_slug . '-public',  AICA_PLUGIN_URL . 'assets/css/public.css', array(), $this->version, 'all' );
+        wp_enqueue_style(
+            $this->plugin_slug . '-settings',
+            AICA_PLUGIN_URL . 'assets/css/admin/settings.css',
+            array(),
+            $this->version,
+            'all'
+        );
+
+        wp_enqueue_style( $this->plugin_slug . '-theme-logic',  AICA_PLUGIN_URL . 'assets/css/public/theme-logic.css', array(), $this->version, 'all' );
+        wp_enqueue_style( $this->plugin_slug . '-chat-widget',  AICA_PLUGIN_URL . 'assets/css/public/chat-widget.css', array(), $this->version, 'all' );
 
     }
 

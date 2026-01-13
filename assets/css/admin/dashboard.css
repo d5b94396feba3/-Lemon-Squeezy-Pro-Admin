@@ -1,0 +1,177 @@
+.admin-dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 20px;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.04);
+}
+
+.stat-card-inner h3 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-number {
+    font-size: 32px;
+    font-weight: 700;
+    color: #2271b1;
+    line-height: 1;
+}
+
+.stat-desc {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+}
+
+.admin-proposal-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.admin-stat-card {
+    background: white;
+    border: 1px solid #ccd0d4;
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    font-size: 24px;
+    color: white;
+}
+
+.stat-icon.total-proposals { background: #007cba; }
+.stat-icon.recent-proposals { background: #00a32a; }
+.stat-icon.pending-proposals { background: #d63638; }
+.stat-icon.approved-proposals { background: #00a32a; }
+
+.stat-content h3 {
+    margin: 0 0 5px 0;
+    font-size: 28px;
+    font-weight: bold;
+    color: #1d2327;
+}
+
+.stat-content p {
+    margin: 0;
+    color: #646970;
+    font-size: 14px;
+}
+
+.admin-proposals-table-wrapper {
+    margin: 0;
+}
+
+.admin-proposals-table {
+    margin: 30px 0;
+    background: white;
+    border: 1px solid #ccd0d4;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.admin-proposals-table h2 {
+    padding: 20px;
+    margin: 0;
+    background: #f6f7f7;
+    border-bottom: 1px solid #ccd0d4;
+}
+
+.admin-proposals-table .button-secondary i {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+}
+
+.no-proposals-message {
+    text-align: center;
+    padding: 40px 20px;
+    background: #f9f9f9;
+    border-radius: 4px;
+}
+
+.no-proposals-message p {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+/* Chat Log Modal Specifics */
+#chat-modal-content strong {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.aica-loader-circle {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #ea580c;
+    border-radius: 50%;
+    animation: aica-spin 1s linear infinite;
+}
+
+@keyframes aica-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.ai-summary-wrapper {
+    animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 782px) {
+    .admin-dashboard-stats, .admin-proposal-stats {
+        grid-template-columns: 1fr;
+    }
+    .admin-stat-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    .stat-icon {
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+}
