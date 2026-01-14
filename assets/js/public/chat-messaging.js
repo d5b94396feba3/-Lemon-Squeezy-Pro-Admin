@@ -2,6 +2,7 @@
     $(document).ready(function() {
         const chat = AICA_Chat;
         const $input = $('#chat-input');
+        const $menuEndChat = $('#menu-end-chat');
 
         function autoResizeTextarea() {
             const el = $input[0];
@@ -44,6 +45,7 @@
                     </div>
                 </div>`);
             chat.scrollBottom();
+            $menuEndChat.removeClass('is-disabled');
 
             $.ajax({
                 type: 'POST',

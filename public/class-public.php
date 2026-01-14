@@ -221,20 +221,8 @@ class AICA_Plugin_Public {
         wp_enqueue_style( $this->plugin_slug . '-chat-widget',  AICA_PLUGIN_URL . 'assets/css/public/chat-widget.css', array(), $this->version, 'all' );
     }
 
-    public function enqueue_scripts_old() {
-        wp_enqueue_script( $this->plugin_slug . '-public', AICA_PLUGIN_URL . 'assets/js/public.js', array('jquery'), $this->version, true );
-        wp_localize_script(
-            $this->plugin_slug . '-public',
-            'chatData',
-            array(
-                'ajax_url' => admin_url('admin-ajax.php'),
-                'nonce'    => wp_create_nonce('chat_message_action'),
-            )
-        );
-    }
-
     public function enqueue_scripts() {
-        $js_path = AICA_PLUGIN_URL . 'assets/js/';
+        $js_path = AICA_PLUGIN_URL . 'assets/js/public/';
         $ver = $this->version;
     
         wp_enqueue_script($this->plugin_slug . '-core', $js_path . 'chat-core.js', array('jquery'), $ver, true);

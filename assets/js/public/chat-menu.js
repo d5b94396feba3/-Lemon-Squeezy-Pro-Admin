@@ -4,8 +4,17 @@
         const $menu = $('#chat-options-popup');
         const $overlay = $('#chat-confirm-overlay');
         let mode = '';
+        const $endChatBtn = $('#menu-end-chat');
 
-        $('#chat-menu-btn').on('click', (e) => { e.stopPropagation(); $menu.toggleClass('hidden'); });
+        function updateEndChatVisibility() {
+            const userMsgCount = chat.$messages.find('.msg.user').length;
+            if (userMsgCount > 0) {
+                $endChatBtn.removeClass('is-disabled');
+            } else {
+                $endChatBtn.addClass('is-disabled');
+            }
+        }
+        $('#chat-menu-btn').on('click', (e) => { e.stopPropagation(); updateEndChatVisibility(); $menu.toggleClass('hidden'); });
         $(document).on('click', () => $menu.addClass('hidden'));
 
         $('#menu-start-new').on('click', function() {
@@ -35,6 +44,7 @@
             $.post(chatData.ajax_url, { action: action, nonce: chatData.nonce }, function(res) {
                 $btn.prop('disabled', false).text('Confirm');
                 if (res.success) {
+                    updateEndChatVisibility();
                     chat.$messages.empty().append(chat.$welcomeHtml.clone());
                     $overlay.fadeOut(200);
                     if (mode === 'end') chat.toggleChat();
