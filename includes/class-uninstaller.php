@@ -82,6 +82,7 @@ class AICA_Plugin_Uninstaller {
         delete_option( 'grok_api_key' );
         delete_option( 'grok_model' );
         delete_option( 'grok_temperature' );
+        delete_option( 'llm_model' );
         
         // Remove Notifications Tab Option
         delete_option( 'ai_agent_admin_email' );

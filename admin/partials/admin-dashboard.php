@@ -34,8 +34,8 @@ $display_logs = $view_all ? $chat_logs : array_slice($chat_logs, 0, 10);
         <div class="admin-stat-card" style="background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); flex: 1; display: flex; align-items: center;">
             <div class="stat-icon" style="background: #fff7ed; color: #ea580c; padding: 10px; border-radius: 50%; margin-right: 15px;"><i class="dashicons dashicons-businessman"></i></div>
             <div class="stat-content">
-                <h3 style="margin: 0; font-size: 24px;"><?php echo esc_html(get_option('grok_model', 'Grok-2')); ?></h3>
-                <p style="margin: 0; color: #666;">Engine Active</p>
+                <h3 style="margin: 0; font-size: 24px;"><?php echo esc_html(get_option('llm_model', 'Grok')); ?></h3>
+                <p style="margin: 0; color: #666;">Model Active</p>
             </div>
         </div>
     </div>

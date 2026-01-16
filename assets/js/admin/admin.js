@@ -223,5 +223,13 @@ jQuery(document).ready(function($) {
             alert('Server error while generating summary.');
         });
     });
+
+    function toggleLLMSettings() {
+        var selected = $('#llm_model_selector').val();
+        $('.llm-settings-group').hide();
+        $('#settings-group-' + selected).show();
+    }
+    $('#llm_model_selector').on('change', toggleLLMSettings);
+    toggleLLMSettings();
     
 });

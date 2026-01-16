@@ -80,8 +80,12 @@ class AICA_Bootstrap {
         require_once AICA_PLUGIN_PATH . 'includes/class-main.php';
         require_once AICA_PLUGIN_PATH . 'admin/class-admin.php';
         require_once AICA_PLUGIN_PATH . 'includes/llm/class-llm-processor.php';
+        require_once AICA_PLUGIN_PATH . 'includes/llm/class-llm-grok.php';
+        require_once AICA_PLUGIN_PATH . 'includes/llm/class-llm-gemini.php';
+        require_once AICA_PLUGIN_PATH . 'includes/llm/class-llm-openai.php';
         require_once AICA_PLUGIN_PATH . 'includes/db/class-db-manager.php';
         require_once AICA_PLUGIN_PATH . 'includes/mail/class-mail.php';
+        require_once AICA_PLUGIN_PATH . 'includes/pdf-parser/class-smalot-parser.php';
         require_once AICA_PLUGIN_PATH . 'includes/scraper/class-shtmldom.php';
         require_once AICA_PLUGIN_PATH . 'includes/wp-cron/class-wp-cron.php';
         require_once AICA_PLUGIN_PATH . 'public/class-public.php';

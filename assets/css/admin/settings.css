@@ -221,3 +221,12 @@
 #ai-chat-wrapper .launcher-btn { position: relative; width: 60px; height: 60px; border-radius: 50%; cursor: pointer; }
 #ai-chat-wrapper .icon-state-hidden { opacity: 0; transform: scale(0); pointer-events: none; }
 #ai-chat-wrapper .icon-state-visible { opacity: 1; transform: scale(1); pointer-events: auto; }
+
+.llm-settings-group {
+    border-top: 1px solid #f0f0f1;
+    border-bottom: 1px solid #f0f0f1;
+    background: #fcfcfc;
+}
+.llm-settings-group tr th, .llm-settings-group tr td {
+    padding: 15px 10px 15px 20px;
+}
