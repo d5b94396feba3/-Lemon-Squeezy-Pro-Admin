@@ -12,12 +12,6 @@ class AICA_Plugin_LLM_Gemini {
 
     public function llm_api_v2($system_instruction, $user_query, $history = []): string {
 
-        /** OPENAI API KEY */
-// define( 'OPENAI_API_KEY', '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' );
-
-// /** GEMINI API KEY */
-// define('GEMINI_API_KEY', 'AIzaSyBSbuC8cJUmdqmo40cQ0bmZoJsaWXLkaYI');
-
         $api_key = GEMINI_API_KEY;
         $api_key = get_option('gemini_api_key');
         $model = get_option('gemini_model', 'gemini-2.5-flash');
