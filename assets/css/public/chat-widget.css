@@ -119,8 +119,8 @@
 .ai-action-btn i.fa { font-family: "FontAwesome" !important; display: inline-block !important; visibility: visible !important; opacity: 1 !important; }
 
 /* --- Options Menu & Overlays --- */
-#ai-chat-wrapper #chat-options-popup { position: absolute; top: 40px; right: 0; background: #fff; width: 200px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); border: 1px solid #f3f4f6; z-index: 1000; padding: 8px; animation: menuFadeIn 0.2s ease-out; }
-#ai-chat-wrapper .menu-item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; background: transparent; border: none; border-radius: 8px; font-size: 14px; color: #374151; cursor: pointer; text-align: left; transition: background 0.2s; }
+#ai-chat-wrapper #chat-options-popup { position: absolute; top: 40px; right: 0; background: #fff; width: 206px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); border: 1px solid #f3f4f6; z-index: 1000; padding: 8px; animation: menuFadeIn 0.2s ease-out; }
+#ai-chat-wrapper .menu-item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; background: transparent; border: none; border-radius: 8px; font-size: 14px !important; color: #374151; cursor: pointer; text-align: left; transition: background 0.2s; }
 #ai-chat-wrapper .menu-item i { font-size: 16px; color: #6b7280; width: 20px; text-align: center; }
 @keyframes menuFadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 

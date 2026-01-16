@@ -77,12 +77,24 @@ class AICA_Plugin_Uninstaller {
         // Remove Prompt Tab Options
         delete_option( 'ai_agent_system_prompt' );
 
-        // Remove Grok Tab Options
+        // Remove Master Selection
         delete_option( $plugin_slug . '_grok_settings' );
+        delete_option( 'llm_model' );
+
+        // Remove Grok Keys
         delete_option( 'grok_api_key' );
         delete_option( 'grok_model' );
         delete_option( 'grok_temperature' );
-        delete_option( 'llm_model' );
+
+        // Remove OpenAI Keys
+        delete_option( 'openai_api_key' );
+        delete_option( 'openai_model' );
+        delete_option( 'openai_temperature' );
+
+        // Remove Gemini Keys
+        delete_option( 'gemini_api_key' );
+        delete_option( 'gemini_model' );
+        delete_option( 'gemini_temperature' );
         
         // Remove Notifications Tab Option
         delete_option( 'ai_agent_admin_email' );
