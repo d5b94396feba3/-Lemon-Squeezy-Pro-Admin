@@ -4,8 +4,8 @@ defined( 'ABSPATH' ) || exit;
 // Fetch settings
 $logo_id       = get_option('ai_agent_logo_id');
 $logo_url      = $logo_id ? wp_get_attachment_url($logo_id) : AICA_PLUGIN_URL . 'assets/images/default-avater.svg';
-$display_name  = get_option('ai_agent_display_name', 'FOX AI Assistant');
-$welcome_msg   = get_option('ai_agent_welcome_msg', "Hi there! I'm your friendly FOX AI Assistant.\nHow can I help you today?");
+$display_name  = get_option('ai_agent_display_name', 'AI Assistant');
+$welcome_msg   = get_option('ai_agent_welcome_msg', "Hi there! I'm your friendly AI Assistant.\nHow can I help you today?");
 $placeholder   = get_option('ai_agent_placeholder', 'Message...');
 $primary_color = get_option('ai_agent_primary_color', '#000000');
 

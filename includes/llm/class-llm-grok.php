@@ -4,24 +4,15 @@ defined( 'ABSPATH' ) || exit;
 class AICA_Plugin_LLM_Grok {
 
     private $plugin_slug;
-    private $system_instruction;
     private $pdf_parser;
 
     public function __construct($plugin_slug) {
         $this->plugin_slug = $plugin_slug;
-        $this->system_instruction = get_option('ai_agent_system_prompt', 'You are FOX AI Assistant...');
         $this->pdf_parser = new AICA_Plugin_Smalot_Parser($this->plugin_slug);
     }
 
     public function llm_api_v2($system_instruction, $user_query, $history = []): string {
-        $api_key = get_option('grok_api_key');
-        $model = get_option('grok_model', 'grok-2-1212'); 
-        $temperature = floatval(get_option('grok_temperature', '0.7'));
-
-        if (empty($api_key)) {
-            return "Error: Grok API Key is missing in settings.";
-        }
-
+       
         $db_manager = new AICA_Plugin_DB_Manager($this->plugin_slug);
         $website_kb = $db_manager->get_kb_content_as_string();
 
@@ -73,16 +64,11 @@ class AICA_Plugin_LLM_Grok {
             $messages[] = ['role' => 'user', 'content' => $user_query];
         }
 
-        return $this->request_grok($api_key, $model, $messages, $temperature);
+        return $this->request_grok($messages);
     }
 
     public function llm_api_v3($system_instruction, $user_query, $history = []): string {
-        $api_key = get_option('grok_api_key');
-        $model = get_option('grok_model', 'grok-2-1212'); 
-        $temperature = 0.3;
-
-        if (empty($api_key)) return "Error: Grok API Key is missing.";
-
+      
         $messages = [['role' => 'system', 'content' => $system_instruction]];
 
         foreach ($history as $msg) {
@@ -92,13 +78,22 @@ class AICA_Plugin_LLM_Grok {
 
         $messages[] = ['role' => 'user', 'content' => $user_query];
 
-        return $this->request_grok($api_key, $model, $messages, $temperature);
+        return $this->request_grok($messages);
     }
 
     /**
      * Official xAI (Grok) Request Handler
      */
-    private function request_grok($api_key, $model, $messages, $temp) {
+    private function request_grok($messages) {
+
+        $api_key = get_option('grok_api_key');
+        $model = get_option('grok_model', 'grok-2-1212'); 
+        $temp = floatval(get_option('grok_temperature', '0.7'));
+
+        if (empty($api_key)) {
+            return "Error: Grok API Key is missing in settings.";
+        }
+
         $api_url = "https://api.x.ai/v1/chat/completions";
 
         $response = wp_remote_post($api_url, [

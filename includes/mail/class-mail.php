@@ -15,7 +15,8 @@ class AICA_Plugin_Mail {
      */
     public function send_chat_notification_admin($user_message) {
         $admin_email = get_option('ai_agent_admin_email', get_option('admin_email'));
-        $subject = 'New AI Chat Session Started - Fox Computer Solutions';
+        $site_name = get_bloginfo('name');
+        $subject = 'New AI Chat Session Started - ' . $site_name;
         
         $ip = $_SERVER['REMOTE_ADDR'];
         $user_agent = $_SERVER['HTTP_USER_AGENT'];
@@ -44,7 +45,7 @@ class AICA_Plugin_Mail {
                     Browser: <?php echo esc_html($user_agent); ?></p>
                 </div>
                 <div class="footer">
-                    <p>Sent via Fox AI Assistant System on <?php echo date('Y-m-d H:i:s'); ?></p>
+                    <p>Sent via AI Assistant System on <?php echo date('Y-m-d H:i:s'); ?></p>
                 </div>
             </div>
         </body>
@@ -65,7 +66,8 @@ class AICA_Plugin_Mail {
      */
     public function send_final_transcript_admin($history, $summary_html = "") {
         $admin_email = get_option('ai_agent_admin_email', get_option('admin_email'));
-        $subject = 'Chat Ended: Full Transcript & Summary - Fox Computer Solutions';
+        $site_name = get_bloginfo('name');
+        $subject = 'Chat Ended: Full Transcript & Summary - ' . $site_name;
         
         $transcript_html = "";
         foreach($history as $msg) {

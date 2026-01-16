@@ -12,13 +12,6 @@ class AICA_Plugin_LLM_Gemini {
 
     public function llm_api_v2($system_instruction, $user_query, $history = []): string {
 
-        $api_key = GEMINI_API_KEY;
-        $api_key = get_option('gemini_api_key');
-        $model = get_option('gemini_model', 'gemini-2.5-flash');
-        $temperature = floatval(get_option('gemini_temperature', '0.7'));
-
-        error_log("in gemini api_key...: ".$api_key);
-
         $db_manager = new AICA_Plugin_DB_Manager($this->plugin_slug);
         $system_instruction .= "\n\n### WEBSITE KNOWLEDGE:\n" . $db_manager->get_kb_content_as_string();
 
@@ -60,15 +53,20 @@ class AICA_Plugin_LLM_Gemini {
         if ($image_payload) { $user_parts[] = $image_payload; }
         $contents[] = ['role' => 'user', 'parts' => $user_parts];
 
-        return $this->request_gemini($api_key, $model, $final_system, $contents, $temperature);
+        return $this->request_gemini($final_system, $contents);
     }
 
     public function llm_api_v3($system_instruction, $user_query, $history = []): string {
         $contents = [['role' => 'user', 'parts' => [['text' => $user_query]]]];
-        return $this->request_gemini(get_option('gemini_api_key'), get_option('gemini_model', 'gemini-1.5-flash'), $system_instruction, $contents);
+        return $this->request_gemini($system_instruction, $contents);
     }
 
-    private function request_gemini($api_key, $model, $system_instruction, $contents, $temperature) {
+    private function request_gemini($system_instruction, $contents) {
+
+        $api_key = get_option('gemini_api_key');
+        $model = get_option('gemini_model', 'gemini-2.5-flash');
+        $temperature = floatval(get_option('gemini_temperature', '0.7'));
+        
         $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$api_key}";
         
         $payload = [

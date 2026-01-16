@@ -8,7 +8,7 @@ class AICA_Plugin_LLM_Processor {
 
     public function __construct($plugin_slug) {
         $this->plugin_slug = $plugin_slug;
-        $this->system_instruction = get_option('ai_agent_system_prompt', 'You are FOX AI Assistant...');
+        $this->system_instruction = get_option('ai_agent_system_prompt', 'You are an AI Assistant...');
 
         $active_llm_model = get_option('llm_model', 'Grok');
 
