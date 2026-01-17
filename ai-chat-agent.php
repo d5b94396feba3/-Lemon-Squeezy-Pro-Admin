@@ -1,14 +1,14 @@
 <?php
 /**
- * Plugin Name: Al Chat Agent
- * Plugin URI:  https://foxcomputersolutions.com/wp-admin/admin.php?page=ai-proposal-system
- * Description: AI Powered Chat Agent
+ * Plugin Name: AICA IntelliAgent
+ * Plugin URI:  https://example.com/
+ * Description: An advanced AI-powered chat assistant featuring automated website knowledge synchronization, document analysis (PDF/TXT), and support for flagship models like GPT-5.2, Gemini 3, and Grok 4.
  * Version:     1.3.0
  * Author:      Shahibur Rahman
- * Author URI:  https://foxcomputersolutions.com/wp-admin/admin.php?page=ai-proposal-system
+ * Author URI:  https://example.com/
  * License:     GPL-2.0+
  * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
- * Text Domain: ai-chat-agent
+ * Text Domain: aica-intelliagent
  * Domain Path: /languages
  */
 

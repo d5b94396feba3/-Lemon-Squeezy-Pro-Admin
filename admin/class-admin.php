@@ -4,7 +4,6 @@ defined( 'ABSPATH' ) || exit;
 class AICA_Plugin_Admin {
     private $plugin_slug;
     private $version;
-    private $private_key_option_name = 'docusign_encrypted_private_key';
     private $db_manager;
     private $mail_manager;
     private $llm_processor;
@@ -17,16 +16,17 @@ class AICA_Plugin_Admin {
     }
 
     public function add_admin_menu() {
+        $icon_url = AICA_PLUGIN_URL . 'assets/images/plugin-icon.svg';
+        error_log("icon_url: ".$icon_url);
         add_menu_page(
-            'AI Chat Agent',
-            'AI Chat Agent',
+            'AICA IntelliAgent',
+            'AICA IntelliAgent',
             'manage_options',
             $this->plugin_slug,
             array($this, 'display_admin_dashboard'),
-            'dashicons-media-document',
+            $icon_url, // Use image URL instead of dashicons
             30
         );
-
         add_submenu_page(
             $this->plugin_slug,
             'Dashboard',
@@ -285,8 +285,8 @@ class AICA_Plugin_Admin {
         if (file_exists($dashboard_file)) {
             include $dashboard_file;
         } else {
-            echo '<div class="wrap"><h1>AI Chat Agent Dashboard</h1>';
-            echo '<p>Welcome to the AI Chat Agent system. Use the "Create Proposal" menu to generate new proposals.</p>';
+            echo '<div class="wrap"><h1>AICA IntelliAgent Dashboard</h1>';
+            echo '<p>Welcome to the AICA IntelliAgent system. Use the "Create Proposal" menu to generate new proposals.</p>';
             echo '</div>';
         }
     }
@@ -296,7 +296,7 @@ class AICA_Plugin_Admin {
         if (file_exists($settings_file)) {
             include $settings_file;
         } else {
-            echo '<div class="wrap"><h1>AI Chat Agent Settings</h1>';
+            echo '<div class="wrap"><h1>AICA IntelliAgent Settings</h1>';
             echo '<p>Settings file not found. Please check the plugin installation.</p>';
             echo '</div>';
         }

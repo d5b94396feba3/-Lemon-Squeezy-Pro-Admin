@@ -9,8 +9,11 @@ class AICA_Plugin_SimpleHTMLDOM {
 
     private function load_lib() {
         $lib_path = AICA_PLUGIN_PATH . 'vendor/simplehtmldom/simple_html_dom.php';
-        if ( file_exists( $lib_path ) ) {
-            require_once $lib_path;
+        
+        if ( ! function_exists( 'str_get_html' ) ) {
+            if ( file_exists( $lib_path ) ) {
+                require_once $lib_path;
+            }
         }
     }
 
