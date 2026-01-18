@@ -13,13 +13,10 @@ class AICA_Plugin_LLM_Processor {
         $active_llm_model = get_option('llm_model', 'Grok');
 
         if ($active_llm_model == "Grok") {
-            error_log("in Grok...");
             $this->llm_model = new AICA_Plugin_LLM_Grok($this->plugin_slug);
         } elseif ($active_llm_model == "OpenAI") {
-            error_log("in OpenAI...");
             $this->llm_model = new AICA_Plugin_LLM_OpenAI($this->plugin_slug);
         } elseif ($active_llm_model == "Gemini") {
-            error_log("in gemini...");
             $this->llm_model = new AICA_Plugin_LLM_Gemini($this->plugin_slug);
         }
     }
@@ -59,6 +56,8 @@ class AICA_Plugin_LLM_Processor {
         }
 
         $system_instruction = $this->system_instruction . "\n\n" . $core_system_instruction . $feedback_context;
+
+        $system_instruction .= "\n\n### WEBSITE KNOWLEDGE:\n" . $db_manager->get_kb_content_as_string();
 
         return $this->llm_model->llm_api_v2($system_instruction, $user_query, $history);
     }

@@ -12,64 +12,82 @@ class AICA_Plugin_LLM_Grok {
     }
 
     public function llm_api_v2($system_instruction, $user_query, $history = []): string {
-       
-        $db_manager = new AICA_Plugin_DB_Manager($this->plugin_slug);
-        $website_kb = $db_manager->get_kb_content_as_string();
+        $attachment_data = $this->prepare_attachments();
 
-        if (!empty($website_kb)) {
-            $system_instruction .= "\n\n### WEBSITE KNOWLEDGE:\n" . $website_kb;
-        }
+        $developer_text = $system_instruction . $attachment_data['file_context_text'];
 
-        $file_id = get_option('ai_agent_knowledge_file_id');
-        $file_context = "";
-        $image_data = null;
+        $messages = $this->format_conversation_messages(
+            $attachment_data['multimodal_parts'], 
+            $history, 
+            $user_query
+        );
 
-        if ($file_id) {
-            $file_path = get_attached_file($file_id);
-            $mime_type = get_post_mime_type($file_id);
+        return $this->request_grok($developer_text, $messages);
+    }
 
-            if (strpos($mime_type, 'image') !== false && strpos($model, 'vision') !== false) {
-                if (file_exists($file_path)) {
-                    $image_base64 = base64_encode(file_get_contents($file_path));
-                    $image_data = "data:$mime_type;base64,$image_base64";
-                }
-            } else if (file_exists($file_path)) {
-                if ($mime_type === 'application/pdf') {
-                    $extracted_text = $this->pdf_parser->extract_text_from_pdf($file_path);
-                    $file_context = "\n\n### KNOWLEDGE BASE CONTENT:\n" . mb_convert_encoding($extracted_text, 'UTF-8', 'UTF-8');
-                } else {
-                    $raw_content = file_get_contents($file_path);
-                    $file_context = "\n\n### KNOWLEDGE BASE CONTENT:\n" . mb_convert_encoding($raw_content, 'UTF-8', 'UTF-8');
-                }
-            }
-        }
-
+    public function llm_api_v3($system_instruction, $user_query, $history = []): string {
         $messages = [];
-        $messages[] = ['role' => 'system', 'content' => $system_instruction . $file_context];
-
+        
         foreach ($history as $msg) {
             $role = ($msg['role'] === 'assistant' || $msg['role'] === 'ai') ? 'assistant' : 'user';
             $messages[] = ['role' => $role, 'content' => $msg['content']];
         }
 
-        if ($image_data) {
-            $messages[] = [
-                'role' => 'user',
-                'content' => [
-                    ['type' => 'text', 'text' => $user_query],
-                    ['type' => 'image_url', 'image_url' => ['url' => $image_data, 'detail' => 'auto']]
-                ]
-            ];
-        } else {
-            $messages[] = ['role' => 'user', 'content' => $user_query];
-        }
+        $messages[] = ['role' => 'user', 'content' => $user_query];
 
-        return $this->request_grok($messages);
+        return $this->request_grok($system_instruction, $messages);
     }
 
-    public function llm_api_v3($system_instruction, $user_query, $history = []): string {
-      
-        $messages = [['role' => 'system', 'content' => $system_instruction]];
+    private function prepare_attachments(): array {
+        $file_id = get_option('ai_agent_knowledge_file_id');
+        $data = ['multimodal_parts' => [], 'file_context_text' => ""];
+
+        if (!$file_id) return $data;
+
+        $file_path = get_attached_file($file_id);
+        if (!$file_path || !file_exists($file_path)) return $data;
+
+        $mime_type = get_post_mime_type($file_id);
+        $file_size = filesize($file_path);
+        $threshold = 1 * 1024 * 1024;
+
+        if (strpos($mime_type, 'image') !== false) {
+            $data['multimodal_parts'][] = [
+                'type' => 'image_url',
+                'image_url' => ['url' => "data:$mime_type;base64," . base64_encode(file_get_contents($file_path)), 'detail' => 'auto']
+            ];
+        } 
+        else if ($mime_type === 'application/pdf' || $mime_type === 'text/plain') {
+            if ($file_size < $threshold) {
+                $text = ($mime_type === 'application/pdf') 
+                    ? $this->pdf_parser->extract_text_from_pdf($file_path)
+                    : file_get_contents($file_path);
+                $data['file_context_text'] = "\n\n### KNOWLEDGE BASE:\n" . mb_convert_encoding($text, 'UTF-8', 'UTF-8');
+            } else {
+                $grok_file_id = $this->ensure_grok_file($file_path, $file_id);
+
+                error_log("grok_file_id : ".$grok_file_id);
+
+                if ($grok_file_id) {
+                    $data['multimodal_parts'][] = [
+                        'type' => 'file',
+                        'file' => ['file_id' => $grok_file_id]
+                    ];
+                }
+            }
+        }
+
+        return $data;
+    }
+
+    private function format_conversation_messages($multimodal_parts, $history, $user_query): array {
+        $messages = [];
+
+        if (!empty($multimodal_parts)) {
+            $content = array_merge($multimodal_parts, [['type' => 'text', 'text' => "Analyze the attached data for context."]]);
+            $messages[] = ['role' => 'user', 'content' => $content];
+            $messages[] = ['role' => 'assistant', 'content' => "Understood. How can I help with this?"];
+        }
 
         foreach ($history as $msg) {
             $role = ($msg['role'] === 'assistant' || $msg['role'] === 'ai') ? 'assistant' : 'user';
@@ -78,61 +96,82 @@ class AICA_Plugin_LLM_Grok {
 
         $messages[] = ['role' => 'user', 'content' => $user_query];
 
-        return $this->request_grok($messages);
+        return $messages;
     }
 
-    /**
-     * Official xAI (Grok) Request Handler
-     */
-    private function request_grok($messages) {
-
+    private function request_grok($developer_text, $messages) {
         $api_key = get_option('grok_api_key');
         $model = get_option('grok_model', 'grok-2-1212'); 
         $temp = floatval(get_option('grok_temperature', '0.7'));
-
-        if (empty($api_key)) {
-            return "Error: Grok API Key is missing in settings.";
-        }
-
+        
         $api_url = "https://api.x.ai/v1/chat/completions";
 
+        $payload_messages = array_merge(
+            [['role' => 'system', 'content' => $developer_text]],
+            $messages
+        );
+
         $response = wp_remote_post($api_url, [
-            'method'    => 'POST',
-            'headers'   => [
-                'Content-Type'  => 'application/json',
-                'Authorization' => 'Bearer ' . $api_key, 
+            'headers' => [
+                'Authorization' => 'Bearer ' . $api_key,
+                'Content-Type'  => 'application/json'
             ],
-            'body'      => json_encode([
-                'messages'    => $messages,
-                'model'       => $model,
+            'body' => json_encode([
+                'model' => $model,
+                'messages' => $payload_messages,
                 'temperature' => $temp,
-                'stream'      => false
+                'stream' => false
             ]),
-            'timeout'   => 100, 
+            'timeout' => 120
         ]);
 
-        // 1. Check for WordPress/Server Connection Errors
-        if (is_wp_error($response)) {
-            error_log("Grok Connection Error: " . $response->get_error_message());
-            return "System Error: " . $response->get_error_message();
-        }
+        if (is_wp_error($response)) return "Connection Error: " . $response->get_error_message();
 
         $body = json_decode(wp_remote_retrieve_body($response), true);
-
-        // 2. Official xAI Error Check (matches OpenAI format)
+        
         if (isset($body['error'])) {
-            $error_msg = $body['error']['message'] ?? 'Unknown Grok API error.';
-            error_log("Grok API Error: " . $error_msg);
-            return "Grok Error: " . $error_msg;
+            $msg = $body['error']['message'] ?? 'Unknown';
+            error_log("Grok Completion Error: " . $msg);
+            return "Grok Error: " . $msg;
+        }
+        
+        return $body['choices'][0]['message']['content'] ?? "Error: No text returned.";
+    }
+
+    private function ensure_grok_file($file_path, $wp_id) {
+        $key = 'aica_grok_f_' . $wp_id;
+        $id = get_transient($key);
+        if ($id) return $id;
+
+        $api_key = get_option('grok_api_key');
+        $boundary = wp_generate_password(24);
+        
+        $payload = "--$boundary\r\n";
+        $payload .= "Content-Disposition: form-data; name=\"purpose\"\r\n\r\nattachment_search\r\n";
+        $payload .= "--$boundary\r\n";
+        $payload .= "Content-Disposition: form-data; name=\"file\"; filename=\"" . basename($file_path) . "\"\r\n";
+        $payload .= "Content-Type: application/octet-stream\r\n\r\n";
+        $payload .= file_get_contents($file_path) . "\r\n";
+        $payload .= "--$boundary--\r\n";
+
+        $response = wp_remote_post("https://api.x.ai/v1/files", [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $api_key,
+                'Content-Type'  => 'multipart/form-data; boundary=' . $boundary
+            ],
+            'body'    => $payload,
+            'timeout' => 120
+        ]);
+
+        if (is_wp_error($response)) return "Connection Error: " . $response->get_error_message();
+
+        $body = json_decode(wp_remote_retrieve_body($response), true);
+        
+        if (isset($body['id'])) {
+            set_transient($key, $body['id'], 1 * HOUR_IN_SECONDS);
+            return $body['id'];
         }
 
-        // 3. Success check
-        $content = $body['choices'][0]['message']['content'] ?? null;
-
-        if (is_null($content)) {
-            return "Error: Grok returned an empty response. Check account credits or rate limits.";
-        }
-
-        return is_array($content) ? json_encode($content) : (string)$content;
+        return false;
     }
 }

@@ -15,7 +15,7 @@
 #ai-chat-wrapper.theme-light #ai-chat-window { background: #ffffff; color: #111; }
 #ai-chat-wrapper.theme-light .chat-header { background: #fff; border-bottom: 1px solid #f3f4f6; }
 #ai-chat-wrapper.theme-light #chat-messages { background: #fff; }
-#ai-chat-wrapper.theme-light .ai .bubble { background: #f3f4f6; color: #1f2937; }
+#ai-chat-wrapper.theme-light .ai .bubble { background: #f3f4f6 !important; color: #1f2937  !important; }
 #ai-chat-wrapper.theme-light .chat-input-area { background: #fff; border-top: 1px solid #f3f4f6; }
 #ai-chat-wrapper.theme-light .input-wrapper { background: #f9fafb; border: 1px solid #e5e7eb; }
 #ai-chat-wrapper.theme-light #chat-input { color: #111; }
@@ -60,6 +60,7 @@
 #ai-chat-wrapper.theme-dark #recent-chats-view, #ai-chat-wrapper.theme-dark .recent-chat-item { background: #111827 !important; color: #f3f4f6 !important; }
 #ai-chat-wrapper.theme-dark .recent-chat-item:hover { background: #1f2937 !important; }
 #ai-chat-wrapper.theme-dark .recent-chat-item .chat-preview { color: #9ca3af !important; }
+#ai-chat-wrapper.theme-dark .ai .bubble li { color: #eeeeee !important }
 
 /* Dark Scrollbar Thumb */
 #ai-chat-wrapper.theme-dark #chat-messages::-webkit-scrollbar-thumb,

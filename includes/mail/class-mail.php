@@ -45,7 +45,7 @@ class AICA_Plugin_Mail {
                     Browser: <?php echo esc_html($user_agent); ?></p>
                 </div>
                 <div class="footer">
-                    <p>Sent via AI Assistant System on <?php echo date('Y-m-d H:i:s'); ?></p>
+                    <p>Sent via <?php echo esc_html(AICA_PLUGIN_NAME); ?> on <?php echo date('Y-m-d H:i:s'); ?></p>
                 </div>
             </div>
         </body>

@@ -88,9 +88,10 @@ class AICA_Plugin_DB_Manager {
     
     public function get_kb_content_as_string() {
         $table = $this->wpdb->prefix . str_replace('-', '_', sanitize_key($this->plugin_slug)) . '_knowledge_base';
-        $results = $this->wpdb->get_results("SELECT content FROM $table", ARRAY_A);
+        $results = $this->wpdb->get_results("SELECT source_url, content FROM $table", ARRAY_A);
         $text = "";
         foreach($results as $row) {
+            $text .= "Page URL: " . $row['source_url'] . "\n";
             $text .= $row['content'] . "\n\n";
         }
         return $text;

@@ -17,14 +17,13 @@ class AICA_Plugin_Admin {
 
     public function add_admin_menu() {
         $icon_url = AICA_PLUGIN_URL . 'assets/images/plugin-icon.svg';
-        error_log("icon_url: ".$icon_url);
         add_menu_page(
-            'AICA IntelliAgent',
-            'AICA IntelliAgent',
+            AICA_PLUGIN_NAME,
+            AICA_PLUGIN_NAME,
             'manage_options',
             $this->plugin_slug,
             array($this, 'display_admin_dashboard'),
-            $icon_url, // Use image URL instead of dashicons
+            $icon_url,
             30
         );
         add_submenu_page(
@@ -55,8 +54,9 @@ class AICA_Plugin_Admin {
         register_setting($this->plugin_slug . '_style_settings', 'ai_agent_bubble_icon');
         register_setting($this->plugin_slug . '_style_settings', 'ai_agent_primary_color');
         register_setting($this->plugin_slug . '_style_settings', 'ai_agent_theme_mode');
-
+        // Prompt / Knowledge Base settings
         register_setting($this->plugin_slug . '_prompt_settings', 'ai_agent_system_prompt');
+        register_setting($this->plugin_slug . '_prompt_settings', 'ai_agent_knowledge_file_id');
     
         // Master Selection
         register_setting($this->plugin_slug . '_grok_settings', 'llm_model');
@@ -286,7 +286,7 @@ class AICA_Plugin_Admin {
             include $dashboard_file;
         } else {
             echo '<div class="wrap"><h1>AICA IntelliAgent Dashboard</h1>';
-            echo '<p>Welcome to the AICA IntelliAgent system. Use the "Create Proposal" menu to generate new proposals.</p>';
+            echo '<p>Welcome to the AICA IntelliAgent system.</p>';
             echo '</div>';
         }
     }
