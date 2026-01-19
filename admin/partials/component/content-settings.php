@@ -22,7 +22,7 @@ defined( 'ABSPATH' ) || exit;
                     </td>
                 </tr>
                 <tr>
-                    <th scope="row"><label>Messag   e Placeholder</label></th>
+                    <th scope="row"><label>Message Placeholder</label></th>
                     <td>
                         <input type="text" name="ai_agent_placeholder" value="<?php echo esc_attr(get_option('ai_agent_placeholder', 'Type a message...')); ?>" class="large-text professional-input admin-preview-trigger">
                         <p class="description">The hint text shown in the input box before the user starts typing.</p>
