@@ -1,8 +1,9 @@
 jQuery(document).ready(function($) {
+    // knowledge-base.js
     let pages = [];
 
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('tab') === 'prompt') {
+    if (urlParams.get('tab') === 'knowledge-base') {
         runDiscovery();
     }
 
@@ -19,10 +20,10 @@ jQuery(document).ready(function($) {
         $('#discovery-loader').show();
         $('#sync-data-container, #sync-success-msg, #sync-progress-bar').hide();
         
-        $.post(adminProposalData.ajax_url, {
+        $.post(aica_admin_data.ajax_url, {
             action: 'sync_website_knowledge',
             sync_step: 'discovery',
-            nonce: adminProposalData.nonce
+            nonce: aica_admin_data.nonce
         }, function(res) {
             $('#discovery-loader').hide();
             if(res.success) {
@@ -76,11 +77,11 @@ jQuery(document).ready(function($) {
             $('#sync-fill').css('width', percent + '%');
             $('#sync-percent').text(percent + '%');
 
-            const response = await $.post(adminProposalData.ajax_url, {
+            const response = await $.post(aica_admin_data.ajax_url, {
                 action: 'sync_website_knowledge',
                 sync_step: 'sync_page',
                 url: p.url,
-                nonce: adminProposalData.nonce
+                nonce: aica_admin_data.nonce
             });
 
             if(response.success) {
@@ -115,9 +116,9 @@ jQuery(document).ready(function($) {
         $textarea.css('opacity', '0.3');
         $loader.fadeIn(300);
 
-        $.post(adminProposalData.ajax_url, {
+        $.post(aica_admin_data.ajax_url, {
             action: 'generate_ai_system_prompt',
-            nonce: adminProposalData.nonce
+            nonce: aica_admin_data.nonce
         }, function(response) {
             $loader.hide();
             $btn.prop('disabled', false).css('opacity', '1');

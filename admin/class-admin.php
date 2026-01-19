@@ -99,7 +99,7 @@ class AICA_Plugin_Admin {
     }
 
     public function handle_delete_chat_ajax() {
-        check_ajax_referer('admin_proposal_nonce', 'nonce');
+        check_ajax_referer('aica_admin_nonce', 'nonce');
         
         if (!current_user_can('manage_options')) {
             wp_send_json_error('Unauthorized');
@@ -125,7 +125,7 @@ class AICA_Plugin_Admin {
             ob_end_clean();
         }
 
-        check_ajax_referer('admin_proposal_nonce', 'nonce');
+        check_ajax_referer('aica_admin_nonce', 'nonce');
         if (!current_user_can('manage_options')) {
             wp_send_json_error('Unauthorized');
         }
@@ -169,7 +169,7 @@ class AICA_Plugin_Admin {
     }
 
     public function handle_get_chat_summary_ajax() {
-        check_ajax_referer('admin_proposal_nonce', 'nonce');
+        check_ajax_referer('aica_admin_nonce', 'nonce');
         
         if (!current_user_can('manage_options')) {
             wp_send_json_error('Unauthorized');
@@ -196,7 +196,7 @@ class AICA_Plugin_Admin {
     }
 
     public function handle_sync_website_ajax() {
-        check_ajax_referer('admin_proposal_nonce', 'nonce');
+        check_ajax_referer('aica_admin_nonce', 'nonce');
         if (!current_user_can('manage_options')) wp_send_json_error('Unauthorized');
     
         $step = isset($_POST['sync_step']) ? sanitize_text_field($_POST['sync_step']) : 'discovery';
@@ -254,7 +254,7 @@ class AICA_Plugin_Admin {
     }
 
     public function handle_manual_cron_sync_ajax() {
-        check_ajax_referer('admin_proposal_nonce', 'nonce');
+        check_ajax_referer('aica_admin_nonce', 'nonce');
         if (!current_user_can('manage_options')) wp_send_json_error('Unauthorized');
     
         if (class_exists('AICA_Plugin_WP_Cron')) {
@@ -268,7 +268,7 @@ class AICA_Plugin_Admin {
     }
 
     public function handle_generate_system_prompt_ajax() {
-        check_ajax_referer('admin_proposal_nonce', 'nonce');
+        check_ajax_referer('aica_admin_nonce', 'nonce');
         if (!current_user_can('manage_options')) wp_send_json_error('Unauthorized');
     
         $new_prompt = $this->llm_processor->generate_automated_system_prompt();
@@ -281,7 +281,7 @@ class AICA_Plugin_Admin {
     }
     
     public function display_admin_dashboard() {
-        $dashboard_file = plugin_dir_path(__FILE__) . 'partials/admin-dashboard.php';
+        $dashboard_file = AICA_PLUGIN_PATH . 'admin/partials/admin-dashboard.php';
         if (file_exists($dashboard_file)) {
             include $dashboard_file;
         } else {
@@ -292,7 +292,7 @@ class AICA_Plugin_Admin {
     }
 
     public function display_settings_page() {
-        $settings_file = plugin_dir_path(__FILE__) . 'partials/admin-settings.php';
+        $settings_file = AICA_PLUGIN_PATH . 'admin/partials/admin-settings.php';
         if (file_exists($settings_file)) {
             include $settings_file;
         } else {
@@ -376,21 +376,37 @@ class AICA_Plugin_Admin {
             true
         );
 
+        wp_enqueue_script(
+            $this->plugin_slug . '-media-uploader',
+            AICA_PLUGIN_URL . 'assets/js/admin/media-uploader.js',
+            array('jquery'),
+            $this->version,
+            true
+        );
+
         wp_localize_script(
             $this->plugin_slug . '-admin',
-            'adminProposalData',
+            'aica_admin_data',
             array(
                 'ajax_url' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('admin_proposal_nonce')
+                'nonce' => wp_create_nonce('aica_admin_nonce')
+            )
+        );
+
+        wp_localize_script(
+            $this->plugin_slug . '-preview',
+            'aica_admin_assets',             
+            array(
+                'default_avatar' => AICA_PLUGIN_URL . 'assets/images/default-avater.svg'
             )
         );
 
         wp_localize_script(
             $this->plugin_slug . '-knowledge-base',
-            'adminProposalData',
+            'aica_admin_data',
             array(
                 'ajax_url' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('admin_proposal_nonce')
+                'nonce' => wp_create_nonce('aica_admin_nonce')
             )
         );
     }

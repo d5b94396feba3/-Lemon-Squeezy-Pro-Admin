@@ -1,6 +1,6 @@
 jQuery(document).ready(function($) {
-
-    function syncAdminPreview() {
+    // 1. GLOBAL so media-uploader.js can call it
+    window.syncAdminPreview = function() {
         const nameInput = $('input[name="ai_agent_display_name"]');
         if (nameInput.length) localStorage.setItem('aica_preview_name', nameInput.val());
         const name = localStorage.getItem('aica_preview_name') || 'AI Assistant';
@@ -15,9 +15,10 @@ jQuery(document).ready(function($) {
 
         const brandColor = $('#ai_agent_primary_color_input').val() || '#000000';
         
+        // Get URL from the preview img tag
         let avatarUrl = $('#ai_agent_logo_preview').attr('src');
-        if (!avatarUrl || avatarUrl.includes('default-avater.svg')) {
-            avatarUrl = '/wp-content/plugins/ai-chat-agent/assets/images/default-avater.svg'; 
+        if (!avatarUrl || avatarUrl === '' || avatarUrl.includes('default-avater.svg')) {
+            avatarUrl = aica_admin_assets.default_avatar;
         }
         
         const iconSelect = $('select[name="ai_agent_bubble_icon"]').val();
@@ -49,7 +50,7 @@ jQuery(document).ready(function($) {
                 </div>`;
         });
         
-        $preview.find('.welcome-msg').remove(); 
+        $preview.find('.welcome-msg').remove();
         $preview.find('#chat-messages').prepend(welcomeHtml);
 
         $preview.find('#ai-chat-bubble, .user .bubble').css('background-color', brandColor);
@@ -61,37 +62,20 @@ jQuery(document).ready(function($) {
         } else {
             $iconContainer.addClass('is-default-icon').html('<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>');
         }
-    }
+    };
 
+    // Initialize on page load
+    // syncAdminPreview();
+
+    // Trigger on inputs
+    $(document).on('input change', '.admin-preview-trigger, #ai_agent_primary_color_input, select[name="ai_agent_bubble_icon"], input[name="ai_agent_theme_mode"]', function() {
+        syncAdminPreview();
+    });
+
+    // Handle theme card clicks specifically for visuals
     $(document).on('change', 'input[name="ai_agent_theme_mode"]', function() {
         const $card = $(this).closest('.aica-theme-card');
         $('.aica-theme-card').removeClass('is-active').find('.theme-card-inner').css('border-color', '#e2e8f0');
         $card.addClass('is-active').find('.theme-card-inner').css('border-color', '#3b82f6');
-        syncAdminPreview();
     });
-
-    $(document).on('input change', '.admin-preview-trigger, #ai_agent_primary_color_input, select[name="ai_agent_bubble_icon"]', function() {
-        syncAdminPreview();
-    });
-
-    $('#ai_agent_upload_btn').on('click', function() {
-        var custom_uploader = wp.media({
-            title: 'Select Avatar',
-            button: { text: 'Use this image' },
-            multiple: false
-        }).on('select', function() {
-            var attachment = custom_uploader.state().get('selection').first().toJSON();
-            $('#ai_agent_logo_preview').attr('src', attachment.url);
-            $('#ai_agent_logo_id').val(attachment.id);
-            $('#ai_agent_remove_btn').show();
-            syncAdminPreview();
-        }).open();
-    });
-
-    $('#ai_agent_remove_btn').on('click', function() {
-        $('#ai_agent_logo_preview').attr('src', '');
-        syncAdminPreview();
-    });
-
-
 });

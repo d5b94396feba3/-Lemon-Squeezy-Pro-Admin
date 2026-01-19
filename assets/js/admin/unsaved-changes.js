@@ -1,4 +1,6 @@
 jQuery(document).ready(function($) {
+
+    // unsaved-changes.js
     const $unsavedBar = $('#aica-unsaved-bar');
     let hasChanges = false;
 

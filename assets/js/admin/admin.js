@@ -1,4 +1,5 @@
 jQuery(document).ready(function($) {
+    // admin.js
     $('.view-chat-log').on('click', function() {
         const history = $(this).data('history');
         let html = '';
@@ -30,10 +31,10 @@ jQuery(document).ready(function($) {
         
         btn.prop('disabled', true).text('Deleting...');
 
-        $.post(adminProposalData.ajax_url, {
+        $.post(aica_admin_data.ajax_url, {
             action: 'delete_chat_log',
             id: logId,
-            nonce: adminProposalData.nonce
+            nonce: aica_admin_data.nonce
         }, function(response) {
             if (response.success) {
                 btn.closest('tr').fadeOut(400, function() { 
@@ -74,31 +75,6 @@ jQuery(document).ready(function($) {
         $('#ai_agent_logo_preview').css('border-color', '#f3f4f6');
     });
 
-    var mediaUploader;
-    $('#ai_agent_upload_btn').on('click', function(e) {
-        e.preventDefault();
-        if (mediaUploader) { mediaUploader.open(); return; }
-
-        mediaUploader = wp.media({
-            title: 'Select Agent Logo',
-            button: { text: 'Use this Image' },
-            multiple: false
-        });
-
-        mediaUploader.on('select', function() {
-            var attachment = mediaUploader.state().get('selection').first().toJSON();
-            $('#ai_agent_logo_id').val(attachment.id);
-            $('#ai_agent_logo_preview').attr('src', attachment.url).show();
-            $('#ai_agent_remove_btn').show();
-        });
-        mediaUploader.open();
-    });
-
-    $('#ai_agent_remove_btn').on('click', function() {
-        $('#ai_agent_logo_id').val('');
-        $('#ai_agent_logo_preview').hide();
-        $(this).hide();
-    });
 
     $('#reset-ai-settings').on('click', function(e) {
         if (confirm('Are you sure? This will revert all Prompt, UI, and Notification settings to factory defaults. Your API Key will remain safe.')) {
@@ -117,11 +93,11 @@ jQuery(document).ready(function($) {
     
         $.ajax({
             type: 'POST',
-            url: adminProposalData.ajax_url,
+            url: aica_admin_data.ajax_url,
             data: {
                 action: 'export_chat_log',
                 id: logId,
-                nonce: adminProposalData.nonce
+                nonce: aica_admin_data.nonce
             },
             success: function(response) {
                 $btn.prop('disabled', false).css('opacity', '1');
@@ -148,34 +124,6 @@ jQuery(document).ready(function($) {
         });
     });
 
-    var fileUploader;
-    $('#ai_agent_file_upload_btn').on('click', function(e) {
-        e.preventDefault();
-        if (fileUploader) { fileUploader.open(); return; }
-
-        fileUploader = wp.media({
-            title: 'Upload Knowledge Base File',
-            button: { text: 'Use this File' },
-            multiple: false
-        });
-
-        fileUploader.on('select', function() {
-            var attachment = fileUploader.state().get('selection').first().toJSON();
-            $('#ai_agent_knowledge_file_id').val(attachment.id);
-            $('#file-name-display').text(attachment.filename);
-            $('#ai_agent_file_remove_btn').show();
-            $('#ai_agent_file_upload_btn').text('Replace File');
-        });
-        fileUploader.open();
-    });
-
-    $('#ai_agent_file_remove_btn').on('click', function() {
-        $('#ai_agent_knowledge_file_id').val('');
-        $('#file-name-display').text('');
-        $(this).hide();
-        $('#ai_agent_file_upload_btn').text('Upload Knowledge File');
-    });
-
     $('.action-summarize-chat').on('click', function(e) {
         e.preventDefault();
         const $btn = $(this);
@@ -190,10 +138,10 @@ jQuery(document).ready(function($) {
         $('#chat-modal-loader').show();
         $('#chat-modal').fadeIn(200);
 
-        $.post(adminProposalData.ajax_url, {
+        $.post(aica_admin_data.ajax_url, {
             action: 'get_chat_summary',
             id: logId,
-            nonce: adminProposalData.nonce
+            nonce: aica_admin_data.nonce
         }, function(response) {
             $btn.prop('disabled', false);
             $icon.removeClass('spin');
