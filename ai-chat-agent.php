@@ -44,7 +44,6 @@ unset($plugin_data);
 class AICA_Bootstrap {
 
     public static function init() {
-        self::define_grok_constants();
         self::register_vendor_autoload();
         self::load_dependencies();
         self::init_cron();
@@ -61,12 +60,6 @@ class AICA_Bootstrap {
             $file = $base_dir . str_replace('\\', '/', $relative_class) . '.php';
             if (file_exists($file)) require_once $file;
         });
-    }
-
-    private static function define_grok_constants() {
-        if (!defined('GROK_API_KEY')) {
-            define('GROK_API_KEY', get_option('grok_api_key', ''));
-        }
     }
 
     private static function load_dependencies() {

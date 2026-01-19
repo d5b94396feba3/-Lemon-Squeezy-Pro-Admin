@@ -12,7 +12,7 @@ $display_logs = $view_all ? $chat_logs : array_slice($chat_logs, 0, 10);
 <div class="wrap">
     <h1 class="wp-heading-inline">
         <i class="dashicons dashicons-smart-phone" style="color: #2271b1; margin-right: 10px;"></i>
-        AICA IntelliAgent Command Center
+        <?php echo esc_html(AICA_PLUGIN_NAME); ?> Command Center
     </h1>
     <hr class="wp-header-end">
 
