@@ -119,7 +119,7 @@ $theme_mode = get_option('ai_agent_theme_mode', 'light');
         </div>
 
         <div class="chat-input-area">
-            <div class="powered-by-brand">Powered by AutomataIQ</div>
+            <div class="powered-by-brand">Powered by Grok AI</div>
             <div class="input-wrapper">
                 <textarea id="chat-input" placeholder="<?php echo esc_attr($placeholder); ?>" rows="1"></textarea>
                 <button id="chat-send" class="action-icon">

@@ -11,8 +11,8 @@
                 <td>
                     <select name="llm_model" id="llm_model_selector" class="regular-text professional-input">
                         <option value="Grok" <?php selected(get_option('llm_model', 'Grok'), 'Grok'); ?>>xAI Grok</option>
-                        <option value="OpenAI" <?php selected(get_option('llm_model'), 'OpenAI'); ?>>OpenAI (GPT-4o)</option>
-                        <option value="Gemini" <?php selected(get_option('llm_model'), 'Gemini'); ?>>Google Gemini</option>
+                        <!-- <option value="OpenAI" <?php selected(get_option('llm_model'), 'OpenAI'); ?>>OpenAI (GPT-4o)</option>
+                        <option value="Gemini" <?php selected(get_option('llm_model'), 'Gemini'); ?>>Google Gemini</option> -->
                     </select>
                     <p class="description">Select the core intelligence engine for your AI Agent.</p>
                 </td>
@@ -44,7 +44,7 @@
                 </tr>
             </tbody>
 
-            <tbody id="settings-group-OpenAI" class="llm-settings-group" style="display:none;">
+            <!-- <tbody id="settings-group-OpenAI" class="llm-settings-group" style="display:none;">
                 <tr style="background: #f8fafc;"><td colspan="2" style="padding: 10px 20px;"><strong>OpenAI Settings</strong></td></tr>
                 <tr>
                     <th scope="row"><label>OpenAI API Key</label></th>
@@ -67,9 +67,9 @@
                         <input type="number" name="openai_temperature" value="<?php echo esc_attr(get_option('openai_temperature', '0.7')); ?>" min="0" max="2" step="0.1" class="small-text professional-input">
                     </td>
                 </tr>
-            </tbody>
+            </tbody> -->
 
-            <tbody id="settings-group-Gemini" class="llm-settings-group" style="display:none;">
+            <!-- <tbody id="settings-group-Gemini" class="llm-settings-group" style="display:none;">
                 <tr style="background: #f8fafc;"><td colspan="2" style="padding: 10px 20px;"><strong>Google Gemini Settings</strong></td></tr>
                 <tr>
                     <th scope="row"><label>Gemini API Key</label></th>
@@ -93,7 +93,7 @@
                         <input type="number" name="gemini_temperature" value="<?php echo esc_attr(get_option('gemini_temperature', '0.7')); ?>" min="0" max="2" step="0.1" class="small-text professional-input">
                     </td>
                 </tr>
-            </tbody>
+            </tbody> -->
         </table>
     </div>
 </div>

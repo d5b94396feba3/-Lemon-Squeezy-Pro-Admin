@@ -1,8 +1,8 @@
 <?php
 /**
- * Plugin Name: AICA IntelliAgent
+ * Plugin Name: AI Chat Agent
  * Plugin URI:  https://example.com/
- * Description: An advanced AI-powered chat assistant featuring automated website knowledge synchronization, document analysis (PDF/TXT), and support for flagship models like GPT-5.2, Gemini 3, and Grok 4.
+ * Description: An advanced AI-powered chat assistant featuring automated website knowledge synchronization, document analysis (PDF/TXT), and support for flagship models like Grok 4.
  * Version:     1.3.0
  * Author:      Shahibur Rahman
  * Author URI:  https://example.com/
