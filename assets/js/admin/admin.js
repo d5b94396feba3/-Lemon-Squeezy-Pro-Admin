@@ -76,12 +76,6 @@ jQuery(document).ready(function($) {
     });
 
 
-    $('#reset-ai-settings').on('click', function(e) {
-        if (confirm('Are you sure? This will revert all Prompt, UI, and Notification settings to factory defaults. Your API Key will remain safe.')) {
-            window.location.href = window.location.href + '&action=reset_ai_agent_settings&_wpnonce=<?php echo wp_create_nonce("reset_ai_settings"); ?>';
-        }
-    });
-
     $(document).on('click', '.action-export-chat', function(e) {
         e.preventDefault();
         const $btn = $(this);

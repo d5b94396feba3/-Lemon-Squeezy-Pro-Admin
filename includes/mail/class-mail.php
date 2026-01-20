@@ -16,6 +16,7 @@ class AICA_Plugin_Mail {
     public function send_chat_notification_admin($user_message) {
         $admin_email = get_option('ai_agent_admin_email', get_option('admin_email'));
         $site_name = get_bloginfo('name');
+        $site_name = wp_specialchars_decode($site_name, ENT_QUOTES);
         $subject = 'New AI Chat Session Started - ' . $site_name;
         
         $ip = $_SERVER['REMOTE_ADDR'];
@@ -67,6 +68,7 @@ class AICA_Plugin_Mail {
     public function send_final_transcript_admin($history, $summary_html = "") {
         $admin_email = get_option('ai_agent_admin_email', get_option('admin_email'));
         $site_name = get_bloginfo('name');
+        $site_name = wp_specialchars_decode($site_name, ENT_QUOTES);
         $subject = 'Chat Ended: Full Transcript & Summary - ' . $site_name;
         
         $transcript_html = "";
@@ -124,6 +126,7 @@ class AICA_Plugin_Mail {
      */
     private function get_from_header() {
         $site_name = get_bloginfo('name');
+        $site_name = wp_specialchars_decode($site_name, ENT_QUOTES);
         $admin_email = get_option('admin_email');
         
         return "$site_name <$admin_email>";
