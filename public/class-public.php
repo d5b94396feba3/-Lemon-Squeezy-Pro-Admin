@@ -44,7 +44,16 @@ class AICA_Plugin_Public {
         }
 
         $uuid = wp_generate_password(12, false) . '_' . time();
-        setcookie($cookie_name, $uuid, time() + 3600, COOKIEPATH, COOKIE_DOMAIN);
+
+        setcookie($cookie_name, $uuid, array(
+            'expires'  => time() + 3600,
+            'path'     => COOKIEPATH,
+            'domain'   => COOKIE_DOMAIN,
+            'secure'   => is_ssl(),
+            'httponly' => false,
+            'samesite' => 'Lax',
+        ));
+        
         $this->add_session_to_tracker($uuid);
         return $uuid;
     }
@@ -230,9 +239,25 @@ class AICA_Plugin_Public {
         wp_enqueue_script($this->plugin_slug . '-menu', $js_path . 'chat-menu.js', array($this->plugin_slug . '-core'), $ver, true);
         wp_enqueue_script($this->plugin_slug . '-history', $js_path . 'chat-history.js', array($this->plugin_slug . '-core'), $ver, true);
     
-        wp_localize_script($this->plugin_slug . '-core', 'chatData', array(
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce'    => wp_create_nonce('chat_message_action'),
+        wp_localize_script($this->plugin_slug . '-core', 'aica_public_data', array(
+            'ajax_url'         => admin_url('admin-ajax.php'),
+            'nonce'            => wp_create_nonce('chat_message_action'),
+            'just_now'         => __( 'just now', 'aica-plugin' ),
+            'm_ago'            => __( 'm ago', 'aica-plugin' ),
+            'h_ago'            => __( 'h ago', 'aica-plugin' ),
+            'i18n_copy'        => __( 'Copy', 'aica-plugin' ),
+            'i18n_regen'       => __( 'Regenerate', 'aica-plugin' ),
+            'i18n_helpful'     => __( 'Helpful', 'aica-plugin' ),
+            'i18n_not_helpful' => __( 'Not helpful', 'aica-plugin' ),
+            'popup_delay'      => 3000,
+            'i18n_start_fresh'      => __( 'Start fresh?', 'aica-plugin' ),
+            'i18n_start_fresh_desc' => __( 'This will clear your current messages so you can start a new conversation.', 'aica-plugin' ),
+            'i18n_end_chat_title'   => __( 'End this chat?', 'aica-plugin' ),
+            'i18n_end_chat_desc'    => __( 'This will clear your current messages and start a new conversation again.', 'aica-plugin' ),
+            'i18n_confirm'          => __( 'Confirm', 'aica-plugin' ),
+            'i18n_processing'       => __( 'Processing...', 'aica-plugin' ),
+            'i18n_loading_history' => __( 'Loading history...', 'aica-plugin' ),
+            'i18n_no_recent'      => __( 'No recent chats found.', 'aica-plugin' ),
         ));
     }
 }

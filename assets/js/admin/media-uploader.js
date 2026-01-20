@@ -1,4 +1,8 @@
 jQuery(document).ready(function($) {
+    if (typeof wp === 'undefined' || !wp.media) {
+        return;
+    }
+
     var frame_cache = {};
 
     function open_media_frame(button_id, options, callback) {
@@ -11,8 +15,8 @@ jQuery(document).ready(function($) {
             }
 
             frame_cache[button_id] = wp.media({
-                title: options.title || 'Select Media',
-                button: { text: options.button_text || 'Use this Media' },
+                title: options.title || (aica_admin_data.i18n_select_media || 'Select Media'),
+                button: { text: options.button_text || (aica_admin_data.i18n_use_media || 'Use this Media') },
                 multiple: false
             });
 
@@ -26,38 +30,43 @@ jQuery(document).ready(function($) {
     }
 
     open_media_frame('#ai_agent_upload_btn', {
-        title: 'Select Avatar',
-        button_text: 'Use this Image'
+        title: aica_admin_data.i18n_select_avatar || 'Select Avatar',
+        button_text: aica_admin_data.i18n_use_image || 'Use this Image'
     }, function(attachment) {
-        $('#ai_agent_logo_id').val(attachment.id);
+        $('#ai_agent_logo_id').val(attachment.id).trigger('change');
         $('#ai_agent_logo_preview').attr('src', attachment.url).show();
         $('#ai_agent_remove_btn').show();
-        if (typeof syncAdminPreview === 'function') {
+        if (typeof window.syncAdminPreview === 'function') {
             window.syncAdminPreview();
         }
     });
 
     open_media_frame('#ai_agent_file_upload_btn', {
-        title: 'Upload Knowledge Base File',
-        button_text: 'Use this File'
+        title: aica_admin_data.i18n_upload_file || 'Upload Knowledge Base File',
+        button_text: aica_admin_data.i18n_use_file || 'Use this File'
     }, function(attachment) {
         $('#ai_agent_knowledge_file_id').val(attachment.id).trigger('change');
         $('#file-name-display').text(attachment.filename);
         $('#ai_agent_file_remove_btn').show();
-        $('#ai_agent_file_upload_btn').text('Replace File');
+        
+        const replaceLabel = aica_admin_data.i18n_replace_file || 'Replace File';
+        $('#ai_agent_file_upload_btn').text(replaceLabel);
     });
 
     $('#ai_agent_remove_btn').on('click', function() {
-        $('#ai_agent_logo_id').val('');
-        $('#ai_agent_logo_preview').attr('src', '').hide();
+        $('#ai_agent_logo_id').val('').trigger('change');
+        const defaultAvatar = (typeof aica_admin_assets !== 'undefined') ? aica_admin_assets.default_avatar : '';
+        $('#ai_agent_logo_preview').attr('src', defaultAvatar);
         $(this).hide();
-        if (typeof syncAdminPreview === 'function')  window.syncAdminPreview();
+        if (typeof window.syncAdminPreview === 'function') window.syncAdminPreview();
     });
 
     $('#ai_agent_file_remove_btn').on('click', function() {
         $('#ai_agent_knowledge_file_id').val('').trigger('change');
         $('#file-name-display').text('');
         $(this).hide();
-        $('#ai_agent_file_upload_btn').text('Upload Knowledge File');
+        
+        const uploadLabel = aica_admin_data.i18n_upload_kb || 'Upload Knowledge File';
+        $('#ai_agent_file_upload_btn').text(uploadLabel);
     });
 });

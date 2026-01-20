@@ -1,6 +1,21 @@
 jQuery(document).ready(function($) {
-    // admin.js
+    function escapeHtml(text) {
+        if (!text) return '';
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
     $('.view-chat-log').on('click', function() {
+        const stripHtml = (html) => {
+            const tmp = document.createElement("DIV");
+            tmp.innerHTML = html;
+            return tmp.textContent || tmp.innerText || "";
+        };
+
         const history = $(this).data('history');
         let html = '';
         
@@ -10,10 +25,11 @@ jQuery(document).ready(function($) {
                 const isUser = msg.role === 'user';
                 const label = isUser ? 'Visitor' : 'AI Agent';
                 const style = isUser ? 'background:#f0f7ff; border-left:4px solid #2271b1;' : 'background:#f0fdf4; border-left:4px solid #16a34a;';
-                
+                const cleanContent = stripHtml(msg.content);
+
                 html += `<div style="margin-bottom:15px; padding:12px; border-radius:8px; ${style}">
-                    <strong>${label}:</strong>
-                    <div style="margin-top:5px; white-space: pre-wrap;">${msg.content}</div>
+                    <strong style="display:block; margin-bottom:5px;">${label}:</strong>
+                    <div style="white-space: pre-wrap;">${cleanContent}</div>
                 </div>`;
             });
         }
@@ -24,12 +40,13 @@ jQuery(document).ready(function($) {
 
     $('.action-delete-chat').on('click', function(e) {
         e.preventDefault();
-        if (!confirm('Delete this conversation forever?')) return;
+        if (!confirm(aica_admin_data.i18n_confirm_delete || 'Delete this conversation forever?')) return;
         
         const btn = $(this);
         const logId = btn.data('id');
+        const originalText = btn.text();
         
-        btn.prop('disabled', true).text('Deleting...');
+        btn.prop('disabled', true).text(aica_admin_data.i18n_deleting || 'Deleting...');
 
         $.post(aica_admin_data.ajax_url, {
             action: 'delete_chat_log',
@@ -44,17 +61,19 @@ jQuery(document).ready(function($) {
                 });
             } else {
                 alert('Error: ' + (response.data || 'Unknown error occurred'));
-                btn.prop('disabled', false).text('Delete');
+                btn.prop('disabled', false).text(originalText);
             }
         }).fail(function() {
             alert('Server error. Please check your connection.');
-            btn.prop('disabled', false).text('Delete');
+            btn.prop('disabled', false).text(originalText);
         });
     });
 
     $('form[action="options.php"]').on('submit', function() {
         const submitBtn = $(this).find('input[type="submit"]');
-        submitBtn.val('Saving...').prop('disabled', true);
+        if (submitBtn.length) {
+            submitBtn.val(aica_admin_data.i18n_saving || 'Saving...').prop('disabled', true);
+        }
     });
 
     const $colorInput = $('#ai_agent_primary_color_input');
@@ -74,7 +93,6 @@ jQuery(document).ready(function($) {
         $colorHex.text(defaultColor);
         $('#ai_agent_logo_preview').css('border-color', '#f3f4f6');
     });
-
 
     $(document).on('click', '.action-export-chat', function(e) {
         e.preventDefault();
@@ -112,7 +130,6 @@ jQuery(document).ready(function($) {
             error: function(xhr) {
                 $btn.prop('disabled', false).css('opacity', '1');
                 $icon.removeClass('spin');
-                console.error('CRITICAL ERROR LOG:', xhr.responseText);
                 alert('A system error occurred. Check the browser console.');
             }
         });
@@ -127,7 +144,7 @@ jQuery(document).ready(function($) {
         $btn.prop('disabled', true);
         $icon.addClass('spin');
         
-        $('#chat-modal-title').text('AI Intelligence Summary');
+        $('#chat-modal-title').text(aica_admin_data.i18n_summary_title || 'AI Intelligence Summary');
         $('#chat-modal-content').hide().html('');
         $('#chat-modal-loader').show();
         $('#chat-modal').fadeIn(200);
@@ -154,7 +171,7 @@ jQuery(document).ready(function($) {
             } else {
                 $('#chat-modal-content').html(`
                     <div style="padding: 20px; color: #dc3232; background: #fef2f2; border-radius: 8px; border: 1px solid #fee2e2;">
-                        <strong>Error:</strong> ${response.data}
+                        <strong>Error:</strong> ${escapeHtml(response.data)}
                     </div>
                 `).show();
             }
@@ -173,5 +190,4 @@ jQuery(document).ready(function($) {
     }
     $('#llm_model_selector').on('change', toggleLLMSettings);
     toggleLLMSettings();
-    
 });

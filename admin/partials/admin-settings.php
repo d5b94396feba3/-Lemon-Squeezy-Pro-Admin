@@ -19,14 +19,26 @@ $next_sync = wp_next_scheduled(AICA_PLUGIN_SLUG . '_daily_sync_event');
             <button type="button" id="aica-sticky-save-trigger" class="button button-primary" style="background: #3b82f6; border: none; height: 32px; padding: 0 20px; font-weight: 600;">Save Changes</button>
         </div>
     </div>
-    <h1 class="wp-heading-inline" style="font-weight: 700; font-size: 24px; margin-bottom: 20px;">Chat Widget Configuration</h1>
-    
+    <h1 class="wp-heading-inline" style="font-weight: 700; font-size: 24px; margin-bottom: 20px;">
+        <?php _e( 'Chat Widget Configuration', 'aica-plugin' ); ?>
+    </h1>
+
     <nav class="nav-tab-wrapper">
-        <a href="<?php echo $page_url; ?>&tab=content" class="nav-tab <?php echo $active_tab === 'content' ? 'nav-tab-active' : ''; ?>">Content</a>
-        <a href="<?php echo $page_url; ?>&tab=style" class="nav-tab <?php echo $active_tab === 'style' ? 'nav-tab-active' : ''; ?>">Style</a>
-        <a href="<?php echo $page_url; ?>&tab=knowledge-base" class="nav-tab <?php echo $active_tab === 'knowledge-base' ? 'nav-tab-active' : ''; ?>">Knowledge Base</a>
-        <a href="<?php echo $page_url; ?>&tab=llm-model" class="nav-tab <?php echo $active_tab === 'llm-model' ? 'nav-tab-active' : ''; ?>">LLM Model</a>
-        <a href="<?php echo $page_url; ?>&tab=notifications" class="nav-tab <?php echo $active_tab === 'notifications' ? 'nav-tab-active' : ''; ?>">Notifications</a>
+        <a href="<?php echo esc_url( add_query_arg( 'tab', 'content', $page_url ) ); ?>" class="nav-tab <?php echo $active_tab === 'content' ? 'nav-tab-active' : ''; ?>">
+            <?php _e( 'Content', 'aica-plugin' ); ?>
+        </a>
+        <a href="<?php echo esc_url( add_query_arg( 'tab', 'style', $page_url ) ); ?>" class="nav-tab <?php echo $active_tab === 'style' ? 'nav-tab-active' : ''; ?>">
+            <?php _e( 'Style', 'aica-plugin' ); ?>
+        </a>
+        <a href="<?php echo esc_url( add_query_arg( 'tab', 'knowledge-base', $page_url ) ); ?>" class="nav-tab <?php echo $active_tab === 'knowledge-base' ? 'nav-tab-active' : ''; ?>">
+            <?php _e( 'Knowledge Base', 'aica-plugin' ); ?>
+        </a>
+        <a href="<?php echo esc_url( add_query_arg( 'tab', 'llm-model', $page_url ) ); ?>" class="nav-tab <?php echo $active_tab === 'llm-model' ? 'nav-tab-active' : ''; ?>">
+            <?php _e( 'LLM Model', 'aica-plugin' ); ?>
+        </a>
+        <a href="<?php echo esc_url( add_query_arg( 'tab', 'notifications', $page_url ) ); ?>" class="nav-tab <?php echo $active_tab === 'notifications' ? 'nav-tab-active' : ''; ?>">
+            <?php _e( 'Notifications', 'aica-plugin' ); ?>
+        </a>
     </nav>
 
     <div style="display: flex; gap: 30px; align-items: flex-start; margin-top: 20px;">

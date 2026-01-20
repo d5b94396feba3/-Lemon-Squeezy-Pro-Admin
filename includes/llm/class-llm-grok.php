@@ -8,7 +8,10 @@ class AICA_Plugin_LLM_Grok {
 
     public function __construct($plugin_slug) {
         $this->plugin_slug = $plugin_slug;
-        $this->pdf_parser = new AICA_Plugin_Smalot_Parser($this->plugin_slug);
+        // Ensure parser exists before instantiating to avoid fatal errors
+        if ( class_exists( 'AICA_Plugin_Smalot_Parser' ) ) {
+            $this->pdf_parser = new AICA_Plugin_Smalot_Parser($this->plugin_slug);
+        }
     }
 
     public function llm_api_v2($system_instruction, $user_query, $history = []): string {
@@ -49,26 +52,31 @@ class AICA_Plugin_LLM_Grok {
 
         $mime_type = get_post_mime_type($file_id);
         $file_size = filesize($file_path);
-        $threshold = 1 * 1024 * 1024;
+        $threshold = 1 * 1024 * 1024; // 1MB
 
         if (strpos($mime_type, 'image') !== false) {
             $data['multimodal_parts'][] = [
                 'type' => 'image_url',
-                'image_url' => ['url' => "data:$mime_type;base64," . base64_encode(file_get_contents($file_path)), 'detail' => 'auto']
+                'image_url' => [
+                    'url'    => "data:$mime_type;base64," . base64_encode(file_get_contents($file_path)), 
+                    'detail' => 'auto'
+                ]
             ];
         } 
         else if ($mime_type === 'application/pdf' || $mime_type === 'text/plain') {
             if ($file_size < $threshold) {
-                $text = ($mime_type === 'application/pdf') 
-                    ? $this->pdf_parser->extract_text_from_pdf($file_path)
-                    : file_get_contents($file_path);
+                $text = '';
+                if ($mime_type === 'application/pdf' && $this->pdf_parser) {
+                    $text = $this->pdf_parser->extract_text_from_pdf($file_path);
+                } else {
+                    $text = file_get_contents($file_path);
+                }
+                
                 $data['file_context_text'] = "\n\n### KNOWLEDGE BASE:\n" . mb_convert_encoding($text, 'UTF-8', 'UTF-8');
             } else {
                 $grok_file_id = $this->ensure_grok_file($file_path, $file_id);
 
-                error_log("grok_file_id : ".$grok_file_id);
-
-                if ($grok_file_id) {
+                if ($grok_file_id && !is_wp_error($grok_file_id)) {
                     $data['multimodal_parts'][] = [
                         'type' => 'file',
                         'file' => ['file_id' => $grok_file_id]
@@ -101,8 +109,12 @@ class AICA_Plugin_LLM_Grok {
 
     private function request_grok($developer_text, $messages) {
         $api_key = get_option('grok_api_key');
+        if ( empty( $api_key ) ) {
+            return __( 'Error: Grok API key is missing. Please check plugin settings.', 'aica-plugin' );
+        }
+
         $model = get_option('grok_model', 'grok-2-1212'); 
-        $temp = floatval(get_option('grok_temperature', '0.7'));
+        $temp  = floatval(get_option('grok_temperature', '0.7'));
         
         $api_url = "https://api.x.ai/v1/chat/completions";
 
@@ -117,39 +129,42 @@ class AICA_Plugin_LLM_Grok {
                 'Content-Type'  => 'application/json'
             ],
             'body' => json_encode([
-                'model' => $model,
-                'messages' => $payload_messages,
+                'model'       => $model,
+                'messages'    => $payload_messages,
                 'temperature' => $temp,
-                'stream' => false
+                'stream'      => false
             ]),
             'timeout' => 120
         ]);
 
-        if (is_wp_error($response)) return "Connection Error: " . $response->get_error_message();
+        if (is_wp_error($response)) {
+            return __( 'Connection Error: ', 'aica-plugin' ) . $response->get_error_message();
+        }
 
         $body = json_decode(wp_remote_retrieve_body($response), true);
         
         if (isset($body['error'])) {
-            $msg = $body['error']['message'] ?? 'Unknown';
-            error_log("Grok Completion Error: " . $msg);
-            return "Grok Error: " . $msg;
+            $msg = $body['error']['message'] ?? __( 'Unknown error', 'aica-plugin' );
+            return __( 'Grok Error: ', 'aica-plugin' ) . $msg;
         }
         
-        return $body['choices'][0]['message']['content'] ?? "Error: No text returned.";
+        return $body['choices'][0]['message']['content'] ?? __( 'Error: No text returned.', 'aica-plugin' );
     }
 
     private function ensure_grok_file($file_path, $wp_id) {
         $key = 'aica_grok_f_' . $wp_id;
-        $id = get_transient($key);
+        $id  = get_transient($key);
         if ($id) return $id;
 
         $api_key = get_option('grok_api_key');
+        if ( empty( $api_key ) ) return false;
+
         $boundary = wp_generate_password(24);
         
         $payload = "--$boundary\r\n";
         $payload .= "Content-Disposition: form-data; name=\"purpose\"\r\n\r\nattachment_search\r\n";
         $payload .= "--$boundary\r\n";
-        $payload .= "Content-Disposition: form-data; name=\"file\"; filename=\"" . basename($file_path) . "\"\r\n";
+        $payload .= "Content-Disposition: form-data; name=\"file\"; filename=\"" . esc_attr( basename($file_path) ) . "\"\r\n";
         $payload .= "Content-Type: application/octet-stream\r\n\r\n";
         $payload .= file_get_contents($file_path) . "\r\n";
         $payload .= "--$boundary--\r\n";
@@ -163,7 +178,7 @@ class AICA_Plugin_LLM_Grok {
             'timeout' => 120
         ]);
 
-        if (is_wp_error($response)) return "Connection Error: " . $response->get_error_message();
+        if (is_wp_error($response)) return $response;
 
         $body = json_decode(wp_remote_retrieve_body($response), true);
         

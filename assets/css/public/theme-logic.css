@@ -2,13 +2,13 @@
 #ai-chat-wrapper #chat-messages::-webkit-scrollbar,
 #ai-chat-wrapper #recent-chats-list::-webkit-scrollbar,
 #ai-chat-wrapper #chat-input::-webkit-scrollbar {
-    width: 5px;
+    width: 5px !important;
 }
 
 #ai-chat-wrapper #chat-messages::-webkit-scrollbar-track,
 #ai-chat-wrapper #recent-chats-list::-webkit-scrollbar-track,
 #ai-chat-wrapper #chat-input::-webkit-scrollbar-track {
-    background: transparent;
+    background: transparent !important;
 }
 
 /* --- Light Theme Overrides --- */
@@ -32,11 +32,11 @@
 #ai-chat-wrapper.theme-light #chat-messages::-webkit-scrollbar-thumb,
 #ai-chat-wrapper.theme-light #recent-chats-list::-webkit-scrollbar-thumb,
 #ai-chat-wrapper.theme-light #chat-input::-webkit-scrollbar-thumb {
-    background-color: #e2e8f0;
-    border-radius: 10px;
+    background-color: #e2e8f0 !important;
+    border-radius: 10px !important;
 }
 #ai-chat-wrapper.theme-light #chat-messages::-webkit-scrollbar-thumb:hover {
-    background-color: #cbd5e1;
+    background-color: #cbd5e1 !important;
 }
 
 /* --- Dark Theme Overrides --- */
@@ -61,14 +61,15 @@
 #ai-chat-wrapper.theme-dark .recent-chat-item:hover { background: #1f2937 !important; }
 #ai-chat-wrapper.theme-dark .recent-chat-item .chat-preview { color: #9ca3af !important; }
 #ai-chat-wrapper.theme-dark .ai .bubble li { color: #eeeeee !important }
+#ai-chat-wrapper.theme-dark .recent-header { padding: 10px 20px; border-bottom: 1px solid #292929 !important; display: flex; align-items: center; gap: 15px; font-weight: 600; font-size: 14px; }
 
 /* Dark Scrollbar Thumb */
 #ai-chat-wrapper.theme-dark #chat-messages::-webkit-scrollbar-thumb,
 #ai-chat-wrapper.theme-dark #recent-chats-list::-webkit-scrollbar-thumb,
 #ai-chat-wrapper.theme-dark #chat-input::-webkit-scrollbar-thumb {
-    background-color: #374151;
-    border-radius: 10px;
+    background-color: #374151 !important;
+    border-radius: 10px !important;
 }
 #ai-chat-wrapper.theme-dark #chat-messages::-webkit-scrollbar-thumb:hover {
-    background-color: #4b5563;
+    background-color: #4b5563 !important;
 }

@@ -3,8 +3,9 @@
         const chat = AICA_Chat;
         const $menu = $('#chat-options-popup');
         const $overlay = $('#chat-confirm-overlay');
-        let mode = '';
         const $endChatBtn = $('#menu-end-chat');
+        const publicData = (typeof aica_public_data !== 'undefined') ? aica_public_data : { ajax_url: '', nonce: '' };
+        let mode = '';
 
         function updateEndChatVisibility() {
             const userMsgCount = chat.$messages.find('.msg.user').length;
@@ -14,17 +15,28 @@
                 $endChatBtn.addClass('is-disabled');
             }
         }
-        $('#chat-menu-btn').on('click', (e) => { e.stopPropagation(); updateEndChatVisibility(); $menu.toggleClass('hidden'); });
+
+        $('#chat-menu-btn').on('click', (e) => { 
+            e.stopPropagation(); 
+            updateEndChatVisibility(); 
+            $menu.toggleClass('hidden'); 
+        });
+
         $(document).on('click', () => $menu.addClass('hidden'));
 
         $('#menu-start-new').on('click', function() {
             mode = 'clear';
-            showOverlay('Start fresh?', 'This will clear your current messages so you can start a new conversation.');
+            const title = publicData.i18n_start_fresh || 'Start fresh?';
+            const desc = publicData.i18n_start_fresh_desc || 'This will clear your current messages so you can start a new conversation.';
+            showOverlay(title, desc);
         });
 
         $('#menu-end-chat').on('click', function() {
+            if ($(this).hasClass('is-disabled')) return;
             mode = 'end';
-            showOverlay('End this chat?', 'This will clear your current messages and start a new conversation again.');
+            const title = publicData.i18n_end_chat_title || 'End this chat?';
+            const desc = publicData.i18n_end_chat_desc || 'This will clear your current messages and start a new conversation again.';
+            showOverlay(title, desc);
         });
 
         function showOverlay(title, desc) {
@@ -38,17 +50,27 @@
 
         $('#confirm-execute').on('click', function() {
             const $btn = $(this);
-            $btn.prop('disabled', true).text('Processing...');
+            const originalText = $btn.text();
+            
+            $btn.prop('disabled', true).text(publicData.i18n_processing || 'Processing...');
+            
             const action = (mode === 'clear') ? 'clear_chat_history' : 'end_chat_session';
 
-            $.post(chatData.ajax_url, { action: action, nonce: chatData.nonce }, function(res) {
-                $btn.prop('disabled', false).text('Confirm');
+            $.post(publicData.ajax_url, { 
+                action: action, 
+                nonce: publicData.nonce
+            }, function(res) {
+                $btn.prop('disabled', false).text(originalText);
                 if (res.success) {
-                    updateEndChatVisibility();
                     chat.$messages.empty().append(chat.$welcomeHtml.clone());
+                    updateEndChatVisibility();
                     $overlay.fadeOut(200);
-                    if (mode === 'end') chat.toggleChat();
+                    if (mode === 'end') {
+                        chat.toggleChat();
+                    }
                 }
+            }).fail(function() {
+                $btn.prop('disabled', false).text(originalText);
             });
         });
     });

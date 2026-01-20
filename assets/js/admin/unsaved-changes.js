@@ -1,6 +1,7 @@
 jQuery(document).ready(function($) {
 
-    // unsaved-changes.js
+    const i18n = (typeof aica_admin_data !== 'undefined') ? aica_admin_data : {};
+    
     const $unsavedBar = $('#aica-unsaved-bar');
     let hasChanges = false;
 
@@ -51,8 +52,11 @@ jQuery(document).ready(function($) {
         e.preventDefault();
         const $btn = $(this);
         const $visibleForm = $('form[action="options.php"]:visible');
+        
         if ($visibleForm.length > 0) {
-            $btn.text('Saving...').prop('disabled', true);
+            const savingLabel = i18n.i18n_saving || 'Saving...';
+            $btn.text(savingLabel).prop('disabled', true);
+            
             const nativeForm = $visibleForm[0];
             if (typeof nativeForm.requestSubmit === 'function') {
                 nativeForm.requestSubmit();
@@ -60,8 +64,9 @@ jQuery(document).ready(function($) {
                 nativeForm.submit();
             }
         } else {
+            const errorMsg = i18n.i18n_form_error || 'Error: Could not find the settings form. Please try the save button at the bottom.';
             console.error('AICA: No visible settings form found to submit.');
-            alert('Error: Could not find the settings form. Please try the save button at the bottom.');
+            alert(errorMsg);
         }
     });
 });

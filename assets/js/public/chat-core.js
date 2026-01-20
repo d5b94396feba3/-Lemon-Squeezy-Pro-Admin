@@ -18,16 +18,17 @@ var AICA_Chat = {
         this.$welcomeHtml = jQuery('.welcome-msg').clone();
 
         this.bindCoreEvents($);
-        
         this.updateTimestamps();
+        
+        const popupDelay = (typeof aica_public_data !== 'undefined' && aica_public_data.popup_delay) ? parseInt(aica_public_data.popup_delay) : 3000;
         
         this.popupTimer = setTimeout(() => {
             this.triggerPopup();
-        }, 3000);
+        }, popupDelay);
 
         setInterval(() => {
             this.updateTimestamps();
-        }, 20000);
+        }, 30000); 
     },
 
     bindCoreEvents: function($) {
@@ -41,7 +42,6 @@ var AICA_Chat = {
 
         jQuery(document).on('click', '#chat-close-btn', function(e) {
             e.preventDefault();
-            e.stopPropagation();
             self.toggleChat();
         });
         
@@ -69,8 +69,8 @@ var AICA_Chat = {
             $popup.stop(true, true).fadeOut(200);
             $window.stop(true, true).fadeIn(300, function() {
                 jQuery(this).removeClass('hidden').css('display', 'flex');
+                AICA_Chat.scrollBottom();
             });
-            this.scrollBottom();
             setTimeout(() => this.$input.focus(), 150);
         } else {
             $window.stop(true, true).fadeOut(300, function() {
@@ -81,35 +81,43 @@ var AICA_Chat = {
 
     scrollBottom: function() {
         if (this.$messages.length) {
-            this.$messages.scrollTop(this.$messages[0].scrollHeight);
+            this.$messages.animate({ scrollTop: this.$messages[0].scrollHeight }, 300);
         }
     },
 
     triggerPopup: function() {
         const $popup = jQuery('#ai-chat-welcome-popup');
-        if (this.$window.hasClass('hidden')) {
+        if (this.$window.length && this.$window.hasClass('hidden')) {
             $popup.hide().removeClass('hidden').fadeIn(500);
         }
     },
 
     updateTimestamps: function() {
         const now = Math.floor(Date.now() / 1000);
+        const i18n = (typeof aica_public_data !== 'undefined') ? aica_public_data : {};
+
         jQuery('.msg-time').each(function() {
             const sentTime = parseInt(jQuery(this).attr('data-time'));
             if (!sentTime || isNaN(sentTime)) return;
 
             const diff = now - sentTime;
             if (diff < 60) {
-                jQuery(this).text('just now');
+                jQuery(this).text(i18n.just_now || 'just now');
             } else if (diff < 3600) {
-                jQuery(this).text(Math.floor(diff / 60) + 'm ago');
+                const mins = Math.floor(diff / 60);
+                const label = i18n.m_ago || 'm ago';
+                jQuery(this).text(mins + label);
             } else {
-                jQuery(this).text(Math.floor(diff / 3600) + 'h ago');
+                const hrs = Math.floor(diff / 3600);
+                const label = i18n.h_ago || 'h ago';
+                jQuery(this).text(hrs + label);
             }
         });
     }
 };
 
 jQuery(document).ready(function($) {
-    AICA_Chat.init($);
+    if (jQuery('#ai-chat-wrapper').length) {
+        AICA_Chat.init($);
+    }
 });

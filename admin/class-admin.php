@@ -344,71 +344,57 @@ class AICA_Plugin_Admin {
 
         wp_enqueue_media();
 
-        wp_enqueue_script(
-            $this->plugin_slug . '-admin',
-            AICA_PLUGIN_URL . 'assets/js/admin/admin.js',
-            array('jquery'),
-            $this->version,
-            true
+        // Standard Admin Script
+        wp_enqueue_script($this->plugin_slug . '-admin', AICA_PLUGIN_URL . 'assets/js/admin/admin.js', array('jquery'), $this->version, true);
+
+        // Unsaved Changes
+        wp_enqueue_script($this->plugin_slug . '-unsaved-changes', AICA_PLUGIN_URL . 'assets/js/admin/unsaved-changes.js', array('jquery'), $this->version, true);
+
+        // Knowledge Base
+        wp_enqueue_script($this->plugin_slug . '-knowledge-base', AICA_PLUGIN_URL . 'assets/js/admin/knowledge-base.js', array('jquery'), $this->version, true);
+
+        // Preview
+        wp_enqueue_script($this->plugin_slug . '-preview', AICA_PLUGIN_URL . 'assets/js/admin/preview.js', array('jquery'), $this->version, true);
+
+        // Media Uploader
+        wp_enqueue_script($this->plugin_slug . '-media-uploader', AICA_PLUGIN_URL . 'assets/js/admin/media-uploader.js', array('jquery'), $this->version, true);
+
+        // MASTER LOCALIZATION OBJECT
+        $admin_data = array(
+            'ajax_url'            => admin_url('admin-ajax.php'),
+            'nonce'               => wp_create_nonce('aica_admin_nonce'),
+            'i18n_visitor'        => __( 'Visitor', 'aica-plugin' ),
+            'i18n_ai'             => __( 'AI Agent', 'aica-plugin' ),
+            'i18n_deleting'       => __( 'Deleting...', 'aica-plugin' ),
+            'i18n_saving'         => __( 'Saving...', 'aica-plugin' ),
+            'i18n_summary_title'  => __( 'AI Intelligence Summary', 'aica-plugin' ),
+            'i18n_confirm_delete' => __( 'Delete this conversation forever?', 'aica-plugin' ),
+            'i18n_pages'          => __( 'Pages', 'aica-plugin' ),
+            'i18n_synced'         => __( 'Synced', 'aica-plugin' ),
+            'i18n_pending'        => __( 'Pending', 'aica-plugin' ),
+            'i18n_uptodate'       => __( 'Everything Up to Date', 'aica-plugin' ),
+            'i18n_sync_pending'   => __( 'Sync %s Pending Pages', 'aica-plugin' ),
+            'i18n_syncing'        => __( 'Syncing...', 'aica-plugin' ),
+            'i18n_processing'     => __( 'Processing:', 'aica-plugin' ),
+            'i18n_justnow'        => __( 'Just now', 'aica-plugin' ),
+            'i18n_confirm_gen'    => __( 'This will replace your current instructions with a new AI-generated version based on your website content. Proceed?', 'aica-plugin' ),
+            'i18n_select_avatar'  => __( 'Select Avatar', 'aica-plugin' ),
+            'i18n_use_image'      => __( 'Use this Image', 'aica-plugin' ),
+            'i18n_upload_file'    => __( 'Upload Knowledge Base File', 'aica-plugin' ),
+            'i18n_use_file'       => __( 'Use this File', 'aica-plugin' ),
+            'i18n_replace_file'   => __( 'Replace File', 'aica-plugin' ),
+            'i18n_upload_kb'      => __( 'Upload Knowledge File', 'aica-plugin' ),
         );
 
-        wp_enqueue_script(
-            $this->plugin_slug . '-unsaved-changes',
-            AICA_PLUGIN_URL . 'assets/js/admin/unsaved-changes.js',
-            array('jquery'),
-            $this->version,
-            true
-        );
+        // Localize all scripts
+        wp_localize_script($this->plugin_slug . '-admin', 'aica_admin_data', $admin_data);
+        wp_localize_script($this->plugin_slug . '-knowledge-base', 'aica_admin_data', $admin_data);
+        wp_localize_script($this->plugin_slug . '-media-uploader', 'aica_admin_data', $admin_data);
 
-        wp_enqueue_script(
-            $this->plugin_slug . '-knowledge-base',
-            AICA_PLUGIN_URL . 'assets/js/admin/knowledge-base.js',
-            array('jquery'),
-            $this->version,
-            true
-        );
-
-        wp_enqueue_script(
-            $this->plugin_slug . '-preview',
-            AICA_PLUGIN_URL . 'assets/js/admin/preview.js',
-            array('jquery'),
-            $this->version,
-            true
-        );
-
-        wp_enqueue_script(
-            $this->plugin_slug . '-media-uploader',
-            AICA_PLUGIN_URL . 'assets/js/admin/media-uploader.js',
-            array('jquery'),
-            $this->version,
-            true
-        );
-
-        wp_localize_script(
-            $this->plugin_slug . '-admin',
-            'aica_admin_data',
-            array(
-                'ajax_url' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('aica_admin_nonce')
-            )
-        );
-
-        wp_localize_script(
-            $this->plugin_slug . '-preview',
-            'aica_admin_assets',             
-            array(
-                'default_avatar' => AICA_PLUGIN_URL . 'assets/images/default-avater.svg'
-            )
-        );
-
-        wp_localize_script(
-            $this->plugin_slug . '-knowledge-base',
-            'aica_admin_data',
-            array(
-                'ajax_url' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('aica_admin_nonce')
-            )
-        );
+        // Preview assets
+        wp_localize_script($this->plugin_slug . '-preview', 'aica_admin_assets', array(
+            'default_avatar' => AICA_PLUGIN_URL . 'assets/images/default-avater.svg'
+        ));
     }
 
 }

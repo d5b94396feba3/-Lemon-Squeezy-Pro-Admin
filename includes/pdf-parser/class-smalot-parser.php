@@ -1,5 +1,9 @@
 <?php
+/**
+ * PDF Text Extraction using Smalot Library
+ */
 defined( 'ABSPATH' ) || exit;
+
 class AICA_Plugin_Smalot_Parser {
 
     private $plugin_slug;
@@ -8,12 +12,23 @@ class AICA_Plugin_Smalot_Parser {
         $this->plugin_slug = $plugin_slug;
     }
 
+    /**
+     * Extracts text from a PDF file safely.
+     * * @param string $filename Path to the PDF file.
+     * @return string Extracted text or error message.
+     */
     public function extract_text_from_pdf($filename) {
-        if (!file_exists($filename)) {
+        if (!file_exists($filename) || !is_readable($filename)) {
             return "";
         }
     
+        if ( ! class_exists( '\\Smalot\\PdfParser\\Parser' ) ) {
+            return __( 'Note: PDF Parser library is missing.', 'aica-plugin' );
+        }
+
         try {
+            @set_time_limit(100);
+
             $parser = new \Smalot\PdfParser\Parser();
             $pdf    = $parser->parseFile($filename);
             
@@ -22,11 +37,13 @@ class AICA_Plugin_Smalot_Parser {
             $text = preg_replace('/[ \t]+/', ' ', $text);
             $text = preg_replace('/\n\s*\n/', "\n", $text);
             
-            return mb_convert_encoding($text, 'UTF-8', 'UTF-8');
+            $clean_text = mb_convert_encoding($text, 'UTF-8', 'UTF-8');
+            
+            return trim($clean_text);
+
         } catch (\Exception $e) {
             error_log("AICA PDF Parse Error: " . $e->getMessage());
-            return "Note: The attached PDF knowledge base could not be parsed.";
+            return __( 'Note: The attached PDF knowledge base could not be parsed.', 'aica-plugin' );
         }
     }
-
 }

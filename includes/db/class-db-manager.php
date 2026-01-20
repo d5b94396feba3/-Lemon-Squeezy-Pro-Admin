@@ -16,15 +16,20 @@ class AICA_Plugin_DB_Manager {
         $this->table_chat_logs = $wpdb->prefix . $clean_slug . '_chat_logs';
     }
 
+    /**
+     * Creates the necessary database tables on activation.
+     */
     public static function create_table( $plugin_slug ) {
         global $wpdb;
         $clean_slug = str_replace('-', '_', sanitize_key($plugin_slug));
-        $table_name = $wpdb->prefix . $clean_slug . '_chat_logs';
+        
+        $table_name     = $wpdb->prefix . $clean_slug . '_chat_logs';
         $feedback_table = $wpdb->prefix . $clean_slug . '_feedback';
-        $kb_table = $wpdb->prefix . $clean_slug . '_knowledge_base';
+        $kb_table       = $wpdb->prefix . $clean_slug . '_knowledge_base';
 
         $charset_collate = $wpdb->get_charset_collate();
     
+        // Chat Logs Table
         $sql = "CREATE TABLE $table_name (
             id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
             session_id VARCHAR(255) NOT NULL,
@@ -34,6 +39,7 @@ class AICA_Plugin_DB_Manager {
             KEY session_id (session_id(191))
         ) $charset_collate;";
     
+        // Feedback Table
         $sql_feedback = "CREATE TABLE $feedback_table (
             id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
             user_query TEXT NOT NULL,
@@ -43,6 +49,7 @@ class AICA_Plugin_DB_Manager {
             PRIMARY KEY (id)
         ) $charset_collate;";
 
+        // Knowledge Base Table
         $sql_kb = "CREATE TABLE $kb_table (
             id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
             source_url VARCHAR(255) NOT NULL,
@@ -59,23 +66,24 @@ class AICA_Plugin_DB_Manager {
     }
 
     public function store_feedback($query, $response, $rating) {
+        $table = $this->wpdb->prefix . str_replace('-', '_', sanitize_key($this->plugin_slug)) . '_feedback';
         return $this->wpdb->insert(
-            $this->wpdb->prefix . str_replace('-', '_', sanitize_key($this->plugin_slug)) . '_feedback',
+            $table,
             [
                 'user_query'  => $query,
                 'ai_response' => $response,
                 'rating'      => $rating,
                 'created_at'  => current_time('mysql')
-            ]
+            ],
+            ['%s', '%s', '%s', '%s']
         );
     }
 
     public function update_knowledge_base($url, $content) {
-        global $wpdb;
         $table = $this->get_kb_table_name();
         $content = trim($content);
 
-        return $wpdb->replace(
+        return $this->wpdb->replace(
             $table,
             [
                 'source_url'  => esc_url_raw($url),
@@ -87,42 +95,35 @@ class AICA_Plugin_DB_Manager {
     }
     
     public function get_kb_content_as_string() {
-        $table = $this->wpdb->prefix . str_replace('-', '_', sanitize_key($this->plugin_slug)) . '_knowledge_base';
+        $table = $this->get_kb_table_name();
+        
+        // Safety check if table exists
+        if ($this->wpdb->get_var($this->wpdb->prepare("SHOW TABLES LIKE %s", $table)) !== $table) {
+            return "";
+        }
+
         $results = $this->wpdb->get_results("SELECT source_url, content FROM $table", ARRAY_A);
         $text = "";
-        foreach($results as $row) {
-            $text .= "Page URL: " . $row['source_url'] . "\n";
-            $text .= $row['content'] . "\n\n";
+        if ($results) {
+            foreach($results as $row) {
+                $text .= "Page URL: " . esc_url($row['source_url']) . "\n";
+                $text .= $row['content'] . "\n\n";
+            }
         }
         return $text;
-    }
-
-    public function get_positive_feedback(int $limit = 5) {
-        $feedback_table = $this->wpdb->prefix . str_replace('-', '_', sanitize_key($this->plugin_slug)) . '_feedback';
-        if($this->wpdb->get_var("SHOW TABLES LIKE '$feedback_table'") != $feedback_table) {
-            return [];
-        }
-
-        return $this->wpdb->get_results(
-            $this->wpdb->prepare(
-                "SELECT user_query, ai_response FROM $feedback_table WHERE rating = 'like' ORDER BY created_at DESC LIMIT %d",
-                $limit
-            ),
-            ARRAY_A
-        );
     }
 
     public function get_feedback_by_type(string $rating, int $limit = 5) {
         $feedback_table = $this->wpdb->prefix . str_replace('-', '_', sanitize_key($this->plugin_slug)) . '_feedback';
         
-        if($this->wpdb->get_var("SHOW TABLES LIKE '$feedback_table'") != $feedback_table) {
+        if ($this->wpdb->get_var($this->wpdb->prepare("SHOW TABLES LIKE %s", $feedback_table)) !== $feedback_table) {
             return [];
         }
 
         return $this->wpdb->get_results(
             $this->wpdb->prepare(
                 "SELECT user_query, ai_response FROM $feedback_table WHERE rating = %s ORDER BY created_at DESC LIMIT %d",
-                $rating,
+                sanitize_key($rating),
                 $limit
             ),
             ARRAY_A
@@ -131,6 +132,7 @@ class AICA_Plugin_DB_Manager {
 
     public function save_chat_history($session_id, $history_array) {
         $history_data = json_encode($history_array);
+        $session_id   = sanitize_key($session_id);
 
         $exists = $this->wpdb->get_var($this->wpdb->prepare(
             "SELECT id FROM {$this->table_chat_logs} WHERE session_id = %s", 
@@ -163,31 +165,21 @@ class AICA_Plugin_DB_Manager {
     }
 
     public function delete_chat_log($id) {
-        return $this->wpdb->delete($this->table_chat_logs, array('id' => $id), array('%d'));
+        return $this->wpdb->delete($this->table_chat_logs, array('id' => intval($id)), array('%d'));
     }
 
-    /**
-     * Fetch a single chat log by its primary ID
-     * * @param int $log_id The database ID of the log
-     * @return array|null Associative array of the log data or null if not found
-     */
     public function get_chat_log_by_id($log_id) {
-        global $wpdb;
-        $clean_slug = str_replace('-', '_', sanitize_key($this->plugin_slug));
-        $table_name = $wpdb->prefix . $clean_slug . '_chat_logs';
-
-        $query = $wpdb->prepare(
-            "SELECT * FROM $table_name WHERE id = %d LIMIT 1",
-            $log_id
+        $query = $this->wpdb->prepare(
+            "SELECT * FROM {$this->table_chat_logs} WHERE id = %d LIMIT 1",
+            intval($log_id)
         );
-
-        return $wpdb->get_row($query, ARRAY_A);
+        return $this->wpdb->get_row($query, ARRAY_A);
     }
 
     public function get_logs_for_export($id = 0) {
         if ($id > 0) {
             return $this->wpdb->get_results(
-                $this->wpdb->prepare("SELECT * FROM {$this->table_chat_logs} WHERE id = %d", $id), 
+                $this->wpdb->prepare("SELECT * FROM {$this->table_chat_logs} WHERE id = %d", intval($id)), 
                 ARRAY_A
             );
         }
@@ -201,9 +193,8 @@ class AICA_Plugin_DB_Manager {
     public function get_sync_status($url) {
         $table = $this->get_kb_table_name();
         return $this->wpdb->get_row(
-            $this->wpdb->prepare("SELECT last_synced FROM $table WHERE source_url = %s", $url),
+            $this->wpdb->prepare("SELECT last_synced FROM $table WHERE source_url = %s", esc_url_raw($url)),
             ARRAY_A
         );
     }
-
 }

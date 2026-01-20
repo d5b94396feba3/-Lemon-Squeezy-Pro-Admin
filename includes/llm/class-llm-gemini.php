@@ -7,7 +7,10 @@ class AICA_Plugin_LLM_Gemini {
 
     public function __construct($plugin_slug) {
         $this->plugin_slug = $plugin_slug;
-        $this->pdf_parser = new AICA_Plugin_Smalot_Parser($this->plugin_slug);
+        // Verify class existence to prevent fatal errors
+        if ( class_exists( 'AICA_Plugin_Smalot_Parser' ) ) {
+            $this->pdf_parser = new AICA_Plugin_Smalot_Parser($this->plugin_slug);
+        }
     }
 
     public function llm_api_v2($system_instruction, $user_query, $history = []): string {
@@ -31,9 +34,11 @@ class AICA_Plugin_LLM_Gemini {
         if (!$file_id) return $data;
 
         $file_path = get_attached_file($file_id);
+        if (!$file_path || !file_exists($file_path)) return $data;
+
         $mime_type = get_post_mime_type($file_id);
         $file_size = filesize($file_path);
-        $extraction_threshold = 1 * 1024 * 1024;
+        $extraction_threshold = 1 * 1024 * 1024; // 1MB
 
         if (strpos($mime_type, 'image') !== false) {
             $data['multimodal_parts'][] = [
@@ -45,9 +50,12 @@ class AICA_Plugin_LLM_Gemini {
         } 
         else if ($mime_type === 'application/pdf' || $mime_type === 'text/plain') {
             if ($file_size < $extraction_threshold) {
-                $text = ($mime_type === 'application/pdf') 
-                    ? $this->pdf_parser->extract_text_from_pdf($file_path) 
-                    : file_get_contents($file_path);
+                $text = '';
+                if ($mime_type === 'application/pdf' && $this->pdf_parser) {
+                    $text = $this->pdf_parser->extract_text_from_pdf($file_path);
+                } else {
+                    $text = file_get_contents($file_path);
+                }
                 $data['file_context_text'] = "\n\n### KNOWLEDGE BASE CONTENT:\n" . mb_convert_encoding($text, 'UTF-8', 'UTF-8');
             } else {
                 $transient_key = 'aica_gemini_uri_' . $file_id;
@@ -58,7 +66,7 @@ class AICA_Plugin_LLM_Gemini {
                     if ($file_uri) set_transient($transient_key, $file_uri, 1 * HOUR_IN_SECONDS);
                 }
 
-                if ($file_uri) {
+                if ($file_uri && !is_wp_error($file_uri)) {
                     $data['multimodal_parts'][] = [
                         'file_data' => [
                             'mime_type' => $mime_type,
@@ -99,11 +107,11 @@ class AICA_Plugin_LLM_Gemini {
     
     private function upload_to_gemini($file_path, $mime_type) {
         $api_key = get_option('gemini_api_key');
-        if (!$api_key || !file_exists($file_path)) return false;
+        if ( empty($api_key) || !file_exists($file_path) ) return false;
 
         $file_size = filesize($file_path);
         $display_name = basename($file_path);
-        $url = "https://generativelanguage.googleapis.com/upload/v1beta/files?key={$api_key}";
+        $url = "https://generativelanguage.googleapis.com/upload/v1beta/files?key=" . esc_attr($api_key);
         
         $headers = [
             'X-Goog-Upload-Protocol' => 'resumable',
@@ -146,10 +154,14 @@ class AICA_Plugin_LLM_Gemini {
 
     private function request_gemini($system_instruction, $contents) {
         $api_key = get_option('gemini_api_key');
-        $model = get_option('gemini_model', 'gemini-2.5-flash');
+        if ( empty($api_key) ) {
+            return __( 'Error: Gemini API key is missing.', 'aica-plugin' );
+        }
+
+        $model = get_option('gemini_model', 'gemini-2.0-flash');
         $temperature = floatval(get_option('gemini_temperature', '0.7'));
         
-        $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$api_key}";
+        $url = "https://generativelanguage.googleapis.com/v1beta/models/" . esc_attr($model) . ":generateContent?key=" . esc_attr($api_key);
         
         $payload = [
             'system_instruction' => ['parts' => [['text' => $system_instruction]]],
@@ -164,25 +176,28 @@ class AICA_Plugin_LLM_Gemini {
         ]);
     
         if (is_wp_error($response)) {
-            return "Connection Error: " . $response->get_error_message();
+            return __( 'Connection Error: ', 'aica-plugin' ) . $response->get_error_message();
         }
     
         $body = json_decode(wp_remote_retrieve_body($response), true);
     
         if (isset($body['error'])) {
-            $msg = $body['error']['message'] ?? 'Unknown Gemini Error';
-            return "Gemini API Error: $msg";
+            $msg = $body['error']['message'] ?? __( 'Unknown Gemini Error', 'aica-plugin' );
+            return __( 'Gemini API Error: ', 'aica-plugin' ) . $msg;
         }
     
         if (isset($body['promptFeedback']['blockReason'])) {
-            return "Gemini Blocked: The prompt was rejected (Reason: " . $body['promptFeedback']['blockReason'] . ").";
+            return sprintf( 
+                __( 'Gemini Blocked: The prompt was rejected (Reason: %s).', 'aica-plugin' ), 
+                esc_html( $body['promptFeedback']['blockReason'] ) 
+            );
         }
     
         $candidate = $body['candidates'][0] ?? null;
         
         if ($candidate) {
             if ($candidate['finishReason'] === 'SAFETY') {
-                return "Gemini Blocked: Response filtered due to safety concerns.";
+                return __( 'Gemini Blocked: Response filtered due to safety concerns.', 'aica-plugin' );
             }
     
             if (isset($candidate['content']['parts'][0]['text'])) {
@@ -190,6 +205,6 @@ class AICA_Plugin_LLM_Gemini {
             }
         }
     
-        return "Error: Gemini failed to generate a response candidate.";
+        return __( 'Error: Gemini failed to generate a response candidate.', 'aica-plugin' );
     }
 }

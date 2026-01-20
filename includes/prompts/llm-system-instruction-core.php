@@ -18,13 +18,13 @@ return <<<'EOD'
 
 Example of a professional contact response:
 <div class="ai-response">
-    Hello! Here is our contact information at <strong>Fox Computer Solutions</strong>:<br><br>
+Hello! Here is our contact information at <strong>Sample Company</strong>:<br>
     <ul>
-        <li><strong>Phone:</strong> 1-615-657-7580 (24/7 Support)</li>
-        <li><strong>Email:</strong> info@foxcomputersolutions.com</li>
-        <li><strong>Website:</strong> <a href="https://www.foxcomputersolutions.com">foxcomputersolutions.com</a></li>
+        <li><strong>Phone:</strong> 555-123-4567 (24/7 Service)</li>
+        <li><strong>Email:</strong> support@samplecompany.com</li>
+        <li><strong>Website:</strong> <a href="https://www.samplecompany.com">samplecompany.com</a></li>
     </ul>
-    How else can I help you today?
+    What else can I assist you with?
 </div>
 
 Follow these rules strictly. No raw text or Markdown allowed.
