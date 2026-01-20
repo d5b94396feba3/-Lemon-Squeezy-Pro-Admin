@@ -2,9 +2,9 @@
 defined( 'ABSPATH' ) || exit;
 
 class AICA_Plugin_Deactivator {
-    // Now accepts the slug to use dynamic option/transient names
+    
     public static function deactivate( $plugin_slug ) {
-        // Clean up temporary data
+        // Clean up temporary data and Cron
         self::cleanup_temp_data( $plugin_slug );
         
         // Flush rewrite rules
@@ -12,14 +12,18 @@ class AICA_Plugin_Deactivator {
     }
 
     private static function cleanup_temp_data( $plugin_slug ) {
-        // Remove any temporary transients using the dynamic slug
+        // Remove any temporary transients
         delete_transient( $plugin_slug . '_temp_data' );
         
-        // Clear scheduled hooks if any using the dynamic slug
-        wp_clear_scheduled_hook( $plugin_slug . '_daily_event' );
+        // Ensure the automated sync cron is cleared
+        if ( file_exists( AICA_PLUGIN_PATH . 'includes/wp-cron/class-wp-cron.php' ) ) {
+            require_once AICA_PLUGIN_PATH . 'includes/wp-cron/class-wp-cron.php';
+            if ( method_exists( 'AICA_Plugin_WP_Cron', 'clear_schedule' ) ) {
+                AICA_Plugin_WP_Cron::clear_schedule( $plugin_slug );
+            }
+        }
 
-        // Nuclear option to ensure cron is killed on deactivation
-        require_once AICA_PLUGIN_PATH . 'includes/wp-cron/class-wp-cron.php';
-        AICA_Plugin_WP_Cron::clear_schedule( AICA_PLUGIN_SLUG );
+        // Clear any other general hooks if they exist
+        wp_clear_scheduled_hook( $plugin_slug . '_daily_event' );
     }
 }

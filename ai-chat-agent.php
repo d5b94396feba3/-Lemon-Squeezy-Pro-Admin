@@ -46,7 +46,6 @@ class AICA_Bootstrap {
     public static function init() {
         self::register_vendor_autoload();
         self::load_dependencies();
-        self::init_cron();
         self::run_plugin();
     }
 
@@ -84,28 +83,24 @@ class AICA_Bootstrap {
         require_once AICA_PLUGIN_PATH . 'public/class-public.php';
     }
 
-    /**
-     * Start the Cron Service
-     */
-    private static function init_cron() {
-        if ( class_exists( 'AICA_Plugin_WP_Cron' ) ) {
-            new AICA_Plugin_WP_Cron( AICA_PLUGIN_SLUG );
-        }
-    }
-
     private static function run_plugin() {
         $plugin = new AICA_Plugin_Main( AICA_PLUGIN_NAME, AICA_PLUGIN_SLUG, AICA_PLUGIN_VERSION );
         $plugin->run();
     }
 }
 
-// Activation/Deactivation
+// Activation
 function aica_activate() {
     require_once AICA_PLUGIN_PATH . 'includes/class-activator.php';
     AICA_Plugin_Activator::activate( AICA_PLUGIN_SLUG );
+    
+    if ( class_exists( 'AICA_Plugin_WP_Cron' ) ) {
+        AICA_Plugin_WP_Cron::schedule_sync();
+    }
 }
 register_activation_hook(__FILE__, 'aica_activate');
 
+// Deactivation
 function aica_deactivate() {
     require_once AICA_PLUGIN_PATH . 'includes/class-deactivator.php';
     AICA_Plugin_Deactivator::deactivate( AICA_PLUGIN_SLUG );

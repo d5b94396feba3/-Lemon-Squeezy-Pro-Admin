@@ -3,21 +3,28 @@ defined( 'ABSPATH' ) || exit;
 
 class AICA_Plugin_WP_Cron {
 
+    const HOOK = 'aica_daily_sync_event';
     private $plugin_slug;
-    private $hook_name;
 
     public function __construct( $plugin_slug ) {
         $this->plugin_slug = $plugin_slug;
-        $this->hook_name = $plugin_slug . '_daily_sync_event';
-
-        add_action( $this->hook_name, array( $this, 'run_automated_sync' ) );
-        
-        if ( ! wp_next_scheduled( $this->hook_name ) ) {
-            wp_schedule_event( time(), 'daily', $this->hook_name );
-        }
     }
 
     public function run_automated_sync() {
+        $lock_key = $this->plugin_slug . '_sync_lock';
+        
+        if ( get_transient( $lock_key ) ) {
+            return;
+        }
+
+        if ( function_exists( 'wp_raise_memory_limit' ) ) {
+            wp_raise_memory_limit( 'admin' );
+        }
+
+        set_transient( $lock_key, 'lock', HOUR_IN_SECONDS );
+
+        @set_time_limit( 300 );
+
         $scraper = new AICA_Plugin_SimpleHTMLDOM();
         $db      = new AICA_Plugin_DB_Manager( $this->plugin_slug );
     
@@ -30,13 +37,20 @@ class AICA_Plugin_WP_Cron {
             
             update_option( $this->plugin_slug . '_last_cron_sync', current_time( 'timestamp' ) );
         }
+
+        delete_transient( $lock_key );
     }
 
-    public static function clear_schedule( $plugin_slug ) {
-        $hook = $plugin_slug . '_daily_sync_event';
-        $timestamp = wp_next_scheduled( $hook );
+    public static function schedule_sync() {
+        if ( ! wp_next_scheduled( self::HOOK ) ) {
+            wp_schedule_event( time(), 'daily', self::HOOK );
+        }
+    }
+
+    public static function clear_schedule() {
+        $timestamp = wp_next_scheduled( self::HOOK );
         if ( $timestamp ) {
-            wp_unschedule_event( $timestamp, $hook );
+            wp_unschedule_event( $timestamp, self::HOOK );
         }
     }
 }
