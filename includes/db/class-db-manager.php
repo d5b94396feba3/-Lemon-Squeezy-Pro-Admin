@@ -164,6 +164,18 @@ class AICA_Plugin_DB_Manager {
         return $this->wpdb->get_results("SELECT * FROM {$this->table_chat_logs} ORDER BY last_updated DESC", ARRAY_A);
     }
 
+    public function get_chat_stats() {
+        // Safety check if table exists
+        if ($this->wpdb->get_var($this->wpdb->prepare("SHOW TABLES LIKE %s", $this->table_chat_logs)) !== $this->table_chat_logs) {
+            return ['total' => 0, 'recent' => 0];
+        }
+
+        return [
+            'total'  => (int) $this->wpdb->get_var("SELECT COUNT(*) FROM {$this->table_chat_logs}"),
+            'recent' => (int) $this->wpdb->get_var("SELECT COUNT(*) FROM {$this->table_chat_logs} WHERE last_updated >= DATE_SUB(NOW(), INTERVAL 7 DAY)")
+        ];
+    }
+
     public function delete_chat_log($id) {
         return $this->wpdb->delete($this->table_chat_logs, array('id' => intval($id)), array('%d'));
     }

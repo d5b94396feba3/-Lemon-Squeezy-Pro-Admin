@@ -32,7 +32,7 @@ class AICA_Plugin_Public {
         if (!in_array($uuid, $sessions)) {
             $sessions[] = $uuid;
             $sessions = array_slice($sessions, -15);
-            setcookie('aica_user_sessions', implode(',', $sessions), time() + (30 * DAY_IN_SECONDS), COOKIEPATH, COOKIE_DOMAIN);
+            setcookie('aica_user_sessions', implode(',', $sessions), time() + (30 * DAY_IN_SECONDS), COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
         }
     }
 
@@ -82,7 +82,7 @@ class AICA_Plugin_Public {
 
         $user_message = isset( $_POST['message'] ) ? sanitize_textarea_field( $_POST['message'] ) : '';
         if ( empty( $user_message ) ) {
-            wp_send_json_error( array( 'message' => 'Empty message.' ) );
+            wp_send_json_error( array( 'message' => __( 'Empty message.', 'aica-plugin' ) ) );
         }
     
         $is_regen = isset($_POST['is_regen']) && ($_POST['is_regen'] === 'true' || $_POST['is_regen'] === true);
@@ -144,7 +144,7 @@ class AICA_Plugin_Public {
 
     public function handle_clear_chat_ajax() {
         check_ajax_referer('chat_message_action', 'nonce');
-        setcookie('aica_chat_uuid', '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN);
+        setcookie('aica_chat_uuid', '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
         wp_send_json_success();
     }
 
@@ -161,7 +161,7 @@ class AICA_Plugin_Public {
             $this->mail_manager->send_final_transcript_admin($history, $summary_html);
         }
 
-        setcookie('aica_chat_uuid', '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN);
+        setcookie('aica_chat_uuid', '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
         wp_send_json_success();
     }
 
@@ -190,7 +190,7 @@ class AICA_Plugin_Public {
             $history = json_decode($log['full_history'], true);
             if (empty($history)) continue;
 
-            $preview = 'New Conversation';
+            $preview = __( 'New Conversation', 'aica-plugin' );
             foreach($history as $msg) {
                 if($msg['role'] === 'user') {
                     $preview = $msg['content'];
@@ -200,7 +200,7 @@ class AICA_Plugin_Public {
             
             $output[] = [
                 'id' => $log['session_id'],
-                'date' => date('M j, g:i a', strtotime($log['last_updated'])),
+                'date' => date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($log['last_updated'])),
                 'preview' => wp_trim_words($preview, 8),
                 'history' => $history
             ];

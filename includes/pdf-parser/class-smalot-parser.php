@@ -12,11 +12,6 @@ class AICA_Plugin_Smalot_Parser {
         $this->plugin_slug = $plugin_slug;
     }
 
-    /**
-     * Extracts text from a PDF file safely.
-     * * @param string $filename Path to the PDF file.
-     * @return string Extracted text or error message.
-     */
     public function extract_text_from_pdf($filename) {
         if (!file_exists($filename) || !is_readable($filename)) {
             return "";

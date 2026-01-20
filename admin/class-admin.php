@@ -28,8 +28,8 @@ class AICA_Plugin_Admin {
         );
         add_submenu_page(
             $this->plugin_slug,
-            'Dashboard',
-            'Dashboard',
+            __( 'Dashboard', 'aica-plugin' ),
+            __( 'Dashboard', 'aica-plugin' ),
             'manage_options',
             $this->plugin_slug,
             array($this, 'display_admin_dashboard')
@@ -37,8 +37,8 @@ class AICA_Plugin_Admin {
 
         add_submenu_page(
             $this->plugin_slug,
-            'Settings',
-            'Settings',
+            __( 'Settings', 'aica-plugin' ),
+            __( 'Settings', 'aica-plugin' ),
             'manage_options',
             $this->plugin_slug . '-settings',
             array($this, 'display_settings_page')
@@ -85,37 +85,28 @@ class AICA_Plugin_Admin {
     }
 
     public function get_chat_stats() {
-        global $wpdb;
-        $table_name = $wpdb->prefix . str_replace('-', '_', sanitize_key($this->plugin_slug)) . '_chat_logs';
-        
-        if($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
-            return ['total' => 0, 'recent' => 0];
-        }
-
-        return [
-            'total' => $wpdb->get_var("SELECT COUNT(*) FROM $table_name"),
-            'recent' => $wpdb->get_var("SELECT COUNT(*) FROM $table_name WHERE last_updated >= DATE_SUB(NOW(), INTERVAL 7 DAY)")
-        ];
+        $db = $this->get_db_manager();
+        return $db->get_chat_stats();
     }
 
     public function handle_delete_chat_ajax() {
         check_ajax_referer('aica_admin_nonce', 'nonce');
         
         if (!current_user_can('manage_options')) {
-            wp_send_json_error('Unauthorized');
+            wp_send_json_error( __( 'Unauthorized', 'aica-plugin' ) );
         }
     
         $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
         
         if (!$id) {
-            wp_send_json_error('Invalid ID');
+            wp_send_json_error( __( 'Invalid ID', 'aica-plugin' ) );
         }
     
         $db = $this->get_db_manager();
         if ($db->delete_chat_log($id)) {
-            wp_send_json_success('Log deleted successfully');
+            wp_send_json_success( __( 'Log deleted successfully', 'aica-plugin' ) );
         } else {
-            wp_send_json_error('Database deletion failed');
+            wp_send_json_error( __( 'Database deletion failed', 'aica-plugin' ) );
         }
     }
 
@@ -127,7 +118,7 @@ class AICA_Plugin_Admin {
 
         check_ajax_referer('aica_admin_nonce', 'nonce');
         if (!current_user_can('manage_options')) {
-            wp_send_json_error('Unauthorized');
+            wp_send_json_error( __( 'Unauthorized', 'aica-plugin' ) );
         }
 
         $log_id = isset($_POST['id']) ? intval($_POST['id']) : 0;
@@ -136,21 +127,26 @@ class AICA_Plugin_Admin {
         $logs = $db->get_logs_for_export($log_id);
 
         if (empty($logs)) {
-            wp_send_json_error('No logs found.');
+            wp_send_json_error( __( 'No logs found.', 'aica-plugin' ) );
         }
 
         ob_start();
         $df = fopen("php://output", 'w');
+        // UTF-8 BOM
         fprintf($df, chr(0xEF).chr(0xBB).chr(0xBF));
         
-        fputcsv($df, array('ID', 'Date', 'Transcript'));
+        fputcsv($df, array(
+            __( 'ID', 'aica-plugin' ), 
+            __( 'Date', 'aica-plugin' ), 
+            __( 'Transcript', 'aica-plugin' )
+        ));
 
         foreach ($logs as $l) {
             $history = json_decode($l['full_history'], true);
             $transcript = "";
             if (is_array($history)) {
                 foreach ($history as $msg) {
-                    $role = ($msg['role'] === 'user') ? 'Visitor' : 'AI Agent';
+                    $role = ($msg['role'] === 'user') ? __( 'Visitor', 'aica-plugin' ) : __( 'AI Agent', 'aica-plugin' );
                     $clean_text = wp_strip_all_tags($msg['content']);
                     $clean_content = str_replace(array("\r", "\n", '"'), array(" ", " ", "'"), $clean_text);
                     $transcript .= "[$role]: " . $clean_content . " | ";
@@ -172,7 +168,7 @@ class AICA_Plugin_Admin {
         check_ajax_referer('aica_admin_nonce', 'nonce');
         
         if (!current_user_can('manage_options')) {
-            wp_send_json_error('Unauthorized');
+            wp_send_json_error( __( 'Unauthorized', 'aica-plugin' ) );
         }
 
         $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
@@ -181,7 +177,7 @@ class AICA_Plugin_Admin {
         $log = $db->get_chat_log_by_id($id);
 
         if (!$log || empty($log['full_history'])) {
-            wp_send_json_error('Conversation history not found.');
+            wp_send_json_error( __( 'Conversation history not found.', 'aica-plugin' ) );
         }
 
         $history = json_decode($log['full_history'], true);
@@ -189,7 +185,7 @@ class AICA_Plugin_Admin {
         $summary = $this->llm_processor->get_chat_summary($history);
 
         if (empty($summary)) {
-            wp_send_json_error('The AI was unable to generate a summary for this chat.');
+            wp_send_json_error( __( 'The AI was unable to generate a summary for this chat.', 'aica-plugin' ) );
         }
 
         wp_send_json_success($summary);
@@ -197,7 +193,7 @@ class AICA_Plugin_Admin {
 
     public function handle_sync_website_ajax() {
         check_ajax_referer('aica_admin_nonce', 'nonce');
-        if (!current_user_can('manage_options')) wp_send_json_error('Unauthorized');
+        if (!current_user_can('manage_options')) wp_send_json_error( __( 'Unauthorized', 'aica-plugin' ) );
     
         $step = isset($_POST['sync_step']) ? sanitize_text_field($_POST['sync_step']) : 'discovery';
         $db = $this->get_db_manager();
@@ -228,7 +224,7 @@ class AICA_Plugin_Admin {
                 $pages[] = [
                     'url'    => $url,
                     'title'  => $page->post_title,
-                    'status' => $sync_data ? 'Synced' : 'Pending',
+                    'status' => $sync_data ? __( 'Synced', 'aica-plugin' ) : __( 'Pending', 'aica-plugin' ),
                     'last'   => $sync_data ? date_i18n(get_option('date_format'), strtotime($sync_data['last_synced'])) : '-'
                 ];
             }
@@ -247,7 +243,7 @@ class AICA_Plugin_Admin {
             $db->update_knowledge_base($url, $content);
             
             wp_send_json_success([
-                'status' => 'Synced', 
+                'status' => __( 'Synced', 'aica-plugin' ), 
                 'last'   => current_time('mysql')
             ]);
         }
@@ -255,21 +251,20 @@ class AICA_Plugin_Admin {
 
     public function handle_manual_cron_sync_ajax() {
         check_ajax_referer('aica_admin_nonce', 'nonce');
-        if (!current_user_can('manage_options')) wp_send_json_error('Unauthorized');
+        if (!current_user_can('manage_options')) wp_send_json_error( __( 'Unauthorized', 'aica-plugin' ) );
     
         if (class_exists('AICA_Plugin_WP_Cron')) {
-            $cron = new AICA_Plugin_WP_Cron($this->plugin_slug);
-            $cron->run_automated_sync();
-            
-            wp_send_json_success('Sync completed successfully!');
+            // Static call logic per your architecture
+            AICA_Plugin_WP_Cron::run_automated_sync();
+            wp_send_json_success( __( 'Sync completed successfully!', 'aica-plugin' ) );
         } else {
-            wp_send_json_error('Cron class not found.');
+            wp_send_json_error( __( 'Cron class not found.', 'aica-plugin' ) );
         }
     }
 
     public function handle_generate_system_prompt_ajax() {
         check_ajax_referer('aica_admin_nonce', 'nonce');
-        if (!current_user_can('manage_options')) wp_send_json_error('Unauthorized');
+        if (!current_user_can('manage_options')) wp_send_json_error( __( 'Unauthorized', 'aica-plugin' ) );
     
         $new_prompt = $this->llm_processor->generate_automated_system_prompt();
     
@@ -285,8 +280,8 @@ class AICA_Plugin_Admin {
         if (file_exists($dashboard_file)) {
             include $dashboard_file;
         } else {
-            echo '<div class="wrap"><h1>AICA IntelliAgent Dashboard</h1>';
-            echo '<p>Welcome to the AICA IntelliAgent system.</p>';
+            echo '<div class="wrap"><h1>' . esc_html(AICA_PLUGIN_NAME) . ' ' . __( 'Dashboard', 'aica-plugin' ) . '</h1>';
+            echo '<p>' . __( 'Welcome to the AICA IntelliAgent system.', 'aica-plugin' ) . '</p>';
             echo '</div>';
         }
     }
@@ -296,18 +291,16 @@ class AICA_Plugin_Admin {
         if (file_exists($settings_file)) {
             include $settings_file;
         } else {
-            echo '<div class="wrap"><h1>AICA IntelliAgent Settings</h1>';
-            echo '<p>Settings file not found. Please check the plugin installation.</p>';
+            echo '<div class="wrap"><h1>' . esc_html(AICA_PLUGIN_NAME) . ' ' . __( 'Settings', 'aica-plugin' ) . '</h1>';
+            echo '<p>' . __( 'Settings file not found. Please check the plugin installation.', 'aica-plugin' ) . '</p>';
             echo '</div>';
         }
     }
 
     private function get_db_manager() {
-
         if (!isset($this->db_manager)) {
             $this->db_manager = new AICA_Plugin_DB_Manager($this->plugin_slug);
         }
-
         return $this->db_manager;
     }
 
@@ -316,25 +309,10 @@ class AICA_Plugin_Admin {
             return;
         }
 
-        wp_enqueue_style(
-            $this->plugin_slug . '-dashboard',
-            AICA_PLUGIN_URL . 'assets/css/admin/dashboard.css',
-            array(),
-            $this->version,
-            'all'
-        );
-
-        wp_enqueue_style(
-            $this->plugin_slug . '-settings',
-            AICA_PLUGIN_URL . 'assets/css/admin/settings.css',
-            array(),
-            $this->version,
-            'all'
-        );
-
+        wp_enqueue_style($this->plugin_slug . '-dashboard', AICA_PLUGIN_URL . 'assets/css/admin/dashboard.css', array(), $this->version, 'all');
+        wp_enqueue_style($this->plugin_slug . '-settings', AICA_PLUGIN_URL . 'assets/css/admin/settings.css', array(), $this->version, 'all');
         wp_enqueue_style( $this->plugin_slug . '-theme-logic',  AICA_PLUGIN_URL . 'assets/css/public/theme-logic.css', array(), $this->version, 'all' );
         wp_enqueue_style( $this->plugin_slug . '-chat-widget',  AICA_PLUGIN_URL . 'assets/css/public/chat-widget.css', array(), $this->version, 'all' );
-
     }
 
     public function enqueue_scripts($hook) {
@@ -344,22 +322,12 @@ class AICA_Plugin_Admin {
 
         wp_enqueue_media();
 
-        // Standard Admin Script
         wp_enqueue_script($this->plugin_slug . '-admin', AICA_PLUGIN_URL . 'assets/js/admin/admin.js', array('jquery'), $this->version, true);
-
-        // Unsaved Changes
         wp_enqueue_script($this->plugin_slug . '-unsaved-changes', AICA_PLUGIN_URL . 'assets/js/admin/unsaved-changes.js', array('jquery'), $this->version, true);
-
-        // Knowledge Base
         wp_enqueue_script($this->plugin_slug . '-knowledge-base', AICA_PLUGIN_URL . 'assets/js/admin/knowledge-base.js', array('jquery'), $this->version, true);
-
-        // Preview
         wp_enqueue_script($this->plugin_slug . '-preview', AICA_PLUGIN_URL . 'assets/js/admin/preview.js', array('jquery'), $this->version, true);
-
-        // Media Uploader
         wp_enqueue_script($this->plugin_slug . '-media-uploader', AICA_PLUGIN_URL . 'assets/js/admin/media-uploader.js', array('jquery'), $this->version, true);
 
-        // MASTER LOCALIZATION OBJECT
         $admin_data = array(
             'ajax_url'            => admin_url('admin-ajax.php'),
             'nonce'               => wp_create_nonce('aica_admin_nonce'),
@@ -386,15 +354,12 @@ class AICA_Plugin_Admin {
             'i18n_upload_kb'      => __( 'Upload Knowledge File', 'aica-plugin' ),
         );
 
-        // Localize all scripts
         wp_localize_script($this->plugin_slug . '-admin', 'aica_admin_data', $admin_data);
         wp_localize_script($this->plugin_slug . '-knowledge-base', 'aica_admin_data', $admin_data);
         wp_localize_script($this->plugin_slug . '-media-uploader', 'aica_admin_data', $admin_data);
 
-        // Preview assets
         wp_localize_script($this->plugin_slug . '-preview', 'aica_admin_assets', array(
             'default_avatar' => AICA_PLUGIN_URL . 'assets/images/default-avater.svg'
         ));
     }
-
 }
