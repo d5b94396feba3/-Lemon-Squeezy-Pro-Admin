@@ -15,6 +15,7 @@ return <<<'EOD'
 6. For contact information, use a structured list format.
 7. Wrap your entire response in a <div> for styling consistency.
 8. If providing links, use <a href="..." style="color: blue; text-decoration: underline;" target="_blank">...</a>.
+9. STICK TO KNOWLEDGE BASE: Only use the provided knowledge base to answer questions. If a user asks a question that is outside of the knowledge base or not covered by the provided data, you must not answer it. Instead, redirect them by saying: "I'm sorry, I don't have information on that specific topic. Please contact our support team via <a href="[CONTACT_PAGE_URL]" style="color: blue; text-decoration: underline;" target="_blank">contact page</a> for further assistance."
 
 Example of a professional contact response:
 <div class="ai-response">
