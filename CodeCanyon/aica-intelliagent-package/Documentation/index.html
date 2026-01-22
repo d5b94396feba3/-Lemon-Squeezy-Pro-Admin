@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AICA Agent - Documentation Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #f8fafc;
+            --text: #1e293b;
+            --sidebar: #ffffff;
+            --border: #e2e8f0;
+        }
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; }
+        
+        /* Sidebar */
+        aside { width: 280px; background: var(--sidebar); height: 100vh; position: fixed; border-right: 1px solid var(--border); padding: 2rem 1rem; overflow-y: auto; z-index: 100; }
+        aside h2 { font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; color: var(--primary); padding-left: 1rem; margin-bottom: 2rem; }
+        aside nav a { display: block; padding: 0.75rem 1rem; color: #64748b; text-decoration: none; border-radius: 0.5rem; transition: 0.2s; margin-bottom: 0.25rem; font-size: 0.95rem; cursor: pointer; }
+        aside nav a:hover { background: #f1f5f9; color: var(--primary); }
+        aside nav a.active { background: var(--primary) !important; color: white !important; font-weight: 600 !important; }
+
+        /* Content Area */
+        main { margin-left: 280px; padding: 4rem; max-width: 1000px; width: 100%; padding-bottom: 80vh; }
+        section { margin-bottom: 5rem; clear: both; } 
+        h1 { font-size: 2.8rem; margin-bottom: 1.5rem; color: #0f172a; }
+        h2 { font-size: 1.8rem; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; margin-top: 3rem; color: #0f172a; }
+        h3 { font-size: 1.3rem; margin-top: 2rem; color: var(--primary); }
+        p { line-height: 1.8; color: #475569; font-size: 1.05rem; }
+        ul { line-height: 1.8; color: #475569; padding-left: 20px; }
+        li { margin-bottom: 10px; }
+        
+        .img-container { background: #fff; padding: 10px; border: 1px solid var(--border); border-radius: 1rem; margin: 2rem 0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .img-container img { width: 100%; border-radius: 0.5rem; display: block; height: auto; }
+        
+        .alert { background: #eff6ff; border-left: 4px solid var(--primary); padding: 1rem; margin: 1rem 0; border-radius: 0 8px 8px 0; }
+        footer { margin-top: 6rem; padding: 2rem 0; border-top: 1px solid var(--border); text-align: center; color: #94a3b8; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+<aside>
+    <h2>AICA Agent</h2>
+    <nav id="sidebar-nav">
+        <a href="#intro" class="active">Introduction</a>
+        <a href="#install">Installation</a>
+        <a href="#api-setup">API Configuration</a>
+        <a href="#knowledge-base">Knowledge Base</a>
+        <a href="#chat-features">Interactive Features</a>
+        <a href="#analytics">Summarize & Export</a>
+        <a href="#customization">Chat Customization</a>
+        <a href="#support">Support & License</a>
+    </nav>
+</aside>
+
+<main>
+    <section id="intro">
+        <h1>Introduction</h1>
+        <p><strong>AICA Agent</strong> is an elite AI chat solution for WordPress that creates a dynamic knowledge hub on your site. Using flagship models like <strong>GPT-5.2, Gemini 3, and Grok 4</strong>, it delivers high-fidelity, contextual answers based on your unique business data.</p>
+        <div class="img-container"><img src="images/dashboard-main.png" alt="AICA Agent Dashboard"></div>
+    </section>
+
+    <section id="install">
+        <h2>Installation</h2>
+        <p>Follow these steps to deploy <strong>AICA Agent</strong>:</p>
+        <ul>
+            <li>Download <code>aica-intelliagent.zip</code> and upload it via <strong>Plugins > Add New > Upload Plugin</strong>.</li>
+            <li>Activate the plugin and look for the <strong>AICA Agent</strong> menu in your sidebar.</li>
+            <li>Proceed to Settings to configure your preferred AI provider.</li>
+        </ul>
+    </section>
+
+    <section id="api-setup">
+        <h2>API Configuration</h2>
+        <p>Connect your agent to the world's most powerful AI engines in the <strong>Settings</strong> tab.</p>
+        <ul>
+            <li><strong>OpenAI:</strong> Generate keys at the OpenAI Dashboard for standard GPT intelligence.</li>
+            <li><strong>Gemini:</strong> Use Google AI Studio keys for massive document handling and free-tier access.</li>
+            <li><strong>Grok:</strong> Use xAI tokens for real-time, modern conversational efficiency.</li>
+        </ul>
+        <div class="img-container"><img src="images/settings-api.png" alt="API Configuration"></div>
+    </section>
+
+    <section id="knowledge-base">
+        <h2>Knowledge Base Management</h2>
+        <p>Transform raw content into AI intelligence using our multimodal ingestion system.</p>
+        <ul>
+            <li><strong>Website Scraping:</strong> Automated DOM scraping that converts your pages into clean text data.</li>
+            <li><strong>Multimodal Uploads:</strong> Upload <code>PDF</code>, <code>TXT</code>, or <code>Images</code>. The agent uses Vision and specialized parsing to extract every detail.</li>
+            <li><strong>Smart Sync:</strong> WP-Cron automatically refreshes your site knowledge every 24 hours.</li>
+        </ul>
+        <div class="img-container"><img src="images/kb-sync.png" alt="Knowledge Base Interface"></div>
+    </section>
+
+    <section id="chat-features">
+        <h2>Interactive Features</h2>
+        <p>Elevate the user experience with modern chat utilities designed for utility and feedback.</p>
+        <ul>
+            <li><strong>AI Response Feedback:</strong> Users can rate AI answers with thumbs up/down, allowing you to monitor accuracy.</li>
+            <li><strong>One-Click Copy:</strong> Each AI response includes a "Copy" icon, letting users instantly save transcripts or answers to their clipboard.</li>
+            <li><strong>Lead Notifications:</strong> Receive instant email alerts when important conversations reach critical milestones.</li>
+        </ul>
+    </section>
+
+    <section id="analytics">
+        <h2>Summarization & Data Export</h2>
+        <p>AICA Agent provides powerful tools to manage and analyze your chat data without manual effort.</p>
+        <div class="alert">
+            <strong>AI Summarization:</strong> Don't waste time reading long logs. Click the <strong>Summarize</strong> button to have the AI generate a brief report of any conversation's main intent.
+        </div>
+        <ul>
+            <li><strong>CSV Log Export:</strong> Download all chat logs in structured CSV format for offline reporting or CRM integration.</li>
+            <li><strong>Lead Tracking:</strong> View recent statistics, total conversations, and user sentiment at a glance from the dashboard.</li>
+        </ul>
+    </section>
+
+    <section id="customization">
+        <h2>Chat Customization</h2>
+        <p>White-label the interface to match your exact brand identity.</p>
+        <ul>
+            <li><strong>Smart Persona:</strong> Use the <strong>Auto-Generate Prompt</strong> feature to let the AI write its own professional system instructions based on your site content.</li>
+            <li><strong>Styling:</strong> Control primary colors, theme modes (Light/Dark/Auto), and custom avatars.</li>
+        </ul>
+        <div class="img-container"><img src="images/customization-ui.png" alt="Customization UI"></div>
+    </section>
+
+    <section id="support">
+        <h2>Support & License</h2>
+        <p><strong>License:</strong> Licensed under <strong>GPL v2.0</strong>. Free for use on client and personal sites under your Envato agreement.</p>
+        <p><strong>Support:</strong> Reach out via the Envato support portal. Responses are usually delivered within 24 hours.</p>
+    </section>
+
+    <footer>&copy; 2026 AICA IntelliAgent. All Rights Reserved.</footer>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const navLinks = document.querySelectorAll('#sidebar-nav a');
+    const sections = document.querySelectorAll('section');
+
+    function updateActiveLink() {
+        let fromTop = window.scrollY + 150; 
+        if ((window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 50) {
+            navLinks.forEach(l => l.classList.remove('active'));
+            document.querySelector('a[href="#support"]').classList.add('active');
+            return;
+        }
+        sections.forEach(section => {
+            if (section.offsetTop <= fromTop && (section.offsetTop + section.offsetHeight) > fromTop) {
+                const id = section.getAttribute('id');
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === '#' + id) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+        });
+    }
+
+    window.addEventListener('scroll', updateActiveLink);
+    navLinks.forEach(link => {
+        link.addEventListener('click', e => {
+            e.preventDefault();
+            const targetId = link.getAttribute('href');
+            const targetSection = document.querySelector(targetId);
+            window.scrollTo({ top: targetSection.offsetTop - 20, behavior: 'smooth' });
+            navLinks.forEach(l => l.classList.remove('active'));
+            link.classList.add('active');
+        });
+    });
+    updateActiveLink();
+});
+</script>
+</body>
+</html>
