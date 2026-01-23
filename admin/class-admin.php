@@ -4,10 +4,15 @@ defined( 'ABSPATH' ) || exit;
 class WPPP_Plugin_Admin {
     private $plugin_slug;
     private $version;
+    private $db;
 
     public function __construct($plugin_slug, $version = '1.0') {
         $this->plugin_slug = $plugin_slug;  
-        $this->version = $version;
+        $this->version     = $version;
+        
+        // Initialize DB Manager
+        require_once WPPP_PLUGIN_PATH . 'includes/db/class-db-manager.php';
+        $this->db = new WPPP_Plugin_DB_Manager($this->plugin_slug);
     }
 
     public function add_admin_menu() {
@@ -23,12 +28,45 @@ class WPPP_Plugin_Admin {
 
         add_submenu_page(
             $this->plugin_slug,
+            __( 'Products', 'wp-paddle-pro' ),
+            __( 'Products', 'wp-paddle-pro' ),
+            'manage_options',
+            $this->plugin_slug . '-products',
+            array($this, 'display_products_page')
+        );
+
+        add_submenu_page(
+            $this->plugin_slug,
             __( 'Settings', 'wp-paddle-pro' ),
             __( 'Settings', 'wp-paddle-pro' ),
             'manage_options',
             $this->plugin_slug . '-settings',
             array($this, 'display_settings_page')
         );
+    }
+
+    public function display_products_page() {
+        // Handle Form Submission using DB class
+        if ( isset($_POST['wppp_add_product']) && check_admin_referer('wppp_add_product_action') ) {
+            $this->db->add_product(
+                $_POST['price_id'],
+                $_POST['name'],
+                $_POST['file_url']
+            );
+            echo '<div class="updated"><p>' . esc_html__('Product created successfully!', 'wp-paddle-pro') . '</p></div>';
+        }
+
+        // Fetch data using DB class
+        $products = $this->db->get_all_products();
+        include WPPP_PLUGIN_PATH . 'admin/partials/admin-products.php';
+    }
+
+    public function display_transactions_page() {
+        include_once WPPP_PLUGIN_PATH . 'admin/partials/admin-transactions.php';
+    }
+
+    public function display_settings_page() {
+        include_once WPPP_PLUGIN_PATH . 'admin/partials/admin-settings.php';
     }
 
     /**
@@ -46,14 +84,6 @@ class WPPP_Plugin_Admin {
         
         // Backward compatibility for existing WPPP fields if needed
         register_setting($this->plugin_slug . '_settings', 'wppp_paddle_sandbox');
-    }
-
-    public function display_transactions_page() {
-        include_once WPPP_PLUGIN_PATH . 'admin/partials/admin-transactions.php';
-    }
-
-    public function display_settings_page() {
-        include_once WPPP_PLUGIN_PATH . 'admin/partials/admin-settings.php';
     }
 
     public function enqueue_styles($hook) {

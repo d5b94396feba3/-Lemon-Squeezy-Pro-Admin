@@ -2,11 +2,10 @@
 defined( 'ABSPATH' ) || exit;
 
 class WPPP_Plugin_DB_Manager {
-
     private $plugin_slug;
     protected $wpdb;
     protected $table_transactions;
-    protected $table_subscriptions;
+    protected $table_digital_products;
 
     public function __construct( $plugin_slug ) {
         global $wpdb;
@@ -14,8 +13,41 @@ class WPPP_Plugin_DB_Manager {
         $this->wpdb = $wpdb;
 
         $clean_slug = str_replace('-', '_', sanitize_key($plugin_slug));
-        $this->table_transactions  = $wpdb->prefix . $clean_slug . '_transactions';
-        $this->table_subscriptions = $wpdb->prefix . $clean_slug . '_subscriptions';
+        $this->table_transactions     = $wpdb->prefix . $clean_slug . '_transactions';
+        $this->table_digital_products = $wpdb->prefix . $clean_slug . '_digital_products';
+    }
+
+    /**
+     * Get all digital products
+     */
+    public function get_all_products() {
+        return $this->wpdb->get_results(
+            "SELECT * FROM {$this->table_digital_products} ORDER BY created_at DESC",
+            ARRAY_A
+        );
+    }
+
+    /**
+     * Insert a new digital product
+     */
+    public function add_product($price_id, $name, $file_url) {
+        return $this->wpdb->insert(
+            $this->table_digital_products,
+            [
+                'paddle_price_id' => sanitize_text_field($price_id),
+                'product_name'    => sanitize_text_field($name),
+                'file_path'       => sanitize_text_field($file_url),
+                'created_at'      => current_time('mysql')
+            ],
+            ['%s', '%s', '%s', '%s']
+        );
+    }
+
+    /**
+     * Delete a product
+     */
+    public function delete_product($id) {
+        return $this->wpdb->delete($this->table_digital_products, ['id' => absint($id)], ['%d']);
     }
 
     /**
@@ -27,6 +59,8 @@ class WPPP_Plugin_DB_Manager {
         
         $table_tx   = $wpdb->prefix . $clean_slug . '_transactions';
         $table_subs = $wpdb->prefix . $clean_slug . '_subscriptions';
+        $table_digital_products = $wpdb->prefix . $clean_slug . '_digital_products';
+
 
         $charset_collate = $wpdb->get_charset_collate();
     
@@ -58,9 +92,22 @@ class WPPP_Plugin_DB_Manager {
             KEY user_id (user_id)
         ) $charset_collate;";
 
+        $sql_dp = "CREATE TABLE $table_digital_products (
+            id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            paddle_price_id VARCHAR(100) NOT NULL,
+            product_name VARCHAR(255) NOT NULL,
+            file_path TEXT NOT NULL,
+            created_at DATETIME NOT NULL,
+            PRIMARY KEY (id),
+            UNIQUE KEY paddle_price_id (paddle_price_id(191))
+        ) $charset_collate;";
+
+        dbDelta( $sql_dp );
+
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
         dbDelta( $sql_tx );
         dbDelta( $sql_subs );
+        dbDelta( $table_digital_products );
     }
 
     /**
