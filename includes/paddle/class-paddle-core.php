@@ -54,14 +54,24 @@ class WPPP_Plugin_Paddle_Core {
         $user_id = isset($custom_data['wp_user_id']) ? absint($custom_data['wp_user_id']) : 0;
         
         if (!$user_id) return;
-
+    
+        // 1. Log to our custom Database table
+        $db = new WPPP_Plugin_DB_Manager($this->plugin_slug);
+        $db->log_transaction(
+            $user_id, 
+            $tx_id, 
+            $data['details']['totals']['total'] / 100, // Paddle V2 sends cents
+            $data['currency_code'], 
+            'completed'
+        );
+    
+        // 2. Grant myCRED Points
+        require_once WPPP_PLUGIN_PATH . 'includes/mycred/class-mycred-handler.php';
+        $mycred = new \PaddleToMycred\Mycred_Handler();
+        
         $items = $data['items'] ?? [];
         $points_mapping = $this->get_points_mapping();
-
-        // 1. Grant myCRED Points
-        require_once WPPP_PLUGIN_PATH . 'includes/class-mycred-handler.php';
-        $mycred = new PaddleToMycred\Mycred_Handler();
-
+    
         foreach ($items as $item) {
             $price_id = $item['price_id'];
             if (isset($points_mapping[$price_id])) {
@@ -69,8 +79,8 @@ class WPPP_Plugin_Paddle_Core {
                 $mycred->grant_points_on_paddle_purchase($user_id, $pkg['points'], $pkg['name'], ['id' => $tx_id, 'price_id' => $price_id]);
             }
         }
-
-        // 2. Create WooCommerce Order for Audit Trail
+    
+        // 3. Create WooCommerce Order
         $this->create_wc_order($user_id, $items, $tx_id, $points_mapping);
     }
 
