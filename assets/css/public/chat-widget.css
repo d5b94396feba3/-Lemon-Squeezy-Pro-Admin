@@ -1,6 +1,6 @@
 /* --- Global Namespace Protection & Reset --- */
 #ai-chat-wrapper, 
-#ai-chat-wrapper * { 
+#ai-chat-wrapper * {
     box-sizing: border-box; 
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

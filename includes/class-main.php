@@ -25,16 +25,18 @@ class WPPP_Plugin_Main {
             $this->loader->add_action('admin_init', $admin, 'register_settings');
             $this->loader->add_action('admin_enqueue_scripts', $admin, 'enqueue_styles');
             
-            // AJAX for transaction management
+            // AJAX Actions
             $this->loader->add_action('wp_ajax_get_transaction_details', $admin, 'handle_get_tx_details_ajax');
-
             $this->loader->add_action('wp_ajax_wppp_test_connection', $admin, 'handle_test_connection_ajax');
         }
 
-        // Public Logic
+        // Public Logica
         $public = new WPPP_Plugin_Public($this->plugin_slug, $this->version);
         $this->loader->add_action('wp_enqueue_scripts', $public, 'enqueue_styles');
         $this->loader->add_action('wp_enqueue_scripts', $public, 'enqueue_scripts');
+        
+        // Register the secure download listener on 'init'
+        $this->loader->add_action('init', $public, 'handle_secure_download');
         
         // Paddle Webhook Listener (REST API)
         $paddle_core = new WPPP_Plugin_Paddle_Core($this->plugin_slug);

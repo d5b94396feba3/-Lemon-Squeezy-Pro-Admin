@@ -1,0 +1,105 @@
+
+/* Dashboard Layout Styling */
+.wppp-customer-dashboard {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 25px;
+    margin: 20px 0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.wppp-dashboard-header {
+    margin-bottom: 25px;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 15px;
+}
+
+.wppp-dashboard-title {
+    margin: 0 0 5px 0;
+    font-size: 20px;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.wppp-dashboard-subtitle {
+    color: #64748b;
+    font-size: 14px;
+    margin: 0;
+}
+
+/* Table Styling */
+.wppp-table-responsive {
+    overflow-x: auto;
+}
+
+.wppp-downloads-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.wppp-downloads-table th {
+    background: #f8fafc;
+    padding: 12px 15px;
+    font-weight: 600;
+    color: #475569;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.wppp-downloads-table td {
+    padding: 15px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+.wppp-product-name {
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.wppp-date {
+    color: #64748b;
+    font-size: 14px;
+}
+
+/* Button Styling */
+.wppp-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #2563eb;
+    color: #ffffff !important;
+    padding: 8px 18px;
+    border-radius: 6px;
+    text-decoration: none !important;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.2s ease;
+}
+
+.wppp-button:hover {
+    background: #1d4ed8;
+}
+
+.wppp-no-purchases {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.wppp-empty-icon {
+    font-size: 48px;
+    color: #cbd5e1;
+    margin-bottom: 15px;
+}
+
+@media (max-width: 600px) {
+    .wppp-downloads-table th:nth-child(2),
+    .wppp-downloads-table td:nth-child(2) {
+        display: none;
+    }
+}
