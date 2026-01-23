@@ -86,6 +86,49 @@ class WPPP_Plugin_Admin {
         register_setting($this->plugin_slug . '_settings', 'wppp_paddle_sandbox');
     }
 
+    public function handle_test_connection_ajax() {
+        check_ajax_referer('wppp_test_nonce');
+    
+        $api_key = get_option('paddle_api_key');
+        $env     = get_option('paddle_environment', 'sandbox');
+        
+        // Official V2 API Endpoint
+        $url = ($env === 'live') ? 'https://api.paddle.com/products' : 'https://sandbox-api.paddle.com/products';
+    
+        if (empty($api_key)) {
+            wp_send_json_error(['message' => 'API Key is missing.']);
+        }
+    
+        // Clean the key: Remove whitespaces or hidden characters
+        $clean_key = trim($api_key);
+    
+        $response = wp_remote_get($url, [
+            'headers' => [
+                'Authorization'  => 'Bearer ' . $clean_key, // Space after Bearer is critical
+                'Paddle-Version' => '1',                   // Required for Billing V2
+                'Content-Type'   => 'application/json',
+                'Accept'         => 'application/json',
+            ],
+            'timeout' => 15,
+            'sslverify' => false, // Set to true on live, false can help on some localhost setups
+        ]);
+    
+        if (is_wp_error($response)) {
+            wp_send_json_error(['message' => $response->get_error_message()]);
+        }
+    
+        $code = wp_remote_retrieve_response_code($response);
+        $body = json_decode(wp_remote_retrieve_body($response), true);
+    
+        if ($code === 200) {
+            wp_send_json_success(['message' => 'Connection Verified! Successfully reached Paddle.']);
+        } else {
+            // Capture Paddle's specific error message if available
+            $detail = isset($body['error']['detail']) ? $body['error']['detail'] : 'HTTP ' . $code;
+            wp_send_json_error(['message' => $detail]);
+        }
+    }
+
     public function enqueue_styles($hook) {
         if (strpos($hook, $this->plugin_slug) === false) return;
         wp_enqueue_style($this->plugin_slug . '-admin-css', WPPP_PLUGIN_URL . 'assets/css/admin/admin.css', array(), $this->version);

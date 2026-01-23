@@ -70,4 +70,65 @@ class WPPP_Plugin_Public {
         }
         return ob_get_clean();
     }
+
+    public function render_customer_dashboard() {
+        if ( !is_user_logged_in() ) {
+            return sprintf(
+                '<p>%s <a href="%s">%s</a> %s</p>',
+                esc_html__('Please', 'wp-paddle-pro'),
+                esc_url(wp_login_url(get_permalink())),
+                esc_html__('login', 'wp-paddle-pro'),
+                esc_html__('to view your downloads.', 'wp-paddle-pro')
+            );
+        }
+    
+        // Initialize DB Manager
+        require_once WPPP_PLUGIN_PATH . 'includes/db/class-db-manager.php';
+        $db = new WPPP_Plugin_DB_Manager($this->plugin_slug);
+        
+        $user_id   = get_current_user_id();
+        $downloads = $db->get_user_purchased_products($user_id);
+    
+        ob_start();
+        ?>
+        <div class="wppp-customer-dashboard">
+            <h3 class="wppp-dashboard-title"><?php esc_html_e('My Digital Products', 'wp-paddle-pro'); ?></h3>
+            
+            <?php if (!empty($downloads)): ?>
+                <table class="wppp-downloads-table" style="width:100%; border-collapse: collapse; margin-top: 20px;">
+                    <thead>
+                        <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                            <th style="padding: 12px; text-align: left;"><?php esc_html_e('Product', 'wp-paddle-pro'); ?></th>
+                            <th style="padding: 12px; text-align: left;"><?php esc_html_e('Purchase Date', 'wp-paddle-pro'); ?></th>
+                            <th style="padding: 12px; text-align: right;"><?php esc_html_e('Action', 'wp-paddle-pro'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($downloads as $item): ?>
+                            <tr style="border-bottom: 1px solid #e2e8f0;">
+                                <td style="padding: 12px; font-weight: 500;"><?php echo esc_html($item['product_name']); ?></td>
+                                <td style="padding: 12px; color: #64748b;">
+                                    <?php echo date_i18n(get_option('date_format'), strtotime($item['created_at'])); ?>
+                                </td>
+                                <td style="padding: 12px; text-align: right;">
+                                    <a href="<?php echo esc_url($item['file_path']); ?>" 
+                                       class="wppp-download-button" 
+                                       style="background: #2563eb; color: #fff; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 14px;"
+                                       download>
+                                        <?php esc_html_e('Download Now', 'wp-paddle-pro'); ?>
+                                    </a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php else: ?>
+                <div class="wppp-no-downloads" style="padding: 40px; text-align: center; background: #f8fafc; border-radius: 8px; margin-top: 20px;">
+                    <p style="color: #64748b;"><?php esc_html_e('You haven\'t purchased any digital products yet.', 'wp-paddle-pro'); ?></p>
+                </div>
+            <?php endif; ?>
+        </div>
+        <?php
+        return ob_get_clean();
+    }
 }

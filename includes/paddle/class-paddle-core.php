@@ -23,13 +23,15 @@ class WPPP_Plugin_Paddle_Core {
         $secret = get_option('paddle_webhook_secret');
 
         if (!$this->verify_signature($body, $signature, $secret)) {
+            error_log('WPPP Webhook Error: Invalid Signature.');
             return new WP_REST_Response('Invalid signature', 401);
         }
 
         $payload = json_decode($body, true);
         $event_type = $payload['event_type'] ?? '';
 
-        if ($event_type === 'transaction.completed') {
+        // Handle both paid (V2) and completed events
+        if ($event_type === 'transaction.paid' || $event_type === 'transaction.completed') {
             $this->process_transaction($payload['data']);
         }
 
@@ -37,6 +39,7 @@ class WPPP_Plugin_Paddle_Core {
     }
 
     private function verify_signature($payload, $signature, $secret) {
+        if (empty($signature) || empty($secret)) return false;
         $parts = explode(';', $signature);
         $ts = $h1 = '';
         foreach ($parts as $part) {
@@ -55,13 +58,26 @@ class WPPP_Plugin_Paddle_Core {
         
         if (!$user_id) return;
     
-        // 1. Log to our custom Database table
+        if (!class_exists('WPPP_Plugin_DB_Manager')) {
+            require_once WPPP_PLUGIN_PATH . 'includes/db/class-db-manager.php';
+        }
+        
         $db = new WPPP_Plugin_DB_Manager($this->plugin_slug);
+    
+        // IDEMPOTENCY CHECK: Stop if this transaction was already processed
+        if ($db->transaction_exists($tx_id)) {
+            error_log('WPPP: Skipping duplicate webhook for transaction ' . $tx_id);
+            return;
+        }
+        
+        $amount = isset($data['details']['totals']['total']) ? $data['details']['totals']['total'] / 100 : 0;
+    
+        // 1. Log to DB (Only runs if tx_id is new)
         $db->log_transaction(
             $user_id, 
             $tx_id, 
-            $data['details']['totals']['total'] / 100, // Paddle V2 sends cents
-            $data['currency_code'], 
+            $amount, 
+            $data['currency_code'] ?? 'USD', 
             'completed'
         );
     
@@ -73,39 +89,61 @@ class WPPP_Plugin_Paddle_Core {
         $points_mapping = $this->get_points_mapping();
     
         foreach ($items as $item) {
-            $price_id = $item['price_id'];
+            $price_id = $item['price_id'] ?? '';
             if (isset($points_mapping[$price_id])) {
                 $pkg = $points_mapping[$price_id];
                 $mycred->grant_points_on_paddle_purchase($user_id, $pkg['points'], $pkg['name'], ['id' => $tx_id, 'price_id' => $price_id]);
             }
         }
     
-        // 3. Create WooCommerce Order
+        // 3. Create WC Order
         $this->create_wc_order($user_id, $items, $tx_id, $points_mapping);
     }
 
     private function create_wc_order($user_id, $items, $tx_id, $mapping) {
         if (!class_exists('WooCommerce')) return;
 
+        // Create the order object
         $order = wc_create_order(['customer_id' => $user_id]);
+        
+        if (is_wp_error($order)) {
+            error_log('WPPP Error: Could not create WC Order - ' . $order->get_error_message());
+            return;
+        }
+
         foreach ($items as $item) {
-            $pkg = $mapping[$item['price_id']] ?? null;
+            $price_id = $item['price_id'] ?? '';
+            $pkg = $mapping[$price_id] ?? null;
+            
             if ($pkg) {
-                $product = new WC_Product();
-                $product->set_name($pkg['name']);
-                $product->set_price($pkg['price']);
-                $product->set_regular_price($pkg['price']);
-                $order->add_product($product, 1);
+                // Use a safer way to add the product
+                // If the product doesn't exist in WC, we add it as a 'fee' or 'custom item'
+                $order->add_product(null, 1, [
+                    'name'     => $pkg['name'],
+                    'subtotal' => $pkg['price'],
+                    'total'    => $pkg['price'],
+                ]);
             }
         }
+
+        // Set order data using modern CRUD methods
         $order->set_payment_method('paddle');
-        $order->update_meta_data('_paddle_transaction_id', $tx_id);
+        $order->set_payment_method_title('Paddle');
+        $order->set_transaction_id($tx_id);
+        
+        // Ensure totals are calculated before saving
         $order->calculate_totals();
-        $order->update_status('completed', 'Verified via Paddle Webhook');
+
+        // Update status - This triggers the myCRED hooks safely
+        $order->update_status('completed', __('Verified via Paddle Webhook.', 'wp-paddle-pro'));
+        
+        // Final save to ensure all meta is locked in
+        $order->save();
     }
 
     private function get_points_mapping() {
         return [
+            'pri_01jy4d7qj409nbxx2x6yadweq4' => ['points' => 1500, 'name' => '1500 Power Points', 'price' => 12.00],
             'pri_01kdb86rkbken' => ['points' => 500, 'name' => 'Starter Pack', 'price' => 1.50],
             'pri_01kdb8gz5m5h3' => ['points' => 1600, 'name' => 'Pro Pack', 'price' => 3.50],
             'pri_01kdb8bfakrb3xxq7r' => ['points' => 4000, 'name' => 'Power Pack', 'price' => 7.50],
