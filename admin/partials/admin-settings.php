@@ -1,75 +1,136 @@
 <?php
 defined( 'ABSPATH' ) || exit;
-$active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'content';
-$page_url = admin_url('admin.php?page=' . $this->plugin_slug . '-settings');
-// Get the last sync time
-$last_sync = get_option(AICA_PLUGIN_SLUG . '_last_cron_sync');
-$next_sync = wp_next_scheduled(AICA_PLUGIN_SLUG . '_daily_sync_event');
 
+$active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'general';
+$page_url   = admin_url('admin.php?page=' . $this->plugin_slug . '-settings');
+$env        = get_option('paddle_environment', 'sandbox');
+
+// Dynamic URLs for the Sidebar
+$paddle_dashboard_url = ($env === 'live') ? 'https://vendors.paddle.com/' : 'https://sandbox-vendors.paddle.com/';
+$paddle_setup_url     = ($env === 'live') ? 'https://vendors.paddle.com/authentication-v2' : 'https://sandbox-vendors.paddle.com/authentication-v2';
 ?>
 
 <div class="wrap ai-agent-admin-wrap">
-    <div id="aica-unsaved-bar" style="display:none; position: fixed; top: 32px; left: 160px; right: 20px; z-index: 9999; background: #1e293b; color: #fff; padding: 12px 24px; border-radius: 0 0 12px 12px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 1px solid #334155; border-top: none; align-items: center; justify-content: space-between; animation: slideDown 0.3s ease-out;">
+    <div id="wppp-unsaved-bar" style="display:none; position: fixed; top: 32px; left: 160px; right: 20px; z-index: 9999; background: #1e293b; color: #fff; padding: 12px 24px; border-radius: 0 0 12px 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border: 1px solid #334155; border-top: none; align-items: center; justify-content: space-between;">
         <div style="display: flex; align-items: center; gap: 12px;">
-            <span class="dashicons dashicons-warning" style="color: #fbbf24; font-size: 20px; width: 20px; height: 20px;"></span>
-            <span style="font-weight: 600; font-size: 14px;">You have unsaved changes</span>
+            <span class="dashicons dashicons-warning" style="color: #fbbf24;"></span>
+            <span style="font-weight: 600;"><?php _e( 'Unsaved Paddle Settings', 'wp-paddle-pro' ); ?></span>
         </div>
         <div style="display: flex; gap: 10px;">
-            <button type="button" onclick="location.reload();" class="button" style="background: transparent; border: 1px solid #475569; color: #cbd5e1; height: 32px;">Discard</button>
-            <button type="button" id="aica-sticky-save-trigger" class="button button-primary" style="background: #3b82f6; border: none; height: 32px; padding: 0 20px; font-weight: 600;">Save Changes</button>
+            <button type="button" onclick="location.reload();" class="button"><?php _e( 'Discard', 'wp-paddle-pro' ); ?></button>
+            <button type="button" id="wppp-sticky-save-trigger" class="button button-primary"><?php _e( 'Save Configuration', 'wp-paddle-pro' ); ?></button>
         </div>
     </div>
-    <h1 class="wp-heading-inline" style="font-weight: 700; font-size: 24px; margin-bottom: 20px;">
-        <?php _e( 'Chat Widget Configuration', 'aica-plugin' ); ?>
+
+    <h1 style="font-weight: 700; font-size: 24px; margin-bottom: 20px;">
+        <?php _e( 'Paddle Integration Settings', 'wp-paddle-pro' ); ?>
     </h1>
 
     <nav class="nav-tab-wrapper">
-        <a href="<?php echo esc_url( add_query_arg( 'tab', 'content', $page_url ) ); ?>" class="nav-tab <?php echo $active_tab === 'content' ? 'nav-tab-active' : ''; ?>">
-            <?php _e( 'Content', 'aica-plugin' ); ?>
+        <a href="<?php echo esc_url( add_query_arg( 'tab', 'general', $page_url ) ); ?>" class="nav-tab <?php echo $active_tab === 'general' ? 'nav-tab-active' : ''; ?>">
+            <?php _e( 'API Credentials', 'wp-paddle-pro' ); ?>
         </a>
-        <a href="<?php echo esc_url( add_query_arg( 'tab', 'style', $page_url ) ); ?>" class="nav-tab <?php echo $active_tab === 'style' ? 'nav-tab-active' : ''; ?>">
-            <?php _e( 'Style', 'aica-plugin' ); ?>
-        </a>
-        <a href="<?php echo esc_url( add_query_arg( 'tab', 'knowledge-base', $page_url ) ); ?>" class="nav-tab <?php echo $active_tab === 'knowledge-base' ? 'nav-tab-active' : ''; ?>">
-            <?php _e( 'Knowledge Base', 'aica-plugin' ); ?>
-        </a>
-        <a href="<?php echo esc_url( add_query_arg( 'tab', 'llm-model', $page_url ) ); ?>" class="nav-tab <?php echo $active_tab === 'llm-model' ? 'nav-tab-active' : ''; ?>">
-            <?php _e( 'LLM Model', 'aica-plugin' ); ?>
-        </a>
-        <a href="<?php echo esc_url( add_query_arg( 'tab', 'notifications', $page_url ) ); ?>" class="nav-tab <?php echo $active_tab === 'notifications' ? 'nav-tab-active' : ''; ?>">
-            <?php _e( 'Notifications', 'aica-plugin' ); ?>
+        <a href="<?php echo esc_url( add_query_arg( 'tab', 'checkout', $page_url ) ); ?>" class="nav-tab <?php echo $active_tab === 'checkout' ? 'nav-tab-active' : ''; ?>">
+            <?php _e( 'Checkout Configuration', 'wp-paddle-pro' ); ?>
         </a>
     </nav>
 
-    <div style="display: flex; gap: 30px; align-items: flex-start; margin-top: 20px;">
-        
-        <div class="settings-container" style="flex: 1; min-width: 0; margin-top: 0;">
-            <?php if ($active_tab === 'content'): 
-            include( AICA_PLUGIN_PATH . 'admin/partials/component/content-settings.php' );
-            ?>
-            <?php elseif ($active_tab === 'style'): 
-            include( AICA_PLUGIN_PATH . 'admin/partials/component/style-settings.php' );
-            ?>
-            <?php elseif ($active_tab === 'knowledge-base'): 
-            include( AICA_PLUGIN_PATH . 'admin/partials/component/knowledge-base-settings.php' );
-            ?>
-            <?php elseif ($active_tab === 'llm-model'): 
-            include( AICA_PLUGIN_PATH . 'admin/partials/component/llm-model-settings.php' );    
-            ?>
-            <?php elseif ($active_tab === 'notifications'): 
-            include( AICA_PLUGIN_PATH . 'admin/partials/component/notifications-settings.php' );
-            ?>
-            <?php endif; ?>
+    <div style="display: flex; gap: 30px; margin-top: 20px;">
+        <div class="settings-container" style="flex: 1; background: #fff; padding: 25px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+            <form method="post" action="options.php" id="wppp-settings-form">
+                <?php
+                settings_fields($this->plugin_slug . '_settings');
+                
+                if ($active_tab === 'general'): ?>
+                    <h2><?php _e( 'Paddle API Credentials', 'wp-paddle-pro' ); ?></h2>
+                    <p class="description"><?php _e( 'Enter your Paddle API credentials. You can find these in your Paddle Dashboard under Developer Tools.', 'wp-paddle-pro' ); ?></p>
+                    
+                    <table class="form-table">
+                        <tr>
+                            <th scope="row"><?php _e( 'Environment', 'wp-paddle-pro' ); ?></th>
+                            <td>
+                                <select name="paddle_environment" style="min-width: 200px;">
+                                    <option value="sandbox" <?php selected($env, 'sandbox'); ?>>Sandbox (Testing)</option>
+                                    <option value="live" <?php selected($env, 'live'); ?>>Live (Production)</option>
+                                </select>
+                                <p class="description"><?php _e( 'Sandbox is for testing transactions without real money.', 'wp-paddle-pro' ); ?></p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><?php _e( 'Client-Side Token', 'wp-paddle-pro' ); ?></th>
+                            <td>
+                                <input type="text" name="paddle_client_side_token" value="<?php echo esc_attr(get_option('paddle_client_side_token')); ?>" class="regular-text" />
+                                <p class="description"><?php _e( 'Required for Paddle.js to open checkouts.', 'wp-paddle-pro' ); ?></p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><?php _e( 'API Key (Server-Side)', 'wp-paddle-pro' ); ?></th>
+                            <td>
+                                <input type="password" name="paddle_api_key" value="<?php echo esc_attr(get_option('paddle_api_key')); ?>" class="regular-text" />
+                                <p class="description"><?php _e( 'Used for server-to-server API requests.', 'wp-paddle-pro' ); ?></p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><?php _e( 'Webhook Secret', 'wp-paddle-pro' ); ?></th>
+                            <td>
+                                <input type="password" name="paddle_webhook_secret" value="<?php echo esc_attr(get_option('paddle_webhook_secret')); ?>" class="regular-text" />
+                                <p class="description"><?php _e( 'Required to verify payment notifications are genuine.', 'wp-paddle-pro' ); ?></p>
+                            </td>
+                        </tr>
+                    </table>
+
+                <?php elseif ($active_tab === 'checkout'): ?>
+                    <h2><?php _e( 'Checkout & Redirects', 'wp-paddle-pro' ); ?></h2>
+                    <table class="form-table">
+                        <tr>
+                            <th scope="row"><?php _e( 'Thank You Page URL', 'wp-paddle-pro' ); ?></th>
+                            <td>
+                                <input type="url" name="paddle_thank_you_page_url" value="<?php echo esc_url(get_option('paddle_thank_you_page_url')); ?>" class="regular-text" placeholder="https://yourdomain.com/thank-you/" />
+                                <p class="description"><?php _e( 'The page users see after a successful payment.', 'wp-paddle-pro' ); ?></p>
+                            </td>
+                        </tr>
+                    </table>
+                <?php endif; ?>
+
+                <?php submit_button(); ?>
+            </form>
         </div>
 
-        <div class="aica-settings-preview-sidebar" style="width: 450px; position: sticky; top: 50px;">
-            <div id="aica-admin-preview-container" style="transform: scale(0.9); transform-origin: top center; border: 1px solid #e2e8f0; border-radius: 24px; padding: 20px; background: #ffffff; height: 800px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
-                <?php 
-                   $is_admin_preview = true;
-                   include AICA_PLUGIN_PATH . 'public/partials/chat-template.php'; 
-                ?>
+        <div style="width: 350px;">
+            <div style="background: #ffffff; border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <h3 style="margin-top: 0; display: flex; align-items: center; gap: 8px;">
+                    <span class="dashicons dashicons-external" style="font-size: 18px; width: 18px; height: 18px;"></span>
+                    <?php _e( 'Paddle Quick Links', 'wp-paddle-pro' ); ?>
+                </h3>
+                <p style="font-size: 12px; color: #64748b; margin-bottom: 15px;">
+                    <?php printf( __('Currently linked to your %s account.', 'wp-paddle-pro'), '<strong>' . ucfirst($env) . '</strong>' ); ?>
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <a href="<?php echo esc_url($paddle_dashboard_url); ?>" target="_blank" class="button" style="display: block; text-align: center;">
+                        <?php _e( 'Open Paddle Dashboard', 'wp-paddle-pro' ); ?>
+                    </a>
+                    <a href="<?php echo esc_url($paddle_setup_url); ?>" target="_blank" class="button" style="display: block; text-align: center;">
+                        <?php _e( 'Get API Credentials', 'wp-paddle-pro' ); ?>
+                    </a>
+                </div>
+            </div>
+
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                <h3 style="margin-top: 0;"><?php _e( 'Webhook Endpoint', 'wp-paddle-pro' ); ?></h3>
+                <code style="display: block; padding: 10px; background: #fff; border: 1px solid #cbd5e1; margin-bottom: 10px; word-break: break-all; font-size: 11px;">
+                    <?php echo get_rest_url(null, 'wp-paddle-pro/v1/webhook'); ?>
+                </code>
+                <p class="description" style="font-size: 12px;">
+                    <?php _e( 'Paste this in Paddle > Developers > Webhooks.', 'wp-paddle-pro' ); ?>
+                </p>
+            </div>
+            
+            <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 20px; border-radius: 12px;">
+                <h3 style="margin-top: 0; color: #1e40af;"><?php _e( 'Shortcode Usage', 'wp-paddle-pro' ); ?></h3>
+                <p style="font-size: 12px; color: #1e3a8a; line-height: 1.5;">
+                    <code>[paddle_checkout price_id="pri_..." text="Buy Now"]</code>
+                </p>
             </div>
         </div>
-
     </div>
 </div>

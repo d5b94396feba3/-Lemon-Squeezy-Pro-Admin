@@ -1,8 +1,8 @@
 jQuery(document).ready(function($) {
 
-    const i18n = (typeof aica_admin_data !== 'undefined') ? aica_admin_data : {};
+    const i18n = (typeof wppp_admin_data !== 'undefined') ? wppp_admin_data : {};
     
-    const $unsavedBar = $('#aica-unsaved-bar');
+    const $unsavedBar = $('#wppp-unsaved-bar');
     let hasChanges = false;
 
     function showUnsavedNotice() {
@@ -13,7 +13,7 @@ jQuery(document).ready(function($) {
         }
     }
 
-    $('.aica-theme-card').on('click', function() {
+    $('.wppp-theme-card').on('click', function() {
         showUnsavedNotice();
         $(this).find('.theme-card-inner').addClass('field-changed');
     });
@@ -48,7 +48,7 @@ jQuery(document).ready(function($) {
         }, 1000); 
     });
 
-    $('#aica-sticky-save-trigger').on('click', function(e) {
+    $('#wppp-sticky-save-trigger').on('click', function(e) {
         e.preventDefault();
         const $btn = $(this);
         const $visibleForm = $('form[action="options.php"]:visible');
@@ -65,7 +65,7 @@ jQuery(document).ready(function($) {
             }
         } else {
             const errorMsg = i18n.i18n_form_error || 'Error: Could not find the settings form. Please try the save button at the bottom.';
-            console.error('AICA: No visible settings form found to submit.');
+            console.error('wppp: No visible settings form found to submit.');
             alert(errorMsg);
         }
     });

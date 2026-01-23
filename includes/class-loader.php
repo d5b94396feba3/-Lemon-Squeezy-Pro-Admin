@@ -1,7 +1,7 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
-class AICA_Plugin_Loader {
+class WPPP_Plugin_Loader {
     protected $actions = [];
     protected $filters = [];
     protected $shortcodes = [];

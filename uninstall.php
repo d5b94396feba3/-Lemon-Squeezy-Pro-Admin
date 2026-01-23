@@ -14,4 +14,4 @@ $plugin_data = get_file_data( __FILE__, array( 'TextDomain' => 'Text Domain' ), 
 $plugin_slug = $plugin_data['TextDomain'];
 
 require_once plugin_dir_path( __FILE__ ) . 'includes/class-uninstaller.php';
-AICA_Plugin_Uninstaller::uninstall( $plugin_slug );
+WPPP_Plugin_Uninstaller::uninstall( $plugin_slug );

@@ -1,9 +1,9 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
-class AICA_Plugin_WP_Cron {
+class WPPP_Plugin_WP_Cron {
 
-    const HOOK = 'aica_daily_sync_event';
+    const HOOK = 'wppp_daily_sync_event';
     private $plugin_slug;
 
     public function __construct( $plugin_slug ) {
@@ -25,8 +25,8 @@ class AICA_Plugin_WP_Cron {
 
         @set_time_limit( 300 );
 
-        $scraper = new AICA_Plugin_SimpleHTMLDOM();
-        $db      = new AICA_Plugin_DB_Manager( $this->plugin_slug );
+        $scraper = new WPPP_Plugin_SimpleHTMLDOM();
+        $db      = new WPPP_Plugin_DB_Manager( $this->plugin_slug );
     
         $scraped_pages = $scraper->sync_website_content();
     

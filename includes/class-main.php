@@ -1,7 +1,7 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
-class AICA_Plugin_Main {
+class WPPP_Plugin_Main {
     protected $loader;
     protected $plugin_name;
     protected $plugin_slug; 
@@ -12,48 +12,46 @@ class AICA_Plugin_Main {
         $this->plugin_slug = $plugin_slug;
         $this->version     = $version;
 
-        $this->loader = new AICA_Plugin_Loader();
+        $this->loader = new WPPP_Plugin_Loader();
         $this->define_hooks();
     }
 
     private function define_hooks() {
-        if ( class_exists( 'AICA_Plugin_WP_Cron' ) ) {
-            $cron = new AICA_Plugin_WP_Cron( $this->plugin_slug );
-            $this->loader->add_action( AICA_Plugin_WP_Cron::HOOK, $cron, 'run_automated_sync' );
-        }
-
+        /**
+         * 1. Admin Logic
+         * Handles Settings, Transactions Table, and Admin Assets
+         */
         if (is_admin()) {
-            $admin = new AICA_Plugin_Admin($this->plugin_slug, $this->version);
+            $admin = new WPPP_Plugin_Admin($this->plugin_slug, $this->version);
             
             $this->loader->add_action('admin_menu', $admin, 'add_admin_menu');
             $this->loader->add_action('admin_init', $admin, 'register_settings');
             $this->loader->add_action('admin_enqueue_scripts', $admin, 'enqueue_styles');
-            $this->loader->add_action('admin_enqueue_scripts', $admin, 'enqueue_scripts');
             
-            $this->loader->add_action('wp_ajax_delete_chat_log', $admin, 'handle_delete_chat_ajax');
-            $this->loader->add_action('wp_ajax_export_chat_log', $admin, 'handle_export_chat_ajax');
-            $this->loader->add_action('wp_ajax_get_chat_summary', $admin, 'handle_get_chat_summary_ajax');      
-            $this->loader->add_action('wp_ajax_sync_website_knowledge', $admin, 'handle_sync_website_ajax');
-            $this->loader->add_action('wp_ajax_manual_cron_sync', $admin, 'handle_manual_cron_sync_ajax');
-            $this->loader->add_action('wp_ajax_generate_ai_system_prompt', $admin, 'handle_generate_system_prompt_ajax');
+            // AJAX for transaction management
+            $this->loader->add_action('wp_ajax_get_transaction_details', $admin, 'handle_get_tx_details_ajax');
         }
 
-        $public = new AICA_Plugin_Public($this->plugin_slug, $this->version);
+        /**
+         * 2. Public Logic
+         * Handles Styles, Scripts, and Shortcodes
+         */
+        $public = new WPPP_Plugin_Public($this->plugin_slug, $this->version);
         
+        // Frontend Assets
         $this->loader->add_action('wp_enqueue_scripts', $public, 'enqueue_styles');
         $this->loader->add_action('wp_enqueue_scripts', $public, 'enqueue_scripts');
-        $this->loader->add_action( 'wp_footer', $public, 'render_chat_ui' );
+        
+        // Shortcodes (Standard WP Hooks)
+        $this->loader->add_shortcode('paddle_checkout', $public, 'render_checkout_button');
+        $this->loader->add_shortcode('paddle_order_summary', $public, 'render_order_summary');
 
-        $this->loader->add_action( 'wp_ajax_nopriv_send_chat_message', $public, 'handle_chat_message_ajax' );
-        $this->loader->add_action( 'wp_ajax_send_chat_message', $public, 'handle_chat_message_ajax' );
-        $this->loader->add_action( 'wp_ajax_nopriv_submit_chat_feedback', $public, 'handle_chat_feedback_ajax' );
-        $this->loader->add_action( 'wp_ajax_submit_chat_feedback', $public, 'handle_chat_feedback_ajax' );
-        $this->loader->add_action( 'wp_ajax_nopriv_clear_chat_history', $public, 'handle_clear_chat_ajax' );
-        $this->loader->add_action( 'wp_ajax_clear_chat_history', $public, 'handle_clear_chat_ajax' );
-        $this->loader->add_action( 'wp_ajax_nopriv_end_chat_session', $public, 'handle_end_chat_ajax' );
-        $this->loader->add_action( 'wp_ajax_end_chat_session', $public, 'handle_end_chat_ajax' );
-        $this->loader->add_action('wp_ajax_nopriv_get_recent_chats', $public, 'handle_fetch_recent_chats');
-        $this->loader->add_action('wp_ajax_get_recent_chats', $public, 'handle_fetch_recent_chats');
+        /**
+         * 3. Paddle Webhook Listener (REST API)
+         * Creates the secure bridge between Paddle and WordPress
+         */
+        $paddle_core = new WPPP_Plugin_Paddle_Core($this->plugin_slug);
+        $this->loader->add_action('rest_api_init', $paddle_core, 'register_webhook_route');
     }
 
     public function run() {

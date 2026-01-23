@@ -1,9 +1,9 @@
 (function($) {
     $(document).ready(function() {
-        const chat = AICA_Chat;
+        const chat = wppp_Chat;
         const $input = $('#chat-input');
         const $menuEndChat = $('#menu-end-chat');
-        const publicData = (typeof aica_public_data !== 'undefined') ? aica_public_data : { ajax_url: '', nonce: '' };
+        const publicData = (typeof wppp_public_data !== 'undefined') ? wppp_public_data : { ajax_url: '', nonce: '' };
 
         function autoResizeTextarea() {
             const el = $input[0];

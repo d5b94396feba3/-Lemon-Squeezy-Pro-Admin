@@ -1,4 +1,4 @@
-var AICA_Chat = {
+var wppp_Chat = {
     $window: null,
     $messages: null,
     $input: null,
@@ -20,7 +20,7 @@ var AICA_Chat = {
         this.bindCoreEvents($);
         this.updateTimestamps();
         
-        const popupDelay = (typeof aica_public_data !== 'undefined' && aica_public_data.popup_delay) ? parseInt(aica_public_data.popup_delay) : 3000;
+        const popupDelay = (typeof wppp_public_data !== 'undefined' && wppp_public_data.popup_delay) ? parseInt(wppp_public_data.popup_delay) : 3000;
         
         this.popupTimer = setTimeout(() => {
             this.triggerPopup();
@@ -69,7 +69,7 @@ var AICA_Chat = {
             $popup.stop(true, true).fadeOut(200);
             $window.stop(true, true).fadeIn(300, function() {
                 jQuery(this).removeClass('hidden').css('display', 'flex');
-                AICA_Chat.scrollBottom();
+                wppp_Chat.scrollBottom();
             });
             setTimeout(() => this.$input.focus(), 150);
         } else {
@@ -94,7 +94,7 @@ var AICA_Chat = {
 
     updateTimestamps: function() {
         const now = Math.floor(Date.now() / 1000);
-        const i18n = (typeof aica_public_data !== 'undefined') ? aica_public_data : {};
+        const i18n = (typeof wppp_public_data !== 'undefined') ? wppp_public_data : {};
 
         jQuery('.msg-time').each(function() {
             const sentTime = parseInt(jQuery(this).attr('data-time'));
@@ -118,6 +118,6 @@ var AICA_Chat = {
 
 jQuery(document).ready(function($) {
     if (jQuery('#ai-chat-wrapper').length) {
-        AICA_Chat.init($);
+        wppp_Chat.init($);
     }
 });

@@ -1,263 +1,73 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
-class AICA_Plugin_Public {
-
+class WPPP_Plugin_Public {
     private $plugin_slug;
     private $version;
-    private $mail_manager;
-    private $db_manager;
 
     public function __construct( $plugin_slug, $version ) {
         $this->plugin_slug = $plugin_slug;
         $this->version = $version;
-    
-        $this->mail_manager = new AICA_Plugin_Mail($this->plugin_slug);
-    
-        if ( class_exists('AICA_Plugin_DB_Manager') ) {
-            $this->db_manager = new AICA_Plugin_DB_Manager($this->plugin_slug);
-        }
-    }
-
-    private function get_user_session_tracker() {
-        $cookie_name = 'aica_user_sessions';
-        if (isset($_COOKIE[$cookie_name])) {
-            return explode(',', sanitize_text_field($_COOKIE[$cookie_name]));
-        }
-        return [];
-    }
-
-    private function add_session_to_tracker($uuid) {
-        $sessions = $this->get_user_session_tracker();
-        if (!in_array($uuid, $sessions)) {
-            $sessions[] = $uuid;
-            $sessions = array_slice($sessions, -15);
-            setcookie('aica_user_sessions', implode(',', $sessions), time() + (30 * DAY_IN_SECONDS), COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
-        }
-    }
-
-    private function get_chat_session_id() {
-        $cookie_name = 'aica_chat_uuid';
-        
-        if ( isset($_COOKIE[$cookie_name]) ) {
-            return sanitize_key($_COOKIE[$cookie_name]);
-        }
-
-        $uuid = wp_generate_password(12, false) . '_' . time();
-
-        setcookie($cookie_name, $uuid, array(
-            'expires'  => time() + 3600,
-            'path'     => COOKIEPATH,
-            'domain'   => COOKIE_DOMAIN,
-            'secure'   => is_ssl(),
-            'httponly' => false,
-            'samesite' => 'Lax',
-        ));
-        
-        $this->add_session_to_tracker($uuid);
-        return $uuid;
-    }
-
-    public function render_chat_ui() {
-        $session_key = $this->get_chat_session_id();
-        $transient_key = 'chat_hist_' . $session_key;
-        
-        $existing_history = get_transient($transient_key);
-        if (!is_array($existing_history)) {
-            $existing_history = [];
-        }
-    
-        $template_path = AICA_PLUGIN_PATH . 'public/partials/chat-template.php';
-    
-        if ( file_exists( $template_path ) ) {
-            ob_start();
-            $chat_history = $existing_history; 
-            include $template_path;
-            echo ob_get_clean(); 
-        }
-    }
-
-    public function handle_chat_message_ajax() {
-        check_ajax_referer('chat_message_action', 'chat_nonce');
-
-        $user_message = isset( $_POST['message'] ) ? sanitize_textarea_field( $_POST['message'] ) : '';
-        if ( empty( $user_message ) ) {
-            wp_send_json_error( array( 'message' => __( 'Empty message.', 'aica-plugin' ) ) );
-        }
-    
-        $is_regen = isset($_POST['is_regen']) && ($_POST['is_regen'] === 'true' || $_POST['is_regen'] === true);
-    
-        $session_key = $this->get_chat_session_id();
-        $transient_key = 'chat_hist_' . $session_key;
-    
-        $history = get_transient($transient_key);
-        if ( ! is_array($history) ) $history = [];
-        $is_new_chat = empty($history);
-    
-        if ( ! $is_regen ) {
-            $history[] = [
-                'role'    => 'user', 
-                'content' => $user_message,
-                'time'    => time()
-            ];
-            if ( $is_new_chat ) {
-                $this->mail_manager->send_chat_notification_admin($user_message);
-            }
-        }
-    
-        $llm_processor = new AICA_Plugin_LLM_Processor( $this->plugin_slug );
-        $ai_response_html = $llm_processor->get_llm_response( $user_message, $history );
-    
-        if ( strpos( $ai_response_html, 'Error:' ) === 0 ) {
-            wp_send_json_error( array( 'message' => $ai_response_html ) );
-        }
-    
-        $content_to_save = $ai_response_html;
-    
-        if ( $is_regen && ! empty($history) ) {
-            for ( $i = count($history) - 1; $i >= 0; $i-- ) {
-                if ( $history[$i]['role'] === 'assistant' ) {
-                    $history[$i] = [
-                        'role' => 'assistant', 
-                        'content' => $content_to_save, 
-                        'time' => time()
-                    ];
-                    break;
-                }
-            }
-        } else {
-            $history[] = [
-                'role' => 'assistant', 
-                'content' => $content_to_save, 
-                'time' => time()
-            ];
-        }
-    
-        set_transient($transient_key, $history, 1 * HOUR_IN_SECONDS);
-    
-        if ( $this->db_manager ) {
-            $this->db_manager->save_chat_history($session_key, $history);
-        }
-            
-        wp_send_json_success( array( 'reply' => wp_kses_post( $ai_response_html ) ) );
-    }
-
-    public function handle_clear_chat_ajax() {
-        check_ajax_referer('chat_message_action', 'nonce');
-        setcookie('aica_chat_uuid', '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
-        wp_send_json_success();
-    }
-
-    public function handle_end_chat_ajax() {
-        check_ajax_referer('chat_message_action', 'nonce');
-        
-        $session_key = $this->get_chat_session_id();
-        $transient_key = 'chat_hist_' . $session_key;
-        $history = get_transient($transient_key);
-
-        if (is_array($history) && !empty($history)) {
-            $llm_processor = new AICA_Plugin_LLM_Processor($this->plugin_slug);
-            $summary_html = $llm_processor->get_chat_summary($history);
-            $this->mail_manager->send_final_transcript_admin($history, $summary_html);
-        }
-
-        setcookie('aica_chat_uuid', '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
-        wp_send_json_success();
-    }
-
-    public function handle_fetch_recent_chats() {
-        check_ajax_referer('chat_message_action', 'nonce');
-        
-        $user_sessions = $this->get_user_session_tracker();
-        if (empty($user_sessions)) {
-            wp_send_json_success([]);
-        }
-
-        global $wpdb;
-        $clean_slug = str_replace('-', '_', sanitize_key($this->plugin_slug));
-        $table_name = $wpdb->prefix . $clean_slug . '_chat_logs';
-
-        $placeholders = implode(',', array_fill(0, count($user_sessions), '%s'));
-        $query = $wpdb->prepare(
-            "SELECT * FROM $table_name WHERE session_id IN ($placeholders) ORDER BY last_updated DESC",
-            $user_sessions
-        );
-
-        $logs = $wpdb->get_results($query, ARRAY_A);
-        $output = [];
-
-        foreach ($logs as $log) {
-            $history = json_decode($log['full_history'], true);
-            if (empty($history)) continue;
-
-            $preview = __( 'New Conversation', 'aica-plugin' );
-            foreach($history as $msg) {
-                if($msg['role'] === 'user') {
-                    $preview = $msg['content'];
-                    break;
-                }
-            }
-            
-            $output[] = [
-                'id' => $log['session_id'],
-                'date' => date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($log['last_updated'])),
-                'preview' => wp_trim_words($preview, 8),
-                'history' => $history
-            ];
-        }
-
-        wp_send_json_success($output);
-    }
-
-    public function handle_chat_feedback_ajax() {
-        check_ajax_referer('chat_message_action', 'nonce');
-        
-        $query    = isset($_POST['query']) ? sanitize_text_field($_POST['query']) : '';
-        $response = isset($_POST['response']) ? sanitize_text_field($_POST['response']) : '';
-        $rating   = isset($_POST['rating']) ? sanitize_key($_POST['rating']) : ''; 
-    
-        if ($this->db_manager && !empty($query)) {
-            $this->db_manager->store_feedback($query, $response, $rating);
-            wp_send_json_success();
-        }
-        wp_send_json_error();
     }
 
     public function enqueue_styles() {
-        wp_enqueue_style('font-awesome-4', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css', array(), '4.7.0');
-
-        wp_enqueue_style( $this->plugin_slug . '-theme-logic',  AICA_PLUGIN_URL . 'assets/css/public/theme-logic.css', array(), $this->version, 'all' );
-        wp_enqueue_style( $this->plugin_slug . '-chat-widget',  AICA_PLUGIN_URL . 'assets/css/public/chat-widget.css', array(), $this->version, 'all' );
+        wp_enqueue_style( $this->plugin_slug . '-public', WPPP_PLUGIN_URL . 'assets/css/public/public.css', array(), $this->version, 'all' );
     }
 
     public function enqueue_scripts() {
-        $js_path = AICA_PLUGIN_URL . 'assets/js/public/';
-        $ver = $this->version;
-    
-        wp_enqueue_script($this->plugin_slug . '-core', $js_path . 'chat-core.js', array('jquery'), $ver, true);
-        wp_enqueue_script($this->plugin_slug . '-messaging', $js_path . 'chat-messaging.js', array($this->plugin_slug . '-core'), $ver, true);
-        wp_enqueue_script($this->plugin_slug . '-menu', $js_path . 'chat-menu.js', array($this->plugin_slug . '-core'), $ver, true);
-        wp_enqueue_script($this->plugin_slug . '-history', $js_path . 'chat-history.js', array($this->plugin_slug . '-core'), $ver, true);
-    
-        wp_localize_script($this->plugin_slug . '-core', 'aica_public_data', array(
-            'ajax_url'         => admin_url('admin-ajax.php'),
-            'nonce'            => wp_create_nonce('chat_message_action'),
-            'just_now'         => __( 'just now', 'aica-plugin' ),
-            'm_ago'            => __( 'm ago', 'aica-plugin' ),
-            'h_ago'            => __( 'h ago', 'aica-plugin' ),
-            'i18n_copy'        => __( 'Copy', 'aica-plugin' ),
-            'i18n_regen'       => __( 'Regenerate', 'aica-plugin' ),
-            'i18n_helpful'     => __( 'Helpful', 'aica-plugin' ),
-            'i18n_not_helpful' => __( 'Not helpful', 'aica-plugin' ),
-            'popup_delay'      => 3000,
-            'i18n_start_fresh'      => __( 'Start fresh?', 'aica-plugin' ),
-            'i18n_start_fresh_desc' => __( 'This will clear your current messages so you can start a new conversation.', 'aica-plugin' ),
-            'i18n_end_chat_title'   => __( 'End this chat?', 'aica-plugin' ),
-            'i18n_end_chat_desc'    => __( 'This will clear your current messages and start a new conversation again.', 'aica-plugin' ),
-            'i18n_confirm'          => __( 'Confirm', 'aica-plugin' ),
-            'i18n_processing'       => __( 'Processing...', 'aica-plugin' ),
-            'i18n_loading_history' => __( 'Loading history...', 'aica-plugin' ),
-            'i18n_no_recent'      => __( 'No recent chats found.', 'aica-plugin' ),
+        $client_token  = get_option('paddle_client_side_token');
+        $environment   = get_option('paddle_environment', 'sandbox');
+        $thank_you_url = get_option('paddle_thank_you_page_url');
+
+        wp_enqueue_script( 'paddle-js', 'https://cdn.paddle.com/paddle/v2/paddle.js', array(), null, true );
+
+        wp_enqueue_script( $this->plugin_slug . '-checkout', WPPP_PLUGIN_URL . 'assets/js/public/checkout.js', array('jquery', 'paddle-js'), $this->version, true );
+
+        wp_localize_script( $this->plugin_slug . '-checkout', 'wppp_vars', array(
+            'token'       => esc_js($client_token),
+            'environment' => ($environment === 'live') ? 'production' : 'sandbox',
+            'user_id'     => get_current_user_id(),
+            'is_logged_in'=> is_user_logged_in(),
+            'thank_you'   => esc_url($thank_you_url),
+            'login_msg'   => __('Please login to purchase this item.', 'wp-paddle-pro')
         ));
+    }
+
+    public function render_checkout_button($atts) {
+        $atts = shortcode_atts([
+            'price_id' => '',
+            'text'     => __('Buy Now', 'wp-paddle-pro'),
+            'class'    => 'paddle-checkout-button button-primary'
+        ], $atts);
+
+        if (empty($atts['price_id'])) return '';
+
+        ob_start();
+        ?>
+        <div class="wppp-checkout-container">
+            <button class="<?php echo esc_attr($atts['class']); ?> wppp-paddle-checkout" 
+                    data-price-id="<?php echo esc_attr($atts['price_id']); ?>">
+                <?php echo esc_html($atts['text']); ?>
+            </button>
+            <div class="paddle-login-message" style="display: none; color: #c00; margin-top: 8px; font-size: 13px;"></div>
+        </div>
+        <?php
+        return ob_get_clean();
+    }
+
+    public function render_order_summary($atts) {
+        $tx_id = isset($_GET['paddle_transaction_id']) ? sanitize_text_field($_GET['paddle_transaction_id']) : '';
+        if (!$tx_id) return '<p>' . esc_html__('No transaction found.', 'wp-paddle-pro') . '</p>';
+
+        require_once WPPP_PLUGIN_PATH . 'includes/mycred/class-mycred-handler.php';
+        $mycred = new \PaddleToMycred\Mycred_Handler();
+        
+        $mycred_data = $mycred->mycred_balance_with_rank();
+
+        ob_start();
+        if (file_exists(WPPP_PLUGIN_PATH . 'public/partials/order-summary-template.php')) {
+            include WPPP_PLUGIN_PATH . 'public/partials/order-summary-template.php';
+        }
+        return ob_get_clean();
     }
 }

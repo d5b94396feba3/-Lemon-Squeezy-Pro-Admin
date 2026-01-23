@@ -4,7 +4,7 @@
  */
 defined( 'ABSPATH' ) || exit;
 
-class AICA_Plugin_Mail {
+class WPPP_Plugin_Mail {
     private $plugin_slug;
 
     public function __construct($plugin_slug) {
@@ -69,7 +69,7 @@ class AICA_Plugin_Mail {
         $admin_email = get_option('ai_agent_admin_email', get_option('admin_email'));
         $site_name   = wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES);
         
-        $subject = sprintf( __( 'New AI Chat Session Started - %s', 'aica-plugin' ), $site_name );
+        $subject = sprintf( __( 'New AI Chat Session Started - %s', 'wppp-plugin' ), $site_name );
         
         $ip         = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field($_SERVER['REMOTE_ADDR']) : 'Unknown';
         $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field($_SERVER['HTTP_USER_AGENT']) : 'Unknown';
@@ -88,17 +88,17 @@ class AICA_Plugin_Mail {
         </head>
         <body>
             <div class="container">
-                <h2><?php esc_html_e( 'New Chat Interaction Detected', 'aica-plugin' ); ?></h2>
+                <h2><?php esc_html_e( 'New Chat Interaction Detected', 'wppp-plugin' ); ?></h2>
                 <div class="content">
-                    <p><strong><?php esc_html_e( 'Initial Message:', 'aica-plugin' ); ?></strong><br>
+                    <p><strong><?php esc_html_e( 'Initial Message:', 'wppp-plugin' ); ?></strong><br>
                     <?php echo nl2br(esc_html($user_message)); ?></p>
                     <hr>
-                    <p><strong><?php esc_html_e( 'Visitor Info:', 'aica-plugin' ); ?></strong><br>
-                    <?php esc_html_e( 'IP:', 'aica-plugin' ); ?> <?php echo esc_html($ip); ?><br>
-                    <?php esc_html_e( 'Browser:', 'aica-plugin' ); ?> <?php echo esc_html($user_agent); ?></p>
+                    <p><strong><?php esc_html_e( 'Visitor Info:', 'wppp-plugin' ); ?></strong><br>
+                    <?php esc_html_e( 'IP:', 'wppp-plugin' ); ?> <?php echo esc_html($ip); ?><br>
+                    <?php esc_html_e( 'Browser:', 'wppp-plugin' ); ?> <?php echo esc_html($user_agent); ?></p>
                 </div>
                 <div class="footer">
-                    <p><?php printf( esc_html__( 'Sent via %1$s on %2$s', 'aica-plugin' ), esc_html(AICA_PLUGIN_NAME), esc_html(date_i18n(get_option('date_format') . ' ' . get_option('time_format')))); ?></p>
+                    <p><?php printf( esc_html__( 'Sent via %1$s on %2$s', 'wppp-plugin' ), esc_html(WPPP_PLUGIN_NAME), esc_html(date_i18n(get_option('date_format') . ' ' . get_option('time_format')))); ?></p>
                 </div>
             </div>
         </body>
@@ -121,14 +121,14 @@ class AICA_Plugin_Mail {
         $admin_email = get_option('ai_agent_admin_email', get_option('admin_email'));
         $site_name   = wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES);
         
-        $subject = sprintf( __( 'Chat Ended: Full Transcript & Summary - %s', 'aica-plugin' ), $site_name );
+        $subject = sprintf( __( 'Chat Ended: Full Transcript & Summary - %s', 'wppp-plugin' ), $site_name );
         
         // Call the new helper function
         $allowed_html = $this->get_allowed_html_tags();
 
         $transcript_html = "";
         foreach($history as $msg) {
-            $label = ($msg['role'] === 'user') ? __( 'Visitor', 'aica-plugin' ) : __( 'AI Assistant', 'aica-plugin' );
+            $label = ($msg['role'] === 'user') ? __( 'Visitor', 'wppp-plugin' ) : __( 'AI Assistant', 'wppp-plugin' );
             
             // Clean content using our allowed tag list
             $content = wp_kses($msg['content'], $allowed_html);
@@ -156,17 +156,17 @@ class AICA_Plugin_Mail {
             <div class="container">
                 <?php if (!empty($summary_html)) : ?>
                     <div class="summary-section">
-                        <h3 style="margin-top:0; color: #92400e;"><?php esc_html_e( 'AI Conversation Summary', 'aica-plugin' ); ?></h3>
+                        <h3 style="margin-top:0; color: #92400e;"><?php esc_html_e( 'AI Conversation Summary', 'wppp-plugin' ); ?></h3>
                         <?php echo wp_kses($summary_html, $allowed_html); ?>
                     </div>
                 <?php endif; ?>
 
-                <h2><?php esc_html_e( 'Full Conversation Transcript', 'aica-plugin' ); ?></h2>
+                <h2><?php esc_html_e( 'Full Conversation Transcript', 'wppp-plugin' ); ?></h2>
                 <div class="content">
                     <?php echo $transcript_html; ?>
                 </div>
                 <div class="footer">
-                    <p><?php printf( esc_html__( 'Session ended at %1$s | IP: %2$s', 'aica-plugin' ), esc_html(date_i18n(get_option('date_format') . ' ' . get_option('time_format'))), esc_html($ip)); ?></p>
+                    <p><?php printf( esc_html__( 'Session ended at %1$s | IP: %2$s', 'wppp-plugin' ), esc_html(date_i18n(get_option('date_format') . ' ' . get_option('time_format'))), esc_html($ip)); ?></p>
                 </div>
             </div>
         </body>

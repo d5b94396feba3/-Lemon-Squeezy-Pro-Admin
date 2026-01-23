@@ -12,31 +12,31 @@ jQuery(document).ready(function($) {
 
     window.syncAdminPreview = function() {
         const nameInput = $('input[name="ai_agent_display_name"]');
-        const name = nameInput.length ? nameInput.val() : (localStorage.getItem('aica_preview_name') || 'AI Assistant');
-        if (nameInput.length) localStorage.setItem('aica_preview_name', name);
+        const name = nameInput.length ? nameInput.val() : (localStorage.getItem('wppp_preview_name') || 'AI Assistant');
+        if (nameInput.length) localStorage.setItem('wppp_preview_name', name);
 
         const welcomeInput = $('textarea[name="ai_agent_welcome_msg"]');
-        const welcomeText = welcomeInput.length ? welcomeInput.val() : (localStorage.getItem('aica_preview_welcome') || '');
-        if (welcomeInput.length) localStorage.setItem('aica_preview_welcome', welcomeText);
+        const welcomeText = welcomeInput.length ? welcomeInput.val() : (localStorage.getItem('wppp_preview_welcome') || '');
+        if (welcomeInput.length) localStorage.setItem('wppp_preview_welcome', welcomeText);
 
         const placeholderInput = $('input[name="ai_agent_placeholder"]');
-        const placeholder = placeholderInput.length ? placeholderInput.val() : (localStorage.getItem('aica_preview_placeholder') || 'Message...');
-        if (placeholderInput.length) localStorage.setItem('aica_preview_placeholder', placeholder);
+        const placeholder = placeholderInput.length ? placeholderInput.val() : (localStorage.getItem('wppp_preview_placeholder') || 'Message...');
+        if (placeholderInput.length) localStorage.setItem('wppp_preview_placeholder', placeholder);
 
         const brandColor = $('#ai_agent_primary_color_input').val() || '#000000';
         
         let avatarUrl = $('#ai_agent_logo_preview').attr('src');
         if (!avatarUrl || avatarUrl === '' || avatarUrl.includes('default-avater.svg')) {
-            avatarUrl = (typeof aica_admin_assets !== 'undefined') ? aica_admin_assets.default_avatar : '';
+            avatarUrl = (typeof wppp_admin_assets !== 'undefined') ? wppp_admin_assets.default_avatar : '';
         }
         
         const iconSelect = $('select[name="ai_agent_bubble_icon"]').val();
 
         const themeInput = $('input[name="ai_agent_theme_mode"]:checked');
-        const themeMode = themeInput.length ? themeInput.val() : (localStorage.getItem('aica_preview_theme') || 'light');
-        if (themeInput.length) localStorage.setItem('aica_preview_theme', themeMode);
+        const themeMode = themeInput.length ? themeInput.val() : (localStorage.getItem('wppp_preview_theme') || 'light');
+        if (themeInput.length) localStorage.setItem('wppp_preview_theme', themeMode);
 
-        const $preview = $('#aica-admin-preview-container');
+        const $preview = $('#wppp-admin-preview-container');
         const $wrapper = $preview.find('#ai-chat-wrapper'); 
 
         if (!$wrapper.length) return;
@@ -85,8 +85,8 @@ jQuery(document).ready(function($) {
     });
 
     $(document).on('change', 'input[name="ai_agent_theme_mode"]', function() {
-        const $card = $(this).closest('.aica-theme-card');
-        $('.aica-theme-card').removeClass('is-active');
+        const $card = $(this).closest('.wppp-theme-card');
+        $('.wppp-theme-card').removeClass('is-active');
         $card.addClass('is-active');
         window.syncAdminPreview();
     });

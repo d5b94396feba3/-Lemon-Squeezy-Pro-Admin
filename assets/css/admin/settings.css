@@ -143,8 +143,8 @@
 .sync-table-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
 @keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
-#aica-unsaved-bar { animation: slideDown 0.3s ease-out; }
-@media screen and (max-width: 782px) { #aica-unsaved-bar { left: 0; right: 0; top: 46px; border-radius: 0; } }
+#wppp-unsaved-bar { animation: slideDown 0.3s ease-out; }
+@media screen and (max-width: 782px) { #wppp-unsaved-bar { left: 0; right: 0; top: 46px; border-radius: 0; } }
 
 .field-changed {
     border-color: #fbbf24 !important;
@@ -152,8 +152,8 @@
     box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.1) !important;
 }
 
-.aica-theme-toggle-group { display: flex; gap: 16px; margin-top: 5px; }
-.aica-theme-card { flex: 1; max-width: 160px; cursor: pointer; position: relative; user-select: none; }
+.wppp-theme-toggle-group { display: flex; gap: 16px; margin-top: 5px; }
+.wppp-theme-card { flex: 1; max-width: 160px; cursor: pointer; position: relative; user-select: none; }
 
 .theme-card-inner {
     padding: 12px !important;
@@ -164,7 +164,7 @@
     text-align: center;
 }
 
-.aica-theme-card.is-active .theme-card-inner {
+.wppp-theme-card.is-active .theme-card-inner {
     border-color: #3b82f6 !important;
     background: #eff6ff !important;
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
@@ -189,26 +189,26 @@
 .mini-bubble-user { height: 6px; border-radius: 2px; width: 50%; background: #3b82f6; align-self: flex-end; }
 .theme-dark .mini-bubble-ai { background: #334155; }
 
-.aica-settings-preview-sidebar {
+.wppp-settings-preview-sidebar {
     width: 450px; position: sticky; top: 50px;
     background: #f1f5f9 !important; border-radius: 16px !important;
     border: 1px solid #e2e8f0 !important; overflow: hidden !important;
     height: 800px !important; display: flex !important; flex-direction: column !important;
 }
 
-.aica-settings-preview-sidebar > span {
+.wppp-settings-preview-sidebar > span {
     background: #ffffff; padding: 12px; border-bottom: 1px solid #e2e8f0;
     color: #475569 !important; font-size: 11px !important; font-weight: 800 !important;
     letter-spacing: 0.1em !important; text-transform: uppercase !important; text-align: center !important;
 }
 
-#aica-admin-preview-container {
+#wppp-admin-preview-container {
     flex: 1 !important; position: relative !important;
     background-image: linear-gradient(45deg, #f8fafc 25%, transparent 25%), linear-gradient(-45deg, #f8fafc 25%, transparent 25%) !important;
     background-size: 20px 20px !important; background-color: #ffffff !important;
 }
 
-#aica-admin-preview-container #ai-chat-window {
+#wppp-admin-preview-container #ai-chat-window {
     position: relative !important; width: 380px !important; height: 640px !important;
     margin-bottom: 16px !important; display: flex !important;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1) !important;

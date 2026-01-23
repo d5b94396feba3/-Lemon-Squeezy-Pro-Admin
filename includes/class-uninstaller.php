@@ -1,7 +1,7 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
-class AICA_Plugin_Uninstaller {
+class WPPP_Plugin_Uninstaller {
     
     /**
      * Plugin uninstall - COMPLETE removal when plugin is deleted

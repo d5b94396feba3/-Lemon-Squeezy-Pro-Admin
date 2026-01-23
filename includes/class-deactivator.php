@@ -1,7 +1,7 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
-class AICA_Plugin_Deactivator {
+class WPPP_Plugin_Deactivator {
     
     public static function deactivate( $plugin_slug ) {
         // Clean up temporary data and Cron
@@ -16,10 +16,10 @@ class AICA_Plugin_Deactivator {
         delete_transient( $plugin_slug . '_temp_data' );
         
         // Ensure the automated sync cron is cleared
-        if ( file_exists( AICA_PLUGIN_PATH . 'includes/wp-cron/class-wp-cron.php' ) ) {
-            require_once AICA_PLUGIN_PATH . 'includes/wp-cron/class-wp-cron.php';
-            if ( method_exists( 'AICA_Plugin_WP_Cron', 'clear_schedule' ) ) {
-                AICA_Plugin_WP_Cron::clear_schedule( $plugin_slug );
+        if ( file_exists( WPPP_PLUGIN_PATH . 'includes/wp-cron/class-wp-cron.php' ) ) {
+            require_once WPPP_PLUGIN_PATH . 'includes/wp-cron/class-wp-cron.php';
+            if ( method_exists( 'WPPP_Plugin_WP_Cron', 'clear_schedule' ) ) {
+                WPPP_Plugin_WP_Cron::clear_schedule( $plugin_slug );
             }
         }
 

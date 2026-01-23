@@ -1,10 +1,10 @@
 (function($) {
     $(document).ready(function() {
-        const chat = AICA_Chat;
+        const chat = wppp_Chat;
         const $recentView = $('#recent-chats-view');
         const $recentList = $('#recent-chats-list');
         const $menuPopup = $('#chat-options-popup');
-        const publicData = (typeof aica_public_data !== 'undefined') ? aica_public_data : { ajax_url: '', nonce: '' };
+        const publicData = (typeof wppp_public_data !== 'undefined') ? wppp_public_data : { ajax_url: '', nonce: '' };
         let recentData = {};
 
         function escapeHtml(text) {
@@ -54,7 +54,7 @@
             const history = recentData[id];
             if (!history) return;
 
-            document.cookie = "aica_chat_uuid=" + id + "; path=/; max-age=3600; SameSite=Lax";
+            document.cookie = "wppp_chat_uuid=" + id + "; path=/; max-age=3600; SameSite=Lax";
             
             chat.$messages.empty().append(chat.$welcomeHtml.clone());
 

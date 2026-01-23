@@ -6,7 +6,7 @@
     margin-bottom: 20px;
 }
 
-.ai-agent-admin-wrap .aica-stat-card {
+.ai-agent-admin-wrap .wppp-stat-card {
     background: #fff;
     border: 1px solid #ccd0d4;
     border-radius: 4px;
@@ -110,26 +110,26 @@
     letter-spacing: 0.5px;
 }
 
-.aica-loader-circle {
+.wppp-loader-circle {
     display: inline-block;
     width: 40px;
     height: 40px;
     border: 4px solid #f3f3f3;
     border-top: 4px solid #ea580c;
     border-radius: 50%;
-    animation: aica-spin 1s linear infinite;
+    animation: wppp-spin 1s linear infinite;
 }
 
-@keyframes aica-spin {
+@keyframes wppp-spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
 
 .ai-summary-wrapper {
-    animation: aicaFadeIn 0.4s ease;
+    animation: wpppFadeIn 0.4s ease;
 }
 
-@keyframes aicaFadeIn {
+@keyframes wpppFadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
