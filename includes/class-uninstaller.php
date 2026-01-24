@@ -4,112 +4,89 @@ defined( 'ABSPATH' ) || exit;
 class WPPP_Plugin_Uninstaller {
     
     /**
-     * Plugin uninstall - COMPLETE removal when plugin is deleted
+     * Complete removal when plugin is deleted from the WP Dashboard
      */
     public static function uninstall( $plugin_slug ) {
-        // Remove the database table and all data
-        self::drop_database_table( $plugin_slug );
+        // 1. Remove database tables
+        self::drop_database_tables( $plugin_slug );
         
-        // Clean up all plugin options
+        // 2. Remove all plugin options
         self::cleanup_plugin_options( $plugin_slug );
         
-        // Clean up any temporary data
-        self::cleanup_temp_data( $plugin_slug );
+        // 3. Remove the protected directory and all digital files
+        self::remove_protected_directory();
         
-        error_log( "AI Chat Agent: Plugin uninstalled - all data removed" );
+        error_log( "WPPP: Plugin uninstalled - all data and protected files removed." );
     }
 
     /**
-     * Drop the database tables when plugin is uninstalled, including _chat_logs and _feedback tables.
+     * Drops the custom tables: transactions, subscriptions, and digital_products
      */
-    private static function drop_database_table( $plugin_slug ) {
+    private static function drop_database_tables( $plugin_slug ) {
         global $wpdb;
 
-        // Generate clean slug part used in table creation (see class-db-manager.php)
-        $clean_slug_part = sanitize_key( $plugin_slug );
-        $final_slug_part = str_replace('-', '_', $clean_slug_part);
+        $clean_slug = str_replace('-', '_', sanitize_key($plugin_slug));
+        
+        $tables = array(
+            $wpdb->prefix . $clean_slug . '_transactions',
+            $wpdb->prefix . $clean_slug . '_subscriptions',
+            $wpdb->prefix . $clean_slug . '_digital_products'
+        );
 
-        // Get all relevant table names (chat_logs, feedback, knowledge_base)
-        $chat_logs_table = $wpdb->prefix . $final_slug_part . '_chat_logs';
-        $feedback_table  = $wpdb->prefix . $final_slug_part . '_feedback';
-        $kb_table        = $wpdb->prefix . $final_slug_part . '_knowledge_base';
-
-        // Tables to drop
-        $tables = array( $chat_logs_table, $feedback_table, $kb_table );
-
-        foreach ( $tables as $table_name ) {
-            // Check if table exists before trying to drop it
-            $table_exists = $wpdb->get_var( $wpdb->prepare(
-                "SHOW TABLES LIKE %s",
-                $table_name
-            ) );
-
-            if ( $table_exists ) {
-                // Drop the table using WordPress database functions
-                $sql = "DROP TABLE IF EXISTS `$table_name`";
-                $result = $wpdb->query( $sql );
-
-                if ( $result !== false ) {
-                    error_log( "AI Chat Agent: Successfully dropped table {$table_name}" );
-                } else {
-                    error_log( "AI Chat Agent: Failed to drop table {$table_name} - " . $wpdb->last_error );
-                }
-            } else {
-                error_log( "AI Chat Agent: Table {$table_name} does not exist, skipping drop." );
-            }
+        foreach ( $tables as $table ) {
+            $wpdb->query( "DROP TABLE IF EXISTS `$table`" );
         }
     }
 
     /**
-     * Clean up plugin options from the database
+     * Deletes all settings saved in the options table
      */
     private static function cleanup_plugin_options( $plugin_slug ) {
-        // Remove Content Tab Options
-        delete_option( 'ai_agent_display_name' );
-        delete_option( 'ai_agent_welcome_msg' );
-        delete_option( 'ai_agent_placeholder' );
-
-        // Remove Style Tab Options
-        delete_option( 'ai_agent_logo_id' );
-        delete_option( 'ai_agent_bubble_icon' );
-        delete_option( 'ai_agent_primary_color' );
-
-        // Remove Prompt Tab Options
-        delete_option( 'ai_agent_system_prompt' );
-
-        // Remove Master Selection
-        delete_option( $plugin_slug . '_grok_settings' );
-        delete_option( 'llm_model' );
-
-        // Remove Grok Keys
-        delete_option( 'grok_api_key' );
-        delete_option( 'grok_model' );
-        delete_option( 'grok_temperature' );
-
-        // Remove OpenAI Keys
-        delete_option( 'openai_api_key' );
-        delete_option( 'openai_model' );
-        delete_option( 'openai_temperature' );
-
-        // Remove Gemini Keys
-        delete_option( 'gemini_api_key' );
-        delete_option( 'gemini_model' );
-        delete_option( 'gemini_temperature' );
+        // API Credentials
+        delete_option( 'paddle_client_side_token' );
+        delete_option( 'paddle_api_key' );
+        delete_option( 'paddle_webhook_secret' );
         
-        // Remove Notifications Tab Option
-        delete_option( 'ai_agent_admin_email' );
-        delete_option( 'ai_agent_theme_mode' );
-
-        // Remove any other plugin-specific options
-        delete_option( $plugin_slug . '_plugin_version' );
-        delete_option( $plugin_slug . '_installed_time' );
-        delete_option( $plugin_slug . '_last_cron_sync' );
+        // Configuration
+        delete_option( 'paddle_environment' );
+        delete_option( 'paddle_thank_you_page_url' );
         
-        error_log( "AI Chat Agent: Cleaned up all options for {$plugin_slug}" );
+        // Activation flags
+        delete_option( $plugin_slug . '_activated' );
+        delete_option( 'wppp_paddle_sandbox' );
     }
 
-    private static function cleanup_temp_data( $plugin_slug ) {
-        // Remove any temporary transients using the dynamic slug
-        delete_transient( $plugin_slug . '_temp_data' );
+    /**
+     * Securely deletes the wppp-protected directory and everything inside it
+     */
+    private static function remove_protected_directory() {
+        $upload_dir = wp_upload_dir();
+        $target_dir = $upload_dir['basedir'] . '/wppp-protected';
+
+        if ( is_dir( $target_dir ) ) {
+            $files = glob( $target_dir . '/*', GLOB_MARK ); 
+            
+            foreach ( $files as $file ) {
+                if ( is_dir( $file ) ) {
+                    // This handles subdirectories if any exist
+                    self::delete_directory_recursive( $file );
+                } else {
+                    unlink( $file ); // Delete file (the .zip, .htaccess, etc.)
+                }
+            }
+            rmdir( $target_dir ); // Remove the main folder
+        }
+    }
+
+    /**
+     * Helper to recursively delete subfolders
+     */
+    private static function delete_directory_recursive( $dir ) {
+        if ( ! is_dir( $dir ) ) return;
+        $files = array_diff( scandir( $dir ), array( '.', '..' ) );
+        foreach ( $files as $file ) {
+            ( is_dir( "$dir/$file" ) ) ? self::delete_directory_recursive( "$dir/$file" ) : unlink( "$dir/$file" );
+        }
+        return rmdir( $dir );
     }
 }

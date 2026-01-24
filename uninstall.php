@@ -1,8 +1,8 @@
 <?php
 /**
- * Uninstall AI Proposal System
+ * Uninstall WP Paddle Pro
  * 
- * @package AI_Proposal_System
+ * @package WP_Paddle_Pro
  */
 
 // Exit if uninstall not called from WordPress

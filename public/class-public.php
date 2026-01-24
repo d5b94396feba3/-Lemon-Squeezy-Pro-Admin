@@ -80,58 +80,76 @@ class WPPP_Plugin_Public {
         }
         return ob_get_clean();
     }
+    
 
-    /**
-     * Secure Download Proxy
-     */
     public function handle_secure_download() {
         if ( ! isset($_GET['wppp_download']) || ! is_user_logged_in() ) return;
 
+        // Security: Check nonce if you add one to the download link
         $product_id = absint($_GET['wppp_download']);
         $user_id    = get_current_user_id();
 
         require_once WPPP_PLUGIN_PATH . 'includes/db/class-db-manager.php';
         $db = new WPPP_Plugin_DB_Manager($this->plugin_slug);
 
-        // Verify purchase
         if ( ! $db->user_has_purchased_product($user_id, $product_id) ) {
-            wp_die(__('Access Denied. You have not purchased this product.', 'wp-paddle-pro'), '', array('response' => 403));
+            wp_die( esc_html__('Access Denied. You have not purchased this product.', 'wp-paddle-pro'), '', array('response' => 403));
         }
 
         $product = $db->get_product_by_id($product_id);
-        if ( ! $product || empty($product['file_path']) ) wp_die(__('File not found.', 'wp-paddle-pro'));
+        if ( ! $product || empty($product['file_path']) ) {
+            wp_die( esc_html__('File not found.', 'wp-paddle-pro') );
+        }
 
         $file_path = $product['file_path'];
 
-        // Convert URL to Path if saved as URL
         if ( strpos($file_path, 'http') !== false ) {
             $upload_dir = wp_upload_dir();
             $file_path  = str_replace($upload_dir['baseurl'], $upload_dir['basedir'], $file_path);
         }
 
-        if ( ! file_exists($file_path) ) wp_die(__('The file does not exist on the server.', 'wp-paddle-pro'));
+        // Standard WP security check for file existence
+        if ( ! @file_exists($file_path) ) {
+            wp_die( esc_html__('The file does not exist on the server.', 'wp-paddle-pro') );
+        }
 
-        // Serve File
+        // WP Standard: Clear output buffer and set no-cache
+        if (ob_get_level()) ob_end_clean();
+        nocache_headers();
+
         header("Content-Type: application/octet-stream");
         header("Content-Description: File Transfer");
         header("Content-Disposition: attachment; filename=\"" . basename($file_path) . "\"");
         header("Content-Length: " . filesize($file_path));
-        header("Pragma: public");
-        header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
         
         readfile($file_path);
         exit;
     }
 
+    /**
+     * Shortcode to render the customer download dashboard.
+     * Usage: [paddle_dashboard]
+     */
     public function render_customer_dashboard() {
-        if ( !is_user_logged_in() ) return '<p>' . esc_html__('Please login to view downloads.', 'wp-paddle-pro') . '</p>';
-        
-        require_once WPPP_PLUGIN_PATH . 'includes/db/class-db-manager.php';
-        $db = new WPPP_Plugin_DB_Manager($this->plugin_slug);
-        $downloads = $db->get_user_purchased_products(get_current_user_id());
-        
+        if ( ! is_user_logged_in() ) {
+            return '<p>' . esc_html__( 'Please login to view your downloads.', 'wp-paddle-pro' ) . '</p>';
+        }
+
+        $db = new WPPP_Plugin_DB_Manager( $this->plugin_slug );
+        $downloads = $db->get_user_purchased_products( get_current_user_id() );
+
+        // 2. Load the template safely
         ob_start();
-        include WPPP_PLUGIN_PATH . 'public/partials/customer-dashboard-template.php'; // Recommended to use partial
+        $template_path = WPPP_PLUGIN_PATH . 'public/partials/customer-dashboard-template.php';
+        
+        if ( file_exists( $template_path ) ) {
+            // The variable $downloads is now available inside the template
+            include $template_path;
+        } else {
+            error_log( "WPPP Error: Dashboard template not found at $template_path" );
+            echo '<p>' . esc_html__( 'Dashboard UI could not be loaded.', 'wp-paddle-pro' ) . '</p>';
+        }
+
         return ob_get_clean();
     }
 }

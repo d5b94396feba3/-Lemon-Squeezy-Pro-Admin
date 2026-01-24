@@ -64,35 +64,39 @@ class WPPP_Plugin_Paddle_Core {
         
         $db = new WPPP_Plugin_DB_Manager($this->plugin_slug);
     
-        // IDEMPOTENCY CHECK: Stop if this transaction was already processed
+        // IDEMPOTENCY CHECK
         if ($db->transaction_exists($tx_id)) {
             error_log('WPPP: Skipping duplicate webhook for transaction ' . $tx_id);
             return;
         }
+
+        // Get the Price ID from the items array in the webhook payload
+        $items = $data['items'] ?? [];
+        $first_item = !empty($items) ? $items[0] : null;
+        $price_id = $first_item ? $first_item['price_id'] : '';
+        // --- FIX ENDS HERE ---
         
         $amount = isset($data['details']['totals']['total']) ? $data['details']['totals']['total'] / 100 : 0;
     
-        // 1. Log to DB (Only runs if tx_id is new)
+        // 1. Log to DB (Now $price_id is correctly defined)
         $db->log_transaction(
             $user_id, 
             $tx_id, 
+            $price_id, 
             $amount, 
             $data['currency_code'] ?? 'USD', 
             'completed'
         );
     
-        // 2. Grant myCRED Points
-        require_once WPPP_PLUGIN_PATH . 'includes/mycred/class-mycred-handler.php';
         $mycred = new \PaddleToMycred\Mycred_Handler();
         
-        $items = $data['items'] ?? [];
         $points_mapping = $this->get_points_mapping();
     
         foreach ($items as $item) {
-            $price_id = $item['price_id'] ?? '';
-            if (isset($points_mapping[$price_id])) {
-                $pkg = $points_mapping[$price_id];
-                $mycred->grant_points_on_paddle_purchase($user_id, $pkg['points'], $pkg['name'], ['id' => $tx_id, 'price_id' => $price_id]);
+            $item_price_id = $item['price_id'] ?? '';
+            if (isset($points_mapping[$item_price_id])) {
+                $pkg = $points_mapping[$item_price_id];
+                $mycred->grant_points_on_paddle_purchase($user_id, $pkg['points'], $pkg['name'], ['id' => $tx_id, 'price_id' => $item_price_id]);
             }
         }
     

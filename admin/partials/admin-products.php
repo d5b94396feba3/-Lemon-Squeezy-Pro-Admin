@@ -1,7 +1,10 @@
 <?php defined( 'ABSPATH' ) || exit; ?>
 <div class="wrap">
     <h1><?php esc_html_e( 'Digital Products Mapping', 'wp-paddle-pro' ); ?></h1>
-    
+    <?php 
+// Display all registered notices
+settings_errors( 'wppp_messages' ); 
+?>
     <div class="card" style="max-width: 100%; margin-top: 20px;">
         <h2><?php esc_html_e( 'Add New Product', 'wp-paddle-pro' ); ?></h2>
         <form method="post" action="" enctype="multipart/form-data">

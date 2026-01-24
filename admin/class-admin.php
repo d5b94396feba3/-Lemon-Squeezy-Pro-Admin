@@ -47,44 +47,64 @@ class WPPP_Plugin_Admin {
 
     public function display_products_page() {
         // Handle Form Submission
-        if ( isset($_POST['wppp_add_product']) && check_admin_referer('wppp_add_product_action') ) {
-            $price_id = sanitize_text_field($_POST['price_id']);
-            $name     = sanitize_text_field($_POST['name']);
-            $file_url = '';
-
-            // Handle File Upload
-            if ( ! empty($_FILES['product_file']['name']) ) {
-                require_once ABSPATH . 'wp-admin/includes/file.php';
-                
-                $upload_dir = wp_upload_dir();
-                $target_dir = $upload_dir['basedir'] . '/wppp-protected';
-
-                // Ensure directory exists (fallback)
-                if ( ! file_exists($target_dir) ) {
-                    wp_mkdir_p($target_dir);
-                }
-
-                $file     = $_FILES['product_file'];
-                $filename = wp_unique_filename($target_dir, $file['name']);
-                $new_path = $target_dir . '/' . $filename;
-
-                // Move file to protected folder
-                if ( move_uploaded_file($file['tmp_path'], $new_path) || move_uploaded_file($file['tmp_name'], $new_path) ) {
-                    $file_url = $new_path; // Store absolute server path for security
-                }
-            } else {
-                // Fallback to manual path if provided
-                $file_url = sanitize_text_field($_POST['file_url']);
-            }
-
-            if ( ! empty($file_url) ) {
-                $this->db->add_product($price_id, $name, $file_url);
-                echo '<div class="updated"><p>' . esc_html__('Product saved to protected storage!', 'wp-paddle-pro') . '</p></div>';
-            }
+        if ( isset( $_POST['wppp_add_product'] ) && check_admin_referer( 'wppp_add_product_action' ) ) {
+            $this->handle_product_form_submission();
         }
-
+    
         $products = $this->db->get_all_products();
         include WPPP_PLUGIN_PATH . 'admin/partials/admin-products.php';
+    }
+    
+    /**
+     * Handles the logic for processing the product form.
+     * Follows WP Standards: No direct echo, proper error handling.
+     */
+    private function handle_product_form_submission() {
+        $price_id = sanitize_text_field( $_POST['price_id'] );
+        $name     = sanitize_text_field( $_POST['name'] );
+        $file_url = '';
+    
+        // Handle File Upload
+        if ( ! empty( $_FILES['product_file']['name'] ) ) {
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+            
+            $upload_dir = wp_upload_dir();
+            $target_dir = $upload_dir['basedir'] . '/wppp-protected';
+    
+            // Secure directory creation
+            if ( ! file_exists( $target_dir ) ) {
+                wp_mkdir_p( $target_dir );
+            }
+    
+            $file     = $_FILES['product_file'];
+            $tmp_name = $file['tmp_name']; // Standard PHP key (tmp_path is incorrect)
+            $filename = wp_unique_filename( $target_dir, $file['name'] );
+            $new_path = $target_dir . '/' . $filename;
+    
+            // Securely move file
+            if ( move_uploaded_file( $tmp_name, $new_path ) ) {
+                $file_url = $new_path;
+            } else {
+                add_settings_error( 'wppp_messages', 'wppp_file_error', __( 'Failed to move file to protected storage.', 'wp-paddle-pro' ), 'error' );
+                return;
+            }
+        } else {
+            $file_url = sanitize_text_field( $_POST['file_url'] );
+        }
+    
+        if ( ! empty( $file_url ) ) {
+            $inserted = $this->db->add_product( $price_id, $name, $file_url );
+    
+            if ( $inserted ) {
+                add_settings_error( 'wppp_messages', 'wppp_success', __( 'Product saved to protected storage!', 'wp-paddle-pro' ), 'updated' );
+            } else {
+                add_settings_error( 'wppp_messages', 'wppp_db_error', __( 'Database insertion failed. The Price ID might already exist.', 'wp-paddle-pro' ), 'error' );
+            }
+        }
+        
+        // Set transient to show notice after redirect if necessary, 
+        // or simply let settings_errors() handle it in the partial.
+        set_transient( 'settings_errors', get_settings_errors(), 30 );
     }
 
     public function display_transactions_page() {
@@ -99,17 +119,14 @@ class WPPP_Plugin_Admin {
      * Registers all settings found in your custom integration script
      */
     public function register_settings() {
-        // API Credentials & Tokens
-        register_setting($this->plugin_slug . '_settings', 'paddle_client_side_token', 'sanitize_text_field');
-        register_setting($this->plugin_slug . '_settings', 'paddle_api_key', 'sanitize_text_field');
-        register_setting($this->plugin_slug . '_settings', 'paddle_webhook_secret', 'sanitize_text_field');
+        // Group 1: General (API Credentials)
+        register_setting($this->plugin_slug . '_general_settings', 'paddle_environment', 'sanitize_text_field');
+        register_setting($this->plugin_slug . '_general_settings', 'paddle_client_side_token', 'sanitize_text_field');
+        register_setting($this->plugin_slug . '_general_settings', 'paddle_api_key', 'sanitize_text_field');
+        register_setting($this->plugin_slug . '_general_settings', 'paddle_webhook_secret', 'sanitize_text_field');
         
-        // Environment & Configuration
-        register_setting($this->plugin_slug . '_settings', 'paddle_environment', 'sanitize_text_field');
-        register_setting($this->plugin_slug . '_settings', 'paddle_thank_you_page_url', 'esc_url_raw');
-        
-        // Backward compatibility for existing WPPP fields if needed
-        register_setting($this->plugin_slug . '_settings', 'wppp_paddle_sandbox');
+        // Group 2: Checkout (Redirects)
+        register_setting($this->plugin_slug . '_checkout_settings', 'paddle_thank_you_page_url', 'esc_url_raw');
     }
 
     public function handle_test_connection_ajax() {

@@ -13,10 +13,10 @@ defined( 'ABSPATH' ) || exit;
     <div class="wppp-dashboard-header">
         <h3 class="wppp-dashboard-title">
             <span class="dashicons dashicons-download"></span>
-            <?php esc_html_e('My Digital Products', 'wp-paddle-pro'); ?>
+            <?php esc_html_e('My Products', 'wp-paddle-pro'); ?>
         </h3>
         <p class="wppp-dashboard-subtitle">
-            <?php esc_html_e('All your purchased files are listed below. Click "Download" to save them to your device.', 'wp-paddle-pro'); ?>
+            <?php esc_html_e('All your purchased products are listed below. Click "Download" to save them to your device.', 'wp-paddle-pro'); ?>
         </p>
     </div>
 
@@ -45,8 +45,8 @@ defined( 'ABSPATH' ) || exit;
                                 $download_url = add_query_arg( 'wppp_download', $item['id'], home_url( '/' ) ); 
                                 ?>
                                 <a href="<?php echo esc_url( $download_url ); ?>" class="wppp-button wppp-download-btn">
-                                    <span class="dashicons dashicons-cloud-download"></span>
-                                    <?php esc_html_e('Download Now', 'wp-paddle-pro'); ?>
+                                    <span class="dashicons dashicons-download"></span>
+                                    <?php esc_html_e('Download', 'wp-paddle-pro'); ?>
                                 </a>
                             </td>
                         </tr>

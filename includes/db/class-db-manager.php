@@ -19,10 +19,11 @@ class WPPP_Plugin_DB_Manager {
         $this->table_digital_products = $wpdb->prefix . $clean_slug . '_digital_products';
     }
 
-    public function log_transaction($user_id, $order_id, $amount, $currency, $status) {
+    public function log_transaction($user_id, $order_id, $price_id, $amount, $currency, $status) {
         return $this->wpdb->insert($this->table_transactions, [
             'user_id'         => absint($user_id),
             'paddle_order_id' => sanitize_text_field($order_id),
+            'paddle_price_id' => sanitize_text_field($price_id), // Link to product
             'amount'          => floatval($amount),
             'currency'        => sanitize_text_field($currency),
             'status'          => sanitize_text_field($status),
@@ -31,26 +32,35 @@ class WPPP_Plugin_DB_Manager {
     }
 
     public function user_has_purchased_product($user_id, $product_id) {
-        // Standard approach: Join transactions with digital products via Price ID
-        $query = "
-            SELECT COUNT(*) 
-            FROM {$this->table_transactions} t
-            INNER JOIN {$this->table_digital_products} dp ON t.status = 'completed'
-            WHERE t.user_id = %d 
-            AND dp.id = %d
-        ";
+        $query = $this->wpdb->prepare(
+            "SELECT COUNT(*) 
+             FROM {$this->table_transactions} t
+             INNER JOIN {$this->table_digital_products} dp ON t.paddle_price_id = dp.paddle_price_id
+             WHERE t.user_id = %d AND dp.id = %d AND t.status = 'completed'",
+            absint($user_id),
+            absint($product_id)
+        );
         
-        $count = $this->wpdb->get_var($this->wpdb->prepare($query, absint($user_id), absint($product_id)));
-        return ($count > 0);
+        return (bool) $this->wpdb->get_var($query);
     }
 
     public function get_user_purchased_products($user_id) {
-        $query = "SELECT dp.id, dp.product_name, dp.file_path, t.created_at 
-                  FROM {$this->table_transactions} t 
-                  CROSS JOIN {$this->table_digital_products} dp 
-                  WHERE t.user_id = %d AND t.status = 'completed' 
-                  ORDER BY t.created_at DESC";
-        return $this->wpdb->get_results($this->wpdb->prepare($query, absint($user_id)), ARRAY_A);
+        $query = $this->wpdb->prepare(
+            "SELECT dp.id, dp.product_name, dp.file_path, t.created_at 
+             FROM {$this->table_transactions} t 
+             INNER JOIN {$this->table_digital_products} dp ON t.paddle_price_id = dp.paddle_price_id 
+             WHERE t.user_id = %d AND t.status = 'completed' 
+             ORDER BY t.created_at DESC",
+            absint($user_id)
+        );
+        
+        $results = $this->wpdb->get_results($query, ARRAY_A);
+        
+        if ( $this->wpdb->last_error ) {
+            error_log( "WPPP DB Error in Customer Dashboard: " . $this->wpdb->last_error );
+        }
+        
+        return $results;
     }
 
     public function get_product_by_id($product_id) {
@@ -105,13 +115,15 @@ class WPPP_Plugin_DB_Manager {
             id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
             user_id BIGINT(20) UNSIGNED NOT NULL,
             paddle_order_id VARCHAR(100) NOT NULL,
+            paddle_price_id VARCHAR(100) NOT NULL, 
             amount DECIMAL(10,2) NOT NULL,
             currency VARCHAR(10) NOT NULL,
             status VARCHAR(50) NOT NULL,
             created_at DATETIME NOT NULL,
             PRIMARY KEY (id),
             KEY user_id (user_id),
-            KEY paddle_order_id (paddle_order_id)
+            KEY paddle_order_id (paddle_order_id),
+            KEY paddle_price_id (paddle_price_id)
         ) $charset_collate;";
 
         $sql_subs = "CREATE TABLE $table_subs (
