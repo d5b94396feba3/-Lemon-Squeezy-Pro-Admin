@@ -46,17 +46,43 @@ class WPPP_Plugin_Admin {
     }
 
     public function display_products_page() {
-        // Handle Form Submission using DB class
+        // Handle Form Submission
         if ( isset($_POST['wppp_add_product']) && check_admin_referer('wppp_add_product_action') ) {
-            $this->db->add_product(
-                $_POST['price_id'],
-                $_POST['name'],
-                $_POST['file_url']
-            );
-            echo '<div class="updated"><p>' . esc_html__('Product created successfully!', 'wp-paddle-pro') . '</p></div>';
+            $price_id = sanitize_text_field($_POST['price_id']);
+            $name     = sanitize_text_field($_POST['name']);
+            $file_url = '';
+
+            // Handle File Upload
+            if ( ! empty($_FILES['product_file']['name']) ) {
+                require_once ABSPATH . 'wp-admin/includes/file.php';
+                
+                $upload_dir = wp_upload_dir();
+                $target_dir = $upload_dir['basedir'] . '/wppp-protected';
+
+                // Ensure directory exists (fallback)
+                if ( ! file_exists($target_dir) ) {
+                    wp_mkdir_p($target_dir);
+                }
+
+                $file     = $_FILES['product_file'];
+                $filename = wp_unique_filename($target_dir, $file['name']);
+                $new_path = $target_dir . '/' . $filename;
+
+                // Move file to protected folder
+                if ( move_uploaded_file($file['tmp_path'], $new_path) || move_uploaded_file($file['tmp_name'], $new_path) ) {
+                    $file_url = $new_path; // Store absolute server path for security
+                }
+            } else {
+                // Fallback to manual path if provided
+                $file_url = sanitize_text_field($_POST['file_url']);
+            }
+
+            if ( ! empty($file_url) ) {
+                $this->db->add_product($price_id, $name, $file_url);
+                echo '<div class="updated"><p>' . esc_html__('Product saved to protected storage!', 'wp-paddle-pro') . '</p></div>';
+            }
         }
 
-        // Fetch data using DB class
         $products = $this->db->get_all_products();
         include WPPP_PLUGIN_PATH . 'admin/partials/admin-products.php';
     }
@@ -132,5 +158,15 @@ class WPPP_Plugin_Admin {
     public function enqueue_styles($hook) {
         if (strpos($hook, $this->plugin_slug) === false) return;
         wp_enqueue_style($this->plugin_slug . '-admin-css', WPPP_PLUGIN_URL . 'assets/css/admin/admin.css', array(), $this->version);
+    }
+
+    public function enqueue_scripts() {
+        // Enqueue Admin JS
+        wp_enqueue_script($this->plugin_slug . '-product-upload-js', WPPP_PLUGIN_URL . 'assets/js/admin/product-upload.js', array('jquery'), $this->version, true);
+                
+        wp_localize_script($this->plugin_slug . '-product-upload-js', 'wppp_admin', array(
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'nonce'    => wp_create_nonce('wppp_admin_nonce')
+        ));
     }
 }

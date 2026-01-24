@@ -24,7 +24,7 @@ class WPPP_Plugin_Main {
             $this->loader->add_action('admin_menu', $admin, 'add_admin_menu');
             $this->loader->add_action('admin_init', $admin, 'register_settings');
             $this->loader->add_action('admin_enqueue_scripts', $admin, 'enqueue_styles');
-            
+            $this->loader->add_action('admin_enqueue_scripts', $admin, 'enqueue_scripts');
             // AJAX Actions
             $this->loader->add_action('wp_ajax_get_transaction_details', $admin, 'handle_get_tx_details_ajax');
             $this->loader->add_action('wp_ajax_wppp_test_connection', $admin, 'handle_test_connection_ajax');

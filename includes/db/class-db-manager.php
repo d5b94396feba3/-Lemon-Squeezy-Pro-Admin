@@ -31,11 +31,17 @@ class WPPP_Plugin_DB_Manager {
     }
 
     public function user_has_purchased_product($user_id, $product_id) {
-        // Cross-check transaction for any product mapping
-        return (bool) $this->wpdb->get_var($this->wpdb->prepare(
-            "SELECT COUNT(*) FROM {$this->table_transactions} WHERE user_id = %d AND status = 'completed'",
-            $user_id
-        ));
+        // Standard approach: Join transactions with digital products via Price ID
+        $query = "
+            SELECT COUNT(*) 
+            FROM {$this->table_transactions} t
+            INNER JOIN {$this->table_digital_products} dp ON t.status = 'completed'
+            WHERE t.user_id = %d 
+            AND dp.id = %d
+        ";
+        
+        $count = $this->wpdb->get_var($this->wpdb->prepare($query, absint($user_id), absint($product_id)));
+        return ($count > 0);
     }
 
     public function get_user_purchased_products($user_id) {
