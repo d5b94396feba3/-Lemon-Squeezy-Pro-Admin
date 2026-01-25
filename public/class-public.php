@@ -65,22 +65,71 @@ class WPPP_Plugin_Public {
         return ob_get_clean();
     }
 
+    /**
+     * Renders the order summary shortcode.
+     * Securely verifies transaction and retrieves myCred data for the template.
+     */
     public function render_order_summary($atts) {
+        // 1. Get and sanitize the transaction ID from the URL
         $tx_id = isset($_GET['paddle_transaction_id']) ? sanitize_text_field($_GET['paddle_transaction_id']) : '';
-        if (!$tx_id) return '<p>' . esc_html__('No transaction found.', 'wp-paddle-pro') . '</p>';
-
-        require_once WPPP_PLUGIN_PATH . 'includes/mycred/class-mycred-handler.php';
-        $mycred = new \PaddleToMycred\Mycred_Handler();
         
-        $mycred_data = $mycred->mycred_balance_with_rank();
-
-        ob_start();
-        if (file_exists(WPPP_PLUGIN_PATH . 'public/partials/order-summary-template.php')) {
-            include WPPP_PLUGIN_PATH . 'public/partials/order-summary-template.php';
+        // 2. Check if user is logged in
+        if ( ! is_user_logged_in() ) {
+            return sprintf( 
+                '<p class="wppp-error">%s</p>', 
+                esc_html__( 'Please login to view your order summary.', 'wp-paddle-pro' ) 
+            );
         }
+
+        if ( ! $tx_id ) {
+            return sprintf( 
+                '<p class="wppp-error">%s</p>', 
+                esc_html__( 'No transaction ID provided.', 'wp-paddle-pro' ) 
+            );
+        }
+
+        // 3. Initialize DB Manager and verify ownership
+        if ( ! class_exists( 'WPPP_Plugin_DB_Manager' ) ) {
+            require_once WPPP_PLUGIN_PATH . 'includes/db/class-db-manager.php';
+        }
+        
+        $db      = new WPPP_Plugin_DB_Manager( $this->plugin_slug );
+        $user_id = get_current_user_id();
+
+        // Verify the transaction exists for THIS user in our DB
+        if ( ! $db->is_transaction_valid_for_user( $tx_id, $user_id ) ) {
+            return sprintf( 
+                '<p class="wppp-error">%s</p>', 
+                esc_html__( 'Invalid transaction or transaction not found.', 'wp-paddle-pro' ) 
+            );
+        }
+
+        // 4. Retrieve myCred Data (Kept as requested)
+        if ( file_exists( WPPP_PLUGIN_PATH . 'includes/mycred/class-mycred-handler.php' ) ) {
+            require_once WPPP_PLUGIN_PATH . 'includes/mycred/class-mycred-handler.php';
+            $mycred      = new \PaddleToMycred\Mycred_Handler();
+            $mycred_data = $mycred->mycred_balance_with_rank();
+        } else {
+            $mycred_data = array( 'balance' => 0, 'rank_name' => '' );
+        }
+
+        // 5. Render the summary template safely
+        $template_path = WPPP_PLUGIN_PATH . 'public/partials/order-summary-template.php';
+        
+        ob_start();
+        
+        if ( file_exists( $template_path ) ) {
+            // Variables $mycred_data and $tx_id are now available to the included template
+            include $template_path;
+        } else {
+            printf( 
+                '<p class="wppp-success">%s</p>', 
+                esc_html__( 'Thank you! Your order is complete.', 'wp-paddle-pro' ) 
+            );
+        }
+        
         return ob_get_clean();
     }
-    
 
     public function handle_secure_download() {
         if ( ! isset($_GET['wppp_download']) || ! is_user_logged_in() ) return;

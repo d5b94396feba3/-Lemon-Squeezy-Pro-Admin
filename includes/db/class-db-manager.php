@@ -103,6 +103,27 @@ class WPPP_Plugin_DB_Manager {
         ), ARRAY_A);
     }
 
+    /**
+     * Verify if a transaction ID belongs to a specific user.
+     * * @param string $tx_id   The Paddle Transaction ID.
+     * @param int    $user_id The WordPress User ID.
+     * @return bool
+     */
+    public function is_transaction_valid_for_user($tx_id, $user_id) {
+        if (empty($tx_id) || empty($user_id)) {
+            return false;
+        }
+
+        $query = $this->wpdb->prepare(
+            "SELECT COUNT(*) FROM {$this->table_transactions} 
+            WHERE paddle_order_id = %s AND user_id = %d AND status = 'completed'",
+            sanitize_text_field($tx_id),
+            absint($user_id)
+        );
+
+        return (bool) $this->wpdb->get_var($query);
+    }
+
     public static function create_table($plugin_slug) {
         global $wpdb;
         $clean_slug = str_replace('-', '_', sanitize_key($plugin_slug));
