@@ -44,22 +44,32 @@ class WPPP_Plugin_Public {
     }
 
     public function render_checkout_button($atts) {
+        // 1. Define support for Tailwind classes and price_id
         $atts = shortcode_atts([
             'price_id' => '',
             'text'     => __('Buy Now', 'wp-paddle-pro'),
-            'class'    => 'paddle-checkout-button button-primary'
-        ], $atts);
-
-        if (empty($atts['price_id'])) return '';
-
+            'class'    => 'w-full btn-gradient-purple text-white font-bold text-lg px-8 py-4 rounded-full shadow-xl transition-all duration-300 transform hover:scale-[1.02] hover:brightness-110 focus:outline-none focus:ring-4 focus:ring-[var(--color-light-purple)]'
+        ], $atts, 'paddle_checkout');
+    
+        // 2. Validate Price ID
+        if (empty($atts['price_id'])) {
+            return '';
+        }
+    
         ob_start();
         ?>
         <div class="wppp-checkout-container">
-            <button class="<?php echo esc_attr($atts['class']); ?> wppp-paddle-checkout" 
-                    data-price-id="<?php echo esc_attr($atts['price_id']); ?>">
-                <?php echo esc_html($atts['text']); ?>
+            <button 
+                type="button"
+                class="<?php echo esc_attr($atts['class']); ?> wppp-paddle-checkout" 
+                data-price-id="<?php echo esc_attr($atts['price_id']); ?>"
+                aria-label="<?php echo esc_attr($atts['text']); ?>"
+            >
+                <?php echo esc_html($atts['text']); ?> 
+                <i class="fas fa-credit-card ml-2" aria-hidden="true"></i>
             </button>
-            <div class="paddle-login-message" style="display: none; color: #c00; margin-top: 8px; font-size: 13px;"></div>
+            
+            <div class="paddle-login-message" style="display: none; color: #c00; margin-top: 8px; font-size: 13px; text-align: center;"></div>
         </div>
         <?php
         return ob_get_clean();
