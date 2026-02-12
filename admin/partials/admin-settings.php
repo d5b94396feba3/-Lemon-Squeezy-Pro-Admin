@@ -159,8 +159,8 @@ jQuery(document).ready(function($) {
             url: ajaxurl,
             type: 'POST',
             data: {
-                action: 'wppp_test_connection',
-                _ajax_nonce: '<?php echo wp_create_nonce("wppp_test_nonce"); ?>'
+                action: 'lspa_test_connection',
+                _ajax_nonce: '<?php echo wp_create_nonce("lspa_test_nonce"); ?>'
             },
             success: function(response) {
                 $spinner.removeClass('is-active');

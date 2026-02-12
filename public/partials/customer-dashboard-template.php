@@ -42,7 +42,7 @@ defined( 'ABSPATH' ) || exit;
                             <td class="col-action">
                                 <?php 
                                 // Generate the secure download URL
-                                $download_url = add_query_arg( 'wppp_download', $item['id'], home_url( '/' ) ); 
+                                $download_url = add_query_arg( 'lspa_download', $item['id'], home_url( '/' ) ); 
                                 ?>
                                 <a href="<?php echo esc_url( $download_url ); ?>" class="wppp-button wppp-download-btn">
                                     <span class="dashicons dashicons-download"></span>

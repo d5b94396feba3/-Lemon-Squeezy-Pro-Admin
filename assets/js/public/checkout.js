@@ -5,16 +5,16 @@
         init: function() {
             if (typeof Paddle === 'undefined') return;
 
-            Paddle.Environment.set(wppp_vars.environment);
+            Paddle.Environment.set(lspa_vars.environment);
             
             Paddle.Initialize({ 
-                token: wppp_vars.token,
+                token: lspa_vars.token,
                 eventCallback: function(event) {
                     // Paddle v2 uses 'checkout.completed' for successful payments
                     if (event.name === 'checkout.completed') {
                         // Extracting transaction_id from the data object
                         const txId = event.data.transaction_id || event.data.id;
-                        const thankYouBase = wppp_vars.thank_you;
+                        const thankYouBase = lspa_vars.thank_you;
 
                         if (thankYouBase && txId) {
                             const url = new URL(thankYouBase);
@@ -40,8 +40,8 @@
                 const priceId = $btn.data('price-id');
                 const $msgContainer = $btn.siblings('.paddle-login-message');
 
-                if (!wppp_vars.is_logged_in) {
-                    $msgContainer.text(wppp_vars.login_msg).fadeIn();
+                if (!lspa_vars.is_logged_in) {
+                    $msgContainer.text(lspa_vars.login_msg).fadeIn();
                     return;
                 }
 
@@ -59,7 +59,7 @@
                         quantity: 1 
                     }],
                     customData: {
-                        wp_user_id: wppp_vars.user_id
+                        wp_user_id: lspa_vars.user_id
                     }
                 });
             });

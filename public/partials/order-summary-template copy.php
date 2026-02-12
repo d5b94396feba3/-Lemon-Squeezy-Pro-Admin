@@ -1,7 +1,7 @@
 <?php
 /**
  * Template for the Paddle Order Summary
- * * Available variables (passed from WPPP_Plugin_Public):
+ * * Available variables (passed from LSPA_Plugin_Public):
  * @var array $data Contains 'balance' and 'rank_name' from myCred
  */
 

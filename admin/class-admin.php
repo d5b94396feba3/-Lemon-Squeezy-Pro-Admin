@@ -1,7 +1,7 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
-class WPPP_Plugin_Admin {
+class LSPA_Plugin_Admin {
     private $plugin_slug;
     private $version;
     private $db;
@@ -11,14 +11,14 @@ class WPPP_Plugin_Admin {
         $this->version     = $version;
         
         // Initialize DB Manager
-        require_once WPPP_PLUGIN_PATH . 'includes/db/class-db-manager.php';
-        $this->db = new WPPP_Plugin_DB_Manager($this->plugin_slug);
+        require_once LSPA_PLUGIN_PATH . 'includes/db/class-db-manager.php';
+        $this->db = new LSPA_Plugin_DB_Manager($this->plugin_slug);
     }
 
     public function add_admin_menu() {
         add_menu_page(
-            WPPP_PLUGIN_NAME,
-            'Paddle Pro',
+            LSPA_PLUGIN_NAME,
+            'Lemon Squeezy Pro Admin',
             'manage_options',
             $this->plugin_slug,
             array($this, 'display_transactions_page'),
@@ -47,12 +47,12 @@ class WPPP_Plugin_Admin {
 
     public function display_products_page() {
         // Handle Form Submission
-        if ( isset( $_POST['wppp_add_product'] ) && check_admin_referer( 'wppp_add_product_action' ) ) {
+        if ( isset( $_POST['lspa_add_product'] ) && check_admin_referer( 'lspa_add_product_action' ) ) {
             $this->handle_product_form_submission();
         }
     
         $products = $this->db->get_all_products();
-        include WPPP_PLUGIN_PATH . 'admin/partials/admin-products.php';
+        include LSPA_PLUGIN_PATH . 'admin/partials/admin-products.php';
     }
     
     /**
@@ -85,7 +85,7 @@ class WPPP_Plugin_Admin {
             if ( move_uploaded_file( $tmp_name, $new_path ) ) {
                 $file_url = $new_path;
             } else {
-                add_settings_error( 'wppp_messages', 'wppp_file_error', __( 'Failed to move file to protected storage.', 'wp-paddle-pro' ), 'error' );
+                add_settings_error( 'lspa_messages', 'lspa_file_error', __( 'Failed to move file to protected storage.', 'wp-paddle-pro' ), 'error' );
                 return;
             }
         } else {
@@ -96,9 +96,9 @@ class WPPP_Plugin_Admin {
             $inserted = $this->db->add_product( $price_id, $name, $file_url );
     
             if ( $inserted ) {
-                add_settings_error( 'wppp_messages', 'wppp_success', __( 'Product saved to protected storage!', 'wp-paddle-pro' ), 'updated' );
+                add_settings_error( 'lspa_messages', 'lspa_success', __( 'Product saved to protected storage!', 'wp-paddle-pro' ), 'updated' );
             } else {
-                add_settings_error( 'wppp_messages', 'wppp_db_error', __( 'Database insertion failed. The Price ID might already exist.', 'wp-paddle-pro' ), 'error' );
+                add_settings_error( 'lspa_messages', 'lspa_db_error', __( 'Database insertion failed. The Price ID might already exist.', 'wp-paddle-pro' ), 'error' );
             }
         }
         
@@ -108,11 +108,11 @@ class WPPP_Plugin_Admin {
     }
 
     public function display_transactions_page() {
-        include_once WPPP_PLUGIN_PATH . 'admin/partials/admin-transactions.php';
+        include_once LSPA_PLUGIN_PATH . 'admin/partials/admin-transactions.php';
     }
 
     public function display_settings_page() {
-        include_once WPPP_PLUGIN_PATH . 'admin/partials/admin-settings.php';
+        include_once LSPA_PLUGIN_PATH . 'admin/partials/admin-settings.php';
     }
 
     /**
@@ -130,7 +130,7 @@ class WPPP_Plugin_Admin {
     }
 
     public function handle_test_connection_ajax() {
-        check_ajax_referer('wppp_test_nonce');
+        check_ajax_referer('lspa_test_nonce');
     
         $api_key = get_option('paddle_api_key');
         $env     = get_option('paddle_environment', 'sandbox');
@@ -174,16 +174,16 @@ class WPPP_Plugin_Admin {
 
     public function enqueue_styles($hook) {
         if (strpos($hook, $this->plugin_slug) === false) return;
-        wp_enqueue_style($this->plugin_slug . '-admin-css', WPPP_PLUGIN_URL . 'assets/css/admin/admin.css', array(), $this->version);
+        wp_enqueue_style($this->plugin_slug . '-admin-css', LSPA_PLUGIN_URL . 'assets/css/admin/admin.css', array(), $this->version);
     }
 
     public function enqueue_scripts() {
         // Enqueue Admin JS
-        wp_enqueue_script($this->plugin_slug . '-product-upload-js', WPPP_PLUGIN_URL . 'assets/js/admin/product-upload.js', array('jquery'), $this->version, true);
+        wp_enqueue_script($this->plugin_slug . '-product-upload-js', LSPA_PLUGIN_URL . 'assets/js/admin/product-upload.js', array('jquery'), $this->version, true);
                 
-        wp_localize_script($this->plugin_slug . '-product-upload-js', 'wppp_admin', array(
+        wp_localize_script($this->plugin_slug . '-product-upload-js', 'lspa_admin', array(
             'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce'    => wp_create_nonce('wppp_admin_nonce')
+            'nonce'    => wp_create_nonce('lspa_admin_nonce')
         ));
     }
 }

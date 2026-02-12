@@ -1,7 +1,7 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
-class WPPP_Plugin_Activator {
+class LSPA_Plugin_Activator {
     
     public static function activate( $plugin_slug ) {
         // Set a flag using the dynamic slug
@@ -10,10 +10,10 @@ class WPPP_Plugin_Activator {
         }
 
         // 1. Database Table Creation
-        if ( ! class_exists( 'WPPP_Plugin_DB_Manager' ) ) {
+        if ( ! class_exists( 'LSPA_Plugin_DB_Manager' ) ) {
             require_once dirname(__FILE__) . '/db/class-db-manager.php';
         }
-        WPPP_Plugin_DB_Manager::create_table( $plugin_slug );
+        LSPA_Plugin_DB_Manager::create_table( $plugin_slug );
 
         // 2. Secure Directory Setup
         self::setup_protected_files_dir();

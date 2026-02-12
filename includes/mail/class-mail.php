@@ -4,7 +4,7 @@
  */
 defined( 'ABSPATH' ) || exit;
 
-class WPPP_Plugin_Mail {
+class LSPA_Plugin_Mail {
     private $plugin_slug;
 
     public function __construct($plugin_slug) {
@@ -98,7 +98,7 @@ class WPPP_Plugin_Mail {
                     <?php esc_html_e( 'Browser:', 'wppp-plugin' ); ?> <?php echo esc_html($user_agent); ?></p>
                 </div>
                 <div class="footer">
-                    <p><?php printf( esc_html__( 'Sent via %1$s on %2$s', 'wppp-plugin' ), esc_html(WPPP_PLUGIN_NAME), esc_html(date_i18n(get_option('date_format') . ' ' . get_option('time_format')))); ?></p>
+                    <p><?php printf( esc_html__( 'Sent via %1$s on %2$s', 'wppp-plugin' ), esc_html(LSPA_PLUGIN_NAME), esc_html(date_i18n(get_option('date_format') . ' ' . get_option('time_format')))); ?></p>
                 </div>
             </div>
         </body>

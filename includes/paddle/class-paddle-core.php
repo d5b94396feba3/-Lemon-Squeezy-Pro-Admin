@@ -1,7 +1,7 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
-class WPPP_Plugin_Paddle_Core {
+class LSPA_Plugin_Paddle_Core {
 
     private $plugin_slug;
 
@@ -58,11 +58,11 @@ class WPPP_Plugin_Paddle_Core {
         
         if (!$user_id) return;
     
-        if (!class_exists('WPPP_Plugin_DB_Manager')) {
-            require_once WPPP_PLUGIN_PATH . 'includes/db/class-db-manager.php';
+        if (!class_exists('LSPA_Plugin_DB_Manager')) {
+            require_once LSPA_PLUGIN_PATH . 'includes/db/class-db-manager.php';
         }
         
-        $db = new WPPP_Plugin_DB_Manager($this->plugin_slug);
+        $db = new LSPA_Plugin_DB_Manager($this->plugin_slug);
     
         // IDEMPOTENCY CHECK
         if ($db->transaction_exists($tx_id)) {

@@ -1,7 +1,7 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
-class WPPP_Plugin_Main {
+class LSPA_Plugin_Main {
     protected $loader;
     protected $plugin_name;
     protected $plugin_slug; 
@@ -12,14 +12,19 @@ class WPPP_Plugin_Main {
         $this->plugin_slug = $plugin_slug;
         $this->version     = $version;
 
-        $this->loader = new WPPP_Plugin_Loader();
+        $this->loader = new LSPA_Plugin_Loader();
         $this->define_hooks();
     }
 
     private function define_hooks() {
+
+
+        $license_api = new LSPA_License_API($this->plugin_slug);
+        $this->loader->add_action('rest_api_init', $license_api, 'register_routes');
+        
         // Admin Logic
         if (is_admin()) {
-            $admin = new WPPP_Plugin_Admin($this->plugin_slug, $this->version);
+            $admin = new LSPA_Plugin_Admin($this->plugin_slug, $this->version);
             
             $this->loader->add_action('admin_menu', $admin, 'add_admin_menu');
             $this->loader->add_action('admin_init', $admin, 'register_settings');
@@ -27,11 +32,11 @@ class WPPP_Plugin_Main {
             $this->loader->add_action('admin_enqueue_scripts', $admin, 'enqueue_scripts');
             // AJAX Actions
             $this->loader->add_action('wp_ajax_get_transaction_details', $admin, 'handle_get_tx_details_ajax');
-            $this->loader->add_action('wp_ajax_wppp_test_connection', $admin, 'handle_test_connection_ajax');
+            $this->loader->add_action('wp_ajax_lspa_test_connection', $admin, 'handle_test_connection_ajax');
         }
 
         // Public Logica
-        $public = new WPPP_Plugin_Public($this->plugin_slug, $this->version);
+        $public = new LSPA_Plugin_Public($this->plugin_slug, $this->version);
         $this->loader->add_action('wp_enqueue_scripts', $public, 'enqueue_styles');
         $this->loader->add_action('wp_enqueue_scripts', $public, 'enqueue_scripts');
         
@@ -39,7 +44,7 @@ class WPPP_Plugin_Main {
         $this->loader->add_action('init', $public, 'handle_secure_download');
         
         // Paddle Webhook Listener (REST API)
-        $paddle_core = new WPPP_Plugin_Paddle_Core($this->plugin_slug);
+        $paddle_core = new LSPA_Plugin_Paddle_Core($this->plugin_slug);
         $this->loader->add_action('rest_api_init', $paddle_core, 'register_webhook_route');
 
         // Shortcodes

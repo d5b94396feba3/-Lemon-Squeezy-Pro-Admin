@@ -1,7 +1,7 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
-class WPPP_Plugin_Uninstaller {
+class LSPA_Plugin_Uninstaller {
     
     /**
      * Complete removal when plugin is deleted from the WP Dashboard
@@ -53,7 +53,7 @@ class WPPP_Plugin_Uninstaller {
         
         // Activation flags
         delete_option( $plugin_slug . '_activated' );
-        delete_option( 'wppp_paddle_sandbox' );
+        delete_option( 'lspa_paddle_sandbox' );
     }
 
     /**

@@ -2,7 +2,7 @@
 defined( 'ABSPATH' ) || exit;
 
 // Initialize DB Manager
-$db = new WPPP_Plugin_DB_Manager($this->plugin_slug);
+$db = new LSPA_Plugin_DB_Manager($this->plugin_slug);
 $transactions = $db->get_all_transactions(100); 
 $stats        = $db->get_payment_stats();
 
@@ -15,7 +15,7 @@ $env        = get_option('paddle_environment', 'sandbox');
 <div class="wrap">
     <h1 class="wp-heading-inline">
         <i class="dashicons dashicons-cart" style="color: #2271b1; margin-right: 10px;"></i>
-        <?php echo esc_html(WPPP_PLUGIN_NAME); ?> <?php esc_html_e( 'Financial Overview', 'wp-paddle-pro' ); ?>
+        <?php echo esc_html(LSPA_PLUGIN_NAME); ?> <?php esc_html_e( 'Financial Overview', 'wp-paddle-pro' ); ?>
     </h1>
     <hr class="wp-header-end">
 

@@ -3,7 +3,7 @@ defined( 'ABSPATH' ) || exit;
 
 // Fetch settings variables (Same as chat template)
 $logo_id       = get_option('ai_agent_logo_id');
-$logo_url      = $logo_id ? wp_get_attachment_url($logo_id) : WPPP_PLUGIN_URL . 'assets/images/default-avater.svg';
+$logo_url      = $logo_id ? wp_get_attachment_url($logo_id) : LSPA_PLUGIN_URL . 'assets/images/default-avater.svg';
 $display_name  = get_option('ai_agent_display_name', __( 'AI Assistant', 'wppp-plugin' ) );
 $welcome_msg   = get_option('ai_agent_welcome_msg', __( "Hi there! I'm your friendly AI Assistant.\nHow can I help you today?", 'wppp-plugin' ) );
 $placeholder   = get_option('ai_agent_placeholder', __( 'Type a message...', 'wppp-plugin' ) );

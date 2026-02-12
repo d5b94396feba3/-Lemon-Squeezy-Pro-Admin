@@ -3,12 +3,12 @@
     <h1><?php esc_html_e( 'Digital Products Mapping', 'wp-paddle-pro' ); ?></h1>
     <?php 
 // Display all registered notices
-settings_errors( 'wppp_messages' ); 
+settings_errors( 'lspa_messages' ); 
 ?>
     <div class="card" style="max-width: 100%; margin-top: 20px;">
         <h2><?php esc_html_e( 'Add New Product', 'wp-paddle-pro' ); ?></h2>
         <form method="post" action="" enctype="multipart/form-data">
-            <?php wp_nonce_field('wppp_add_product_action'); ?>
+            <?php wp_nonce_field('lspa_add_product_action'); ?>
             <table class="form-table">
                 <tr>
                     <th><label><?php esc_html_e( 'Paddle Price ID', 'wp-paddle-pro' ); ?></label></th>
@@ -21,14 +21,14 @@ settings_errors( 'wppp_messages' );
                 <tr>
                     <th><label><?php esc_html_e( 'Secure File Upload', 'wp-paddle-pro' ); ?></label></th>
                     <td>
-                        <input type="file" name="product_file" id="wppp_product_file" class="regular-text">
+                        <input type="file" name="product_file" id="lspa_product_file" class="regular-text">
                         <p class="description"><?php _e('File will be stored in the protected uploads folder.', 'wp-paddle-pro'); ?></p>
                         <div style="margin: 10px 0;"><strong>OR</strong></div>
                         <input type="text" name="file_url" class="regular-text" placeholder="<?php _e('Manual Server Path', 'wp-paddle-pro'); ?>">
                     </td>
                 </tr>
             </table>
-            <input type="submit" name="wppp_add_product" class="button button-primary" value="Save Product">
+            <input type="submit" name="lspa_add_product" class="button button-primary" value="Save Product">
         </form>
     </div>
 

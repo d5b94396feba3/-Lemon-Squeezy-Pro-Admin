@@ -1,7 +1,7 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
-class WPPP_Plugin_Public {
+class LSPA_Plugin_Public {
     private $plugin_slug;
     private $version;
 
@@ -17,14 +17,14 @@ class WPPP_Plugin_Public {
         // Load our public CSS
         wp_enqueue_style( 
             $this->plugin_slug . '-public', 
-            WPPP_PLUGIN_URL . 'assets/css/public/customer-dashboard.css', 
+            LSPA_PLUGIN_URL . 'assets/css/public/customer-dashboard.css', 
             array(), 
             $this->version, 
             'all' 
         );
         wp_enqueue_style( 
             $this->plugin_slug . '-order-summary', 
-            WPPP_PLUGIN_URL . 'assets/css/public/customer-order-summary.css', 
+            LSPA_PLUGIN_URL . 'assets/css/public/customer-order-summary.css', 
             array(), 
             $this->version, 
             'all' 
@@ -38,9 +38,9 @@ class WPPP_Plugin_Public {
 
         wp_enqueue_script( 'paddle-js', 'https://cdn.paddle.com/paddle/v2/paddle.js', array(), null, true );
 
-        wp_enqueue_script( $this->plugin_slug . '-checkout', WPPP_PLUGIN_URL . 'assets/js/public/checkout.js', array('jquery', 'paddle-js'), $this->version, true );
+        wp_enqueue_script( $this->plugin_slug . '-checkout', LSPA_PLUGIN_URL . 'assets/js/public/checkout.js', array('jquery', 'paddle-js'), $this->version, true );
 
-        wp_localize_script( $this->plugin_slug . '-checkout', 'wppp_vars', array(
+        wp_localize_script( $this->plugin_slug . '-checkout', 'lspa_vars', array(
             'token'       => esc_js($client_token),
             'environment' => ($environment === 'live') ? 'production' : 'sandbox',
             'user_id'     => get_current_user_id(),
@@ -132,7 +132,7 @@ class WPPP_Plugin_Public {
             return wp_kses( $container_start . $message . $container_end, $allowed_html );
         }
         
-        $db      = new WPPP_Plugin_DB_Manager( $this->plugin_slug );
+        $db      = new LSPA_Plugin_DB_Manager( $this->plugin_slug );
         $user_id = get_current_user_id();
 
         if ( ! $db->is_transaction_valid_for_user( $tx_id, $user_id ) ) {
@@ -145,8 +145,8 @@ class WPPP_Plugin_Public {
         }
 
         // 4. Retrieve myCred Data
-        if ( file_exists( WPPP_PLUGIN_PATH . 'includes/mycred/class-mycred-handler.php' ) ) {
-            require_once WPPP_PLUGIN_PATH . 'includes/mycred/class-mycred-handler.php';
+        if ( file_exists( LSPA_PLUGIN_PATH . 'includes/mycred/class-mycred-handler.php' ) ) {
+            require_once LSPA_PLUGIN_PATH . 'includes/mycred/class-mycred-handler.php';
             $mycred      = new \PaddleToMycred\Mycred_Handler();
             $mycred_data = $mycred->mycred_balance_with_rank();
         } else {
@@ -154,7 +154,7 @@ class WPPP_Plugin_Public {
         }
 
         // 5. Render Template
-        $template_path = WPPP_PLUGIN_PATH . 'public/partials/order-summary-template.php';
+        $template_path = LSPA_PLUGIN_PATH . 'public/partials/order-summary-template.php';
         
         ob_start();
         echo $container_start;
@@ -174,14 +174,14 @@ class WPPP_Plugin_Public {
     }
 
     public function handle_secure_download() {
-        if ( ! isset($_GET['wppp_download']) || ! is_user_logged_in() ) return;
+        if ( ! isset($_GET['lspa_download']) || ! is_user_logged_in() ) return;
 
         // Security: Check nonce if you add one to the download link
-        $product_id = absint($_GET['wppp_download']);
+        $product_id = absint($_GET['lspa_download']);
         $user_id    = get_current_user_id();
 
-        require_once WPPP_PLUGIN_PATH . 'includes/db/class-db-manager.php';
-        $db = new WPPP_Plugin_DB_Manager($this->plugin_slug);
+        require_once LSPA_PLUGIN_PATH . 'includes/db/class-db-manager.php';
+        $db = new LSPA_Plugin_DB_Manager($this->plugin_slug);
 
         if ( ! $db->user_has_purchased_product($user_id, $product_id) ) {
             wp_die( esc_html__('Access Denied. You have not purchased this product.', 'wp-paddle-pro'), '', array('response' => 403));
@@ -244,17 +244,17 @@ class WPPP_Plugin_Public {
         }
 
         // Initialize DB
-        if ( ! class_exists( 'WPPP_Plugin_DB_Manager' ) ) {
-            require_once WPPP_PLUGIN_PATH . 'includes/db/class-db-manager.php';
+        if ( ! class_exists( 'LSPA_Plugin_DB_Manager' ) ) {
+            require_once LSPA_PLUGIN_PATH . 'includes/db/class-db-manager.php';
         }
         
-        $db = new WPPP_Plugin_DB_Manager( $this->plugin_slug );
+        $db = new LSPA_Plugin_DB_Manager( $this->plugin_slug );
         $downloads = $db->get_user_purchased_products( get_current_user_id() );
 
         // 2. Load the template safely via Output Buffering
         ob_start();
         
-        $template_path = WPPP_PLUGIN_PATH . 'public/partials/customer-dashboard-template.php';
+        $template_path = LSPA_PLUGIN_PATH . 'public/partials/customer-dashboard-template.php';
         
         if ( file_exists( $template_path ) ) {
             include $template_path;

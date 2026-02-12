@@ -21,7 +21,7 @@ defined( 'ABSPATH' ) || exit;
                 ?>
                 <div id="logo-preview-wrap" style="margin-bottom: 12px;">
                 <img id="ai_agent_logo_preview" 
-                    src="<?php echo $logo_url ? esc_url($logo_url) : esc_url( WPPP_PLUGIN_URL . 'assets/images/default-avater.svg' ); ?>" 
+                    src="<?php echo $logo_url ? esc_url($logo_url) : esc_url( LSPA_PLUGIN_URL . 'assets/images/default-avater.svg' ); ?>" 
                     style="max-width: 80px; height: 80px; object-fit: cover; border-radius: 50%; border: 2px solid #f3f4f6; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
                     alt="<?php esc_attr_e( 'AI Avatar Preview', 'wppp-plugin' ); ?>">
                 </div>

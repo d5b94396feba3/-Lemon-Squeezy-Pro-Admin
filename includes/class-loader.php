@@ -1,7 +1,7 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
-class WPPP_Plugin_Loader {
+class LSPA_Plugin_Loader {
     protected $actions = [];
     protected $filters = [];
     protected $shortcodes = [];

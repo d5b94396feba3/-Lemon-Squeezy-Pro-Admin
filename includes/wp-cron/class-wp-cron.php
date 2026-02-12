@@ -1,9 +1,9 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
-class WPPP_Plugin_WP_Cron {
+class LSPA_Plugin_WP_Cron {
 
-    const HOOK = 'wppp_daily_sync_event';
+    const HOOK = 'lspa_daily_sync_event';
     private $plugin_slug;
 
     public function __construct( $plugin_slug ) {
@@ -25,8 +25,8 @@ class WPPP_Plugin_WP_Cron {
 
         @set_time_limit( 300 );
 
-        $scraper = new WPPP_Plugin_SimpleHTMLDOM();
-        $db      = new WPPP_Plugin_DB_Manager( $this->plugin_slug );
+        $scraper = new LSPA_Plugin_SimpleHTMLDOM();
+        $db      = new LSPA_Plugin_DB_Manager( $this->plugin_slug );
     
         $scraped_pages = $scraper->sync_website_content();
     

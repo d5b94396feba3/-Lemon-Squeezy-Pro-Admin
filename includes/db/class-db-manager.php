@@ -1,7 +1,7 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
-class WPPP_Plugin_DB_Manager {
+class LSPA_Plugin_DB_Manager {
     private $plugin_slug;
     protected $wpdb;
     protected $table_transactions;
@@ -14,9 +14,11 @@ class WPPP_Plugin_DB_Manager {
         $this->wpdb = $wpdb;
 
         $clean_slug = str_replace('-', '_', sanitize_key($plugin_slug));
+
         $this->table_transactions     = $wpdb->prefix . $clean_slug . '_transactions';
         $this->table_subscriptions    = $wpdb->prefix . $clean_slug . '_subscriptions';
         $this->table_digital_products = $wpdb->prefix . $clean_slug . '_digital_products';
+        $this->table_licenses         = $wpdb->prefix . $clean_slug . '_licenses';
     }
 
     public function log_transaction($user_id, $order_id, $price_id, $amount, $currency, $status) {
@@ -130,6 +132,7 @@ class WPPP_Plugin_DB_Manager {
         $table_tx   = $wpdb->prefix . $clean_slug . '_transactions';
         $table_subs = $wpdb->prefix . $clean_slug . '_subscriptions';
         $table_dp   = $wpdb->prefix . $clean_slug . '_digital_products';
+        $table_licenses = $wpdb->prefix . $clean_slug . '_licenses';
         $charset_collate = $wpdb->get_charset_collate();
 
         $sql_tx = "CREATE TABLE $table_tx (
@@ -170,9 +173,88 @@ class WPPP_Plugin_DB_Manager {
             UNIQUE KEY paddle_price_id (paddle_price_id)
         ) $charset_collate;";
 
+        $sql_licenses = "CREATE TABLE $table_licenses (
+            id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+            license_key varchar(100) NOT NULL,
+            item_name varchar(255) NOT NULL,
+            license_package varchar(50) DEFAULT 'basic' NOT NULL,
+            allowed_domains int(11) DEFAULT 1 NOT NULL,
+            user_id bigint(20) unsigned NOT NULL,
+            activated_domains text DEFAULT NULL,
+            status varchar(20) DEFAULT 'active' NOT NULL,
+            created_at datetime NOT NULL,
+            PRIMARY KEY  (id),
+            UNIQUE KEY license_key (license_key),
+            KEY item_name (item_name)
+        ) $charset_collate;";
+
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
         dbDelta($sql_tx);
         dbDelta($sql_subs);
         dbDelta($sql_dp);
+        dbDelta($sql_licenses);
     }
+
+    /**
+     * Enhanced Validation Logic
+     * Checks if the site is already registered or if the limit is reached.
+     */
+    public function validate_license($key, $item_name, $current_domain) {
+        $license = $this->wpdb->get_row($this->wpdb->prepare(
+            "SELECT * FROM {$this->table_licenses} WHERE license_key = %s AND item_name = %s",
+            sanitize_text_field($key),
+            sanitize_text_field($item_name)
+        ));
+
+        if (!$license || $license->status !== 'active') {
+            return false;
+        }
+
+        // Handle multiple domains stored as a serialized array or comma-separated list
+        $activated_domains = !empty($license->activated_domains) ? explode(',', $license->activated_domains) : array();
+        $activated_domains = array_map('trim', $activated_domains);
+
+        // 1. If this domain is already activated, it's valid.
+        if (in_array($current_domain, $activated_domains)) {
+            return true;
+        }
+
+        // 2. If not activated, check if we have room for another domain
+        if (count($activated_domains) < (int) $license->allowed_domains) {
+            $activated_domains[] = $current_domain;
+            $new_list = implode(',', $activated_domains);
+
+            $this->wpdb->update(
+                $this->table_licenses,
+                array('activated_domains' => $new_list),
+                array('id' => $license->id)
+            );
+            return true;
+        }
+
+        return false; // Limit reached
+    }
+
+    /**
+     * Helper to count currently activated domains
+     */
+    public function get_active_domain_count($license_data) {
+        if (empty($license_data->activated_domains)) {
+            return 0;
+        }
+        $domains = explode(',', $license_data->activated_domains);
+        return count(array_filter(array_map('trim', $domains)));
+    }
+
+    /**
+     * Get License details securely
+     */
+    public function get_license_details($key, $item_name) {
+        return $this->wpdb->get_row($this->wpdb->prepare(
+            "SELECT * FROM {$this->table_licenses} WHERE license_key = %s AND item_name = %s LIMIT 1",
+            $key,
+            $item_name
+        ));
+    }
+    
 }
