@@ -1,14 +1,14 @@
 <?php
 /**
- * Plugin Name: WP Paddle Pro
+ * Plugin Name: Lemon Squeezy Pro Admin
  * Plugin URI:  https://example.com/
- * Description: WP Paddle Pro
+ * Description: Lemon Squeezy Pro Admin
  * Version:     1.3.0
  * Author:      Shahibur Rahman
  * Author URI:  https://example.com/
  * License:     GPL-2.0+
  * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
- * Text Domain: wp-paddle-pro
+ * Text Domain: Lemon-Squeezy-Pro-Admin
  * Domain Path: /languages
  */
 

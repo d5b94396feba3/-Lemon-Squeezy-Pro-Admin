@@ -8,8 +8,8 @@ defined( 'ABSPATH' ) || exit;
 ?>
 
 <div class="paddle-upgrade-success">
-    <h2 class="paddle-success-header">
-        <?php esc_html_e( 'Order Confirmed!', 'wp-paddle-pro' ); ?>
+    <h2 class="paddle-success-header" style="color: #000 !important;">
+        <?php esc_html_e( 'Payment Successful!', 'wp-paddle-pro' ); ?>
     </h2>
     
     <div class="paddle-success-icon">

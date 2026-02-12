@@ -22,6 +22,13 @@ class WPPP_Plugin_Public {
             $this->version, 
             'all' 
         );
+        wp_enqueue_style( 
+            $this->plugin_slug . '-order-summary', 
+            WPPP_PLUGIN_URL . 'assets/css/public/customer-order-summary.css', 
+            array(), 
+            $this->version, 
+            'all' 
+        );
     }
 
     public function enqueue_scripts() {
@@ -80,46 +87,64 @@ class WPPP_Plugin_Public {
         return ob_get_clean();
     }
 
-    /**
-     * Renders the order summary shortcode.
-     * Securely verifies transaction and retrieves myCred data for the template.
-     */
     public function render_order_summary($atts) {
-        // 1. Get and sanitize the transaction ID from the URL
+        // 1. Get and sanitize input
         $tx_id = isset($_GET['paddle_transaction_id']) ? sanitize_text_field($_GET['paddle_transaction_id']) : '';
-        
+                
+        // Define My Account URL dynamically
+        $my_account_url = function_exists( 'wc_get_page_permalink' )
+                        ? wc_get_page_permalink( 'myaccount' ) 
+                        : home_url( '/my-account/' );
+
+        // Define allowed HTML for security (wp_kses)
+        $allowed_html = array(
+            'div' => array('class' => array()),
+            'a'   => array('href' => array(), 'class' => array()),
+            'i'   => array('class' => array(), 'aria-hidden' => array()),
+        );
+
+        $container_start = '<div class="wppp-summary-container">';
+        $container_end   = '</div>';
+
         // 2. Check if user is logged in
         if ( ! is_user_logged_in() ) {
-            return sprintf( 
-                '<p class="wppp-error">%s</p>', 
-                esc_html__( 'Please login to view your order summary.', 'wp-paddle-pro' ) 
+            $message = sprintf( 
+                '<div class="wppp-status-box wppp-status-error">
+                    <i class="fas fa-user-lock mr-2" aria-hidden="true"></i> %s 
+                    <a href="%s" class="ml-2 underline font-bold">%s</a>
+                </div>', 
+                esc_html__( 'Please login to view your order summary.', 'wp-paddle-pro' ),
+                esc_url( $my_account_url ),
+                esc_html__( 'Login to My Account', 'wp-paddle-pro' )
             );
+
+            return wp_kses( $container_start . $message . $container_end, $allowed_html );
         }
 
+        // 3. Check for Transaction ID
         if ( ! $tx_id ) {
-            return sprintf( 
-                '<p class="wppp-error">%s</p>', 
+            $message = sprintf( 
+                '<div class="wppp-status-box wppp-status-error">
+                    <i class="fas fa-exclamation-circle mr-2" aria-hidden="true"></i> %s
+                </div>', 
                 esc_html__( 'No transaction ID provided.', 'wp-paddle-pro' ) 
             );
-        }
-
-        // 3. Initialize DB Manager and verify ownership
-        if ( ! class_exists( 'WPPP_Plugin_DB_Manager' ) ) {
-            require_once WPPP_PLUGIN_PATH . 'includes/db/class-db-manager.php';
+            return wp_kses( $container_start . $message . $container_end, $allowed_html );
         }
         
         $db      = new WPPP_Plugin_DB_Manager( $this->plugin_slug );
         $user_id = get_current_user_id();
 
-        // Verify the transaction exists for THIS user in our DB
         if ( ! $db->is_transaction_valid_for_user( $tx_id, $user_id ) ) {
-            return sprintf( 
-                '<p class="wppp-error">%s</p>', 
+            return $container_start . sprintf( 
+                '<div class="wppp-status-box wppp-status-error">
+                    <i class="fas fa-times-circle mr-2"></i> %s
+                </div>', 
                 esc_html__( 'Invalid transaction or transaction not found.', 'wp-paddle-pro' ) 
-            );
+            ) . $container_end;
         }
 
-        // 4. Retrieve myCred Data (Kept as requested)
+        // 4. Retrieve myCred Data
         if ( file_exists( WPPP_PLUGIN_PATH . 'includes/mycred/class-mycred-handler.php' ) ) {
             require_once WPPP_PLUGIN_PATH . 'includes/mycred/class-mycred-handler.php';
             $mycred      = new \PaddleToMycred\Mycred_Handler();
@@ -128,20 +153,22 @@ class WPPP_Plugin_Public {
             $mycred_data = array( 'balance' => 0, 'rank_name' => '' );
         }
 
-        // 5. Render the summary template safely
+        // 5. Render Template
         $template_path = WPPP_PLUGIN_PATH . 'public/partials/order-summary-template.php';
         
         ob_start();
-        
+        echo $container_start;
         if ( file_exists( $template_path ) ) {
-            // Variables $mycred_data and $tx_id are now available to the included template
             include $template_path;
         } else {
             printf( 
-                '<p class="wppp-success">%s</p>', 
+                '<div class="wppp-status-box wppp-status-success">
+                    <i class="fas fa-check-circle mr-2"></i> %s
+                </div>', 
                 esc_html__( 'Thank you! Your order is complete.', 'wp-paddle-pro' ) 
             );
         }
+        echo $container_end;
         
         return ob_get_clean();
     }
@@ -195,23 +222,51 @@ class WPPP_Plugin_Public {
      * Usage: [paddle_dashboard]
      */
     public function render_customer_dashboard() {
+        
         if ( ! is_user_logged_in() ) {
-            return '<p>' . esc_html__( 'Please login to view your downloads.', 'wp-paddle-pro' ) . '</p>';
+            // Use wc_get_page_permalink to ensure they go to the WooCommerce My Account page
+            $my_account_url = function_exists( 'wc_get_page_permalink' ) 
+                ? wc_get_page_permalink( 'myaccount' ) 
+                : home_url( '/my-account/' );
+    
+            return sprintf(
+                '<div class="wppp-customer-dashboard wppp-no-purchases">
+                    <div class="wppp-empty-icon"><span class="dashicons dashicons-lock"></span></div>
+                    <p class="wppp-dashboard-subtitle">%s</p>
+                    <div style="margin-top: 20px;">
+                        <a href="%s" class="wppp-button">%s</a>
+                    </div>
+                </div>',
+                esc_html__( 'Please login to view and access your purchased downloads.', 'wp-paddle-pro' ),
+                esc_url( $my_account_url ),
+                esc_html__( 'Login to Account', 'wp-paddle-pro' )
+            );
         }
 
+        // Initialize DB
+        if ( ! class_exists( 'WPPP_Plugin_DB_Manager' ) ) {
+            require_once WPPP_PLUGIN_PATH . 'includes/db/class-db-manager.php';
+        }
+        
         $db = new WPPP_Plugin_DB_Manager( $this->plugin_slug );
         $downloads = $db->get_user_purchased_products( get_current_user_id() );
 
-        // 2. Load the template safely
+        // 2. Load the template safely via Output Buffering
         ob_start();
+        
         $template_path = WPPP_PLUGIN_PATH . 'public/partials/customer-dashboard-template.php';
         
         if ( file_exists( $template_path ) ) {
-            // The variable $downloads is now available inside the template
             include $template_path;
         } else {
+            // Fallback inside the buffer if template is missing
             error_log( "WPPP Error: Dashboard template not found at $template_path" );
-            echo '<p>' . esc_html__( 'Dashboard UI could not be loaded.', 'wp-paddle-pro' ) . '</p>';
+            printf(
+                '<div class="wppp-customer-dashboard">
+                    <p>%s</p>
+                </div>',
+                esc_html__( 'Dashboard UI could not be loaded. Please contact support.', 'wp-paddle-pro' )
+            );
         }
 
         return ob_get_clean();
